@@ -1,42 +1,28 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #dddddd;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.App {
+    display: flex; /* סידור האלמנטים בצד אחד של השני */
+    height: 100vh; /* גובה מלא של הדף */
   }
-  to {
-    transform: rotate(360deg);
+  
+  .sidebar {
+    width: 4.5rem; /* רוחב ה-sidebar */
+    background-color: #f8f9fa; /* רקע אופציונלי */
   }
-}
+  
+  .content {
+    flex: 1; /* תופס את שארית הרוחב */
+    padding: 10rem; /* מרווח פנימי */
+    background-color: #f0f0f0; /* רקע אפור אופציונלי */
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    display: flex;
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+
   }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}

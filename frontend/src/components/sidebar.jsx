@@ -3,44 +3,41 @@ import { Link } from 'react-router-dom';
 import './sidebar.css';
 const Sidebar = () => {
   return (
-    <div className="sidebar-wrapper"> 
-      <aside id="sidebar">
-        <div className="d-flex">
-          <button id='toggle-btn' type='button'>
-            <i class="bi bi-list"></i>
-          </button>
-          <div className="sidebar-logo">
-            <a href="#">HubConductor</a>
-          </div>
-        </div>
-        <ul className='sidebar-nav'>
-          <li className='sidebar-item'>
-            <a href="#" className='sidebar-link'>
-              <i class="bi bi-speedometer2"></i>
-              <span>Dashboard</span>
-            </a>
-          </li>
-          <li className='sidebar-item'>
-            <a href="#" className='sidebar-link'>
-              <i class="bi bi-person-lines-fill"></i>
-              <span>Contacts</span>
-            </a>
-          </li>
-        </ul>
-        <div className="btn-group dropup">
-          
-          <i className="bi bi-person-circle dropdown-toggle" data-bs-toggle="dropdown" ria-expanded="false"></i>
-          <ul className="dropdown-menu">
-            <li> <a href="#" className='dropdown-item'>Action</a></li>
-            <li> <a href="#" className='dropdown-item'>Another action</a></li>
-            <li> <a href="#" className='dropdown-item'>Something else here</a></li>
-            <li><hr class="dropdown-divider" /></li>
-            <li> <a href="#" className='dropdown-item'>Separated link</a></li>
-          </ul>
-        </div>  
-  
-      </aside>
+    <div className='wrapper'>
+    <div className="d-flex flex-column flex-shrink-0 bg-body-tertiary" style={{width: '4.5rem'}}>
+      <a href="/" className="d-block p-3 link-body-emphasis text-decoration-none text-center" data-bs-toggle="tooltip" data-bs-placement="right" title="Icon-only">
+      <i class="bi bi-cpu" style={{fontSize: '1.5rem'}}></i>
+      <span className="visually-hidden">Icon-only</span>
+      </a>      
+      <ul className="nav nav-pills nav-flush flex-column mb-auto text-center">
+      <li className="nav-item">
+        <a href="/" className="nav-link py-3 border-bottom rounded-0" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="Home" title="Home">
+          <i className="bi bi-house-door"></i>
+        </a>
+      </li>
+      <li className="nav-item">
+        <a href="/dashboard" className="nav-link py-3 border-bottom rounded-0" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="Dashboard" title="Dashboard">
+          <i className="bi bi-speedometer2"></i>
+        </a>
+      </li>
+      <li className="nav-item">
+        <a href="/rfqs" className="nav-link py-3 border-bottom rounded-0" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="Rfqs" data-bs-original-title="Rfqs">
+          <i className="bi bi-file-earmark-text"></i>
+        </a>
+      </li>
+      <li className="nav-item">
+        <a href="/contacts" className="nav-link py-3 border-bottom rounded-0" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="Contacts" data-bs-original-title="Contacts">
+          <i className="bi bi-person"></i>
+        </a>
+      </li>
+      <li className="nav-item">
+        <a href="/inventory" className="nav-link py-3 border-bottom rounded-0" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="Companies" data-bs-original-title="Companies">
+          <i className="bi bi-building"></i>
+        </a>
+      </li>
 
+    </ul>
+    </div>
     </div>
   );
 };

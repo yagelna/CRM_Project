@@ -6,6 +6,8 @@ import Contacts from './pages/contacts';
 import Companies from './pages/companies';
 import Inventory from './pages/inventory';
 import Rfqs from './pages/rfqs';
+import Dashboard from './pages/dashboard';
+import Home from './pages/home';
 
 function App() {
   return (
@@ -13,13 +15,14 @@ function App() {
       <div className="App">
         <Sidebar />
         <div className="content">
-
+          <Routes></Routes>
           <Routes>
             <Route path="/rfqs" element={<Rfqs />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/companies" element={<Companies />} />
             <Route path="/inventory" element={<Inventory />} />
-            <Route path="/" element={<h1>Dashboard</h1>} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Home />} /> 
           </Routes>
         </div>  
       </div>
