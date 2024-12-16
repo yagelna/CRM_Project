@@ -2,7 +2,7 @@ import React from "react";
 
 const Modal = ({id, title, children}) => {
     return (
-        <div className="modal fade" id={id} data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby={`${id}Label`} aria-hidden="true">
+        <div className="modal fade" id={id} data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby={`${id}Label`} aria-hidden="true">
             <div className="modal-dialog">
                 <div className="modal-content">
                     <div className="modal-header">
