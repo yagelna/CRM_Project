@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import AddRfqModal from '../components/rfqs/AddRfqModal';
+import UploadBulkModal from '../components/rfqs/UploadBulkModal';
+
 
 const Rfqs = () => {
     const [rfqs, setRfqs] = useState([]);
@@ -39,10 +41,12 @@ const Rfqs = () => {
     };
 
     return (
-        <div className='container mt-4'> 
+        <div className='container mt-4'>
             <h1>Rfqs</h1>
-            
-            <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRfqModal"> Add RFQ </button>
+            <div className="mb-3">
+                <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addRfqModal"> Add RFQ </button>
+                <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#UploadBulkModal"> Upload Bulk RFQs </button>
+            </div>
             <table className="table table-striped table-hover">
                 <thead>
                     <tr>
@@ -55,22 +59,22 @@ const Rfqs = () => {
                 </thead>
                 <tbody>
                     {rfqs.map((rfq) => (
-                        <tr key={rfq.id}>
+                        <tr key={rfq.id}>   
                             <td>{rfq.mpn}</td>
                             <td>{rfq.target_price}$</td>
                             <td>{rfq.qty_requested}</td>
                             <td>{rfq.manufacturer}</td>
                             <td>
-                            <i className="bi bi-pencil-square text-primary me-3 hover-effect" role="button" title="Edit" data-bs-toggle="modal" data-bs-target="#EditRfqModal" onClick={() => setSelectedRfq(rfq)}></i>
-                            <i className="bi bi-trash text-danger hover-effect" role="button" title="Delete" onClick={() => handleDelete(rfq.id)}></i>
+                                <i className="bi bi-pencil-square text-primary me-3 hover-effect" role="button" title="Edit" data-bs-toggle="modal" data-bs-target="#EditRfqModal" onClick={() => setSelectedRfq(rfq)}></i>
+                                <i className="bi bi-trash text-danger hover-effect" role="button" title="Delete" onClick={() => handleDelete(rfq.id)}></i>
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
             <AddRfqModal id="addRfqModal" mode="create" handleUpdateRfqs={handleUpdateRfqs}/>
-            <AddRfqModal id="EditRfqModal" mode="edit" rfqData={selectedRfq} handleUpdateRfqs = {handleUpdateRfqs}/>
-
+            <AddRfqModal id="EditRfqModal" mode="edit" rfqData={selectedRfq} handleUpdateRfqs={handleUpdateRfqs}/>
+            <UploadBulkModal id="UploadBulkModal"/>
         </div>
     );
 }

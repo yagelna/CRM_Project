@@ -10,11 +10,7 @@ const Sidebar = () => {
       <span className="visually-hidden">Icon-only</span>
       </a>      
       <ul className="nav nav-pills nav-flush flex-column mb-auto text-center">
-      <li className="nav-item">
-        <a href="/" className="nav-link py-3 border-bottom rounded-0" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="Home" title="Home">
-          <i className="bi bi-house-door"></i>
-        </a>
-      </li>
+
       <li className="nav-item">
         <a href="/dashboard" className="nav-link py-3 border-bottom rounded-0" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="Dashboard" title="Dashboard">
           <i className="bi bi-speedometer2"></i>
@@ -31,8 +27,13 @@ const Sidebar = () => {
         </a>
       </li>
       <li className="nav-item">
-        <a href="/inventory" className="nav-link py-3 border-bottom rounded-0" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="Companies" data-bs-original-title="Companies">
+        <a href="/companies" className="nav-link py-3 border-bottom rounded-0" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="Companies" title="Companies">
           <i className="bi bi-building"></i>
+        </a>
+      </li>
+      <li className="nav-item">
+        <a href="/inventory" className="nav-link py-3 border-bottom rounded-0" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="Companies" data-bs-original-title="Companies">
+          <i className="bi bi-archive"></i>
         </a>
       </li>
 

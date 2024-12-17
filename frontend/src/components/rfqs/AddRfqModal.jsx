@@ -3,7 +3,7 @@ import axios from 'axios';
 import Modal from '../modal/modal';
 
 const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
-        const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState({
         mpn: '',
         target_price: '',
         qty_requested: '',
