@@ -8,7 +8,7 @@ class Contact(models.Model):
     phone = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='contacts', blank=True, null=True)
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL, related_name='contacts', blank=True, null=True)
 
     def __str__(self):
         return f"{self.name} - {self.company}"

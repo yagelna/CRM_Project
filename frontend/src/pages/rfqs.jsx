@@ -8,15 +8,32 @@ const Rfqs = () => {
     const [rfqs, setRfqs] = useState([]);
     const [selectedRfq, setSelectedRfq] = useState(null);
 
-    // fetch rfqs from the backend
-    useEffect(() => { 
-        axios.get('http://localhost:8000/api/rfqs') 
+    // fetch rfqs from the backend function
+    const fetchRfqs = () => {
+        axios.get('http://localhost:8000/api/rfqs')
             .then((response) => {
                 setRfqs(response.data);
-                console.log(response.data);
             })
             .catch((error) => console.error('Error fetching rfqs: ' + error));
+    };
+    useEffect(() => {
+        fetchRfqs();
     }, []);
+
+    // open websocket connection
+    const ws = new WebSocket('ws://localhost:8000/ws/rfqs/');
+    ws.onopen = () => {
+        console.log('Websocket connected');
+    };
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("New data received via websocket: ", data);
+        fetchRfqs();
+    };
+
+    ws.onclose = () => {
+        console.log('WebSocket connection closed');
+    };
 
     // delete rfq by id
     const handleDelete = (id) => {

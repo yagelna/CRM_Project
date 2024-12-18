@@ -60,7 +60,7 @@ const Contacts = () => {
               <td>{contact.name}</td>
               <td>{contact.email}</td>
               <td>{contact.phone}</td>
-              <td>{contact.company}</td>
+              <td>{contact.company_name}</td>
               <td>
                 <i className="bi bi-pencil-square text-primary me-3 hover-effect" role="button" title="Edit" data-bs-toggle="modal" data-bs-target="#EditContactModal" onClick={() => setSelectedContact(contact)}></i>
                 <i className="bi bi-trash text-danger hover-effect" role="button" title="Delete" onClick={() => handleDelete(contact.id)}></i>

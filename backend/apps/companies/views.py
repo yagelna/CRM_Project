@@ -7,10 +7,10 @@ from rest_framework.decorators import api_view
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
-    
+
 @api_view(['GET'])
 def company_search(request):
     query = request.GET.get('q', '')
-    companies = Company.objects.filter(name__icontains=query)[:10]
+    companies = Company.objects.filter(name__icontains=query)
     serializer = CompanySerializer(companies, many=True)
     return Response(serializer.data)

@@ -10,8 +10,8 @@ class RFQ(models.Model):
     mpn = models.CharField(max_length=255)  # manufacturer part number
     target_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     manufacturer = models.CharField(max_length=255, blank=True, null=True)
-    customer = models.ForeignKey(Contact, on_delete=models.CASCADE, blank=True, null=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
+    customer = models.ForeignKey(Contact, on_delete=models.SET_NULL, blank=True, null=True)
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
     inventory_item = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True)
     qty_requested = models.IntegerField(blank=True, null=True)
     offered_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)

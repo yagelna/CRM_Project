@@ -25,8 +25,15 @@ SECRET_KEY = 'django-insecure-el6(4g9rpfm7_$)se7nh9k#j$6!^jwue4howrlgp9h4u#2)nmg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '.ngrok-free.app',
+]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://7e08-2a06-c701-7578-6900-6588-eb17-c846-f0d3.ngrok-free.app',
+]   
 
 # Application definition
 
@@ -43,7 +50,16 @@ INSTALLED_APPS = [
     'apps.companies',
     'apps.inventory',
     'rest_framework',
+    'channels',
 ]
+
+ASGI_APPLICATION = 'crm_project.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
