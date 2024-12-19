@@ -20,6 +20,7 @@ const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (mode === 'create') {
+            console.log("formData in create: ", formData);
             axios.post('http://localhost:8000/api/rfqs/', formData)
                 .then((response) => {
                     console.log("Rfq added successfully: ", response.data);
@@ -29,7 +30,9 @@ const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
                         target_price: '',
                         qty_requested: '',
                         manufacturer: '',
+                        source: 'private',
                     });
+                    console.log("formData after create: ", formData);
                 })
                 .catch((error) => console.error('Error adding rfq: ' + error));
             }
@@ -38,6 +41,13 @@ const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
                 .then((response) => {
                     console.log("Rfq updated successfully: ", response.data);
                     handleUpdateRfqs(response.data, 'edit');
+                    setFormData({
+                        mpn: '',
+                        target_price: '',
+                        qty_requested: '',
+                        manufacturer: '',
+                        source: 'private',
+                    });
                 })
                 .catch((error) => console.error('Error updating rfq: ' + error));
         }     
