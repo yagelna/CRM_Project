@@ -13,7 +13,6 @@ const Rfqs = () => {
     const [rfqs, setRfqs] = useState([]);
     const [selectedRfq, setSelectedRfq] = useState(null);
     const gridRef = useRef();
-
     const myTheme = themeQuartz
 	.withParams({
         browserColorScheme: "light",
@@ -22,19 +21,15 @@ const Rfqs = () => {
         headerFontWeight: 600
     });
 
-    const handleEdit = (rfq) => {
-        setSelectedRfq(rfq);
+    // delete rfq by id
+    const handleDelete = (id) => {
+        axios.delete(`http://localhost:8000/api/rfqs/${id}/`)    
+            .then((response) => {
+                setRfqs(rfqs.filter((rfq) => rfq.id !== id));
+                fetchRfqs();
+            })
+            .catch((error) => console.error('Error deleting rfq: ' + error));
     };
-
-        // delete rfq by id
-        const handleDelete = (id) => {
-            axios.delete(`http://localhost:8000/api/rfqs/${id}/`)    
-                .then((response) => {
-                    setRfqs(rfqs.filter((rfq) => rfq.id !== id));
-                    fetchRfqs();
-                })
-                .catch((error) => console.error('Error deleting rfq: ' + error));
-        };
 
     // Column Definitions: Defines & controls grid columns.
     const [colDefs, setColDefs] = useState([
@@ -48,7 +43,8 @@ const Rfqs = () => {
             cellRenderer: "actionCellRenderer",
             cellRendererParams: {
                 handleDelete: handleDelete,
-                handleEdit: handleEdit,
+                handleEdit: (rfq) => setSelectedRfq(rfq),
+                modalId: "EditRfqModal",
             },
         },
     ]);
@@ -116,10 +112,10 @@ const Rfqs = () => {
             </div>
             <div className="ag-theme-alpine" style={{ height: 600, width: '100%' }}>
                   <AgGridReact
-                    theme={myTheme}
                     ref={gridRef}
-                    rowData={rfqs}
                     columnDefs={colDefs}
+                    rowData={rfqs}
+                    theme={myTheme}
                     defaultColDef={{ flex: 1, filter: true}}
                     pagination={true}
                     paginationPageSize={20}

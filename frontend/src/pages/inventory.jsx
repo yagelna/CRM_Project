@@ -1,43 +1,87 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import AddInventoryModal from '../components/inventory/AddInventoryModal';
 import UploadBulkModal from '../components/inventory/UploadBulkModal';
+import { AgGridReact } from 'ag-grid-react';
+import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
+import ActionCellRenderer from '../components/ActionCellRenderer';
+
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 const Inventory = () => {
     const [inventory, setInventory] = useState([]);
     const [selectedItem, setSelectedItem] = useState(null);
-
-    // fetch inventory from the backend
-    useEffect(() => { 
-        axios.get('http://localhost:8000/api/inventory') 
-            .then((response) => {
-                setInventory(response.data);
-                console.log(response.data);
-            })
-            .catch((error) => console.error('Error fetching inventory: ' + error));
-    }, []);
+    const gridRef = useRef();
+    const myTheme = themeQuartz
+    .withParams({
+        browserColorScheme: "light",
+        headerBackgroundColor: "#CFDEEB",
+        headerFontSize: 14,
+        headerFontWeight: 600
+    });
 
     // delete inventory by id
     const handleDelete = (id) => {
-        if (window.confirm('Are you sure you want to delete this inventory?')) {
-            axios.delete(`http://localhost:8000/api/inventory/${id}/`)    
-                .then((response) => {
-                    setInventory(inventory.filter((inventory) => inventory.id !== id));
-                })
-                .catch((error) => console.error('Error deleting inventory: ' + error));
-            }
+        axios.delete(`http://localhost:8000/api/inventory/${id}/`)    
+            .then((response) => {
+                setInventory(inventory.filter((inventory) => inventory.id !== id));
+                fetchInventory();
+            })
+            .catch((error) => console.error('Error deleting inventory: ' + error)); 
     };
 
+    const [colDefs, setColDefs] = useState([
+        { field: "mpn", headerName: "MPN"},
+        { field: "manufacturer", headerName: "Manufacturer" },
+        { field: "quantity", headerName: "Quantity"},
+        { field: "date_code", headerName: "Date Code" },
+        { field: "supplier", headerName: "Supplier" },
+        { field: "location", headerName: "Location" },
+        { field: "cost", headerName: "Cost" },
+        {
+            field: "actions",
+            headerName: "Actions",
+            cellRenderer: "actionCellRenderer",
+            cellRendererParams: {
+                handleDelete: handleDelete,
+                handleEdit: (inventoryItem) => setSelectedItem(inventoryItem),
+                modalId: "EditInventoryModal",
+            },
+        },
+    ]);
+
+    // fetch inventory from the backend
+    const fetchInventory = () => {
+        axios.get('http://localhost:8000/api/inventory')
+            .then((response) => {
+                setInventory(response.data);
+            })
+            .catch((error) => console.error('Error fetching inventory: ' + error));
+    };
+
+    useEffect(() => { 
+        fetchInventory();
+    }, []);
+
+
     //update inventory state after adding or editing an inventory
-    const handleUpdateInventory = (updatedInventory, mode) => { 
+    const handleUpdateInventory = (updatedInventoryItem, mode) => { 
         if (mode === 'create') {
-            setInventory((prevInventory) => [...prevInventory, updatedInventory]);
+            setInventory((prevInventory) => [...prevInventory, updatedInventoryItem]);
         } else if (mode === 'edit') {
             setInventory((prevInventory) =>
-                prevInventory.map((inventory) => (inventory.id === updatedInventory.id ? updatedInventory : inventory))
+                prevInventory.map((inventory) => (inventory.id === updatedInventoryItem.id ? updatedInventoryItem : inventory))
             );
         }
     };
+
+    const onFilterTextBoxChanged = useCallback(() => {
+        gridRef.current.api.setGridOption(
+            "quickFilterText",
+            document.getElementById("filter-text-box").value,
+          );
+        }, []);
+    
 
     return (
         <div className='container mt-4'>
@@ -45,38 +89,25 @@ const Inventory = () => {
             <div className="mb-3">
                 <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addInventoryModal"> Add Item </button>
                 <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#UploadBulkModal"> Upload Bulk Inventory </button>
+                <span>Quick Filter:</span>
+                <input
+                    type="text"
+                    id="filter-text-box"
+                    placeholder="Filter..."
+                    onInput={onFilterTextBoxChanged}
+                />
             </div>
-            <table className="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>MPN</th>
-                        <th>Manufacturer</th>
-                        <th>Quantity</th>
-                        <th>Date Code</th>
-                        <th>Supplier</th>
-                        <th>Location</th>
-                        <th>Cost</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {inventory.map((item) => (
-                        <tr key={item.id}>
-                            <td>{item.mpn}</td>
-                            <td>{item.manufacturer}</td>
-                            <td>{item.quantity}</td>
-                            <td>{item.date_code}</td>
-                            <td>{item.supplier}</td>
-                            <td>{item.location}</td>
-                            <td>{item.cost}</td>
-                            <td>
-                                <i className="bi bi-pencil-square text-primary me-3 hover-effect" role="button" title="Edit" data-bs-toggle="modal" data-bs-target="#EditInventoryModal" onClick={() => setSelectedItem(item)}></i>
-                                <i className="bi bi-trash text-danger hover-effect" role="button" title="Delete" onClick={() => handleDelete(item.id)}></i>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
+                <AgGridReact
+                    ref={gridRef}
+                    columnDefs={colDefs}
+                    rowData={inventory}
+                    theme={myTheme}
+                    pagination={true}
+                    paginationPageSize={20}
+                    components={{ actionCellRenderer: ActionCellRenderer }}
+                />
+            </div>
             <AddInventoryModal id="addInventoryModal" mode="create" handleUpdateInventory={handleUpdateInventory}/>
             <AddInventoryModal id="EditInventoryModal" mode="edit" itemData={selectedItem} handleUpdateInventory={handleUpdateInventory}/>
             <UploadBulkModal id="UploadBulkModal"/>

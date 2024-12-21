@@ -4,7 +4,7 @@ import './sidebar.css';
 const Sidebar = () => {
   return (
     <div className='wrapper'>
-    <div className="d-flex flex-column flex-shrink-0 bg-body-tertiary" style={{width: '4.5rem'}}>
+    <div className="d-flex flex-column flex-shrink-0" style={{width: '4.5rem'}}>
       <a href="/" className="d-block p-3 link-body-emphasis text-decoration-none text-center" data-bs-toggle="tooltip" data-bs-placement="right" title="Icon-only">
       <i className="bi bi-cpu" style={{fontSize: '1.5rem'}}></i>
       <span className="visually-hidden">Icon-only</span>

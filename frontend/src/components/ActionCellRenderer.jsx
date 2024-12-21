@@ -1,9 +1,9 @@
 import React from "react";
 
-const ActionCellRenderer = ({ api, node, handleDelete, handleEdit}) => {
+const ActionCellRenderer = ({ api, node, handleDelete, handleEdit, modalId}) => {
 
     const Delete = () => {
-        if (window.confirm(`Are you sure you want to delete ${node.data.mpn}?`)) {
+        if (window.confirm(`Are you sure you want to delete this item?`)) {
             handleDelete(node.data.id);
         }
     };
@@ -12,9 +12,9 @@ const ActionCellRenderer = ({ api, node, handleDelete, handleEdit}) => {
         <div>
             <button
                 className="btn btn-primary btn-sm me-2"
-                onClick={() => handleEdit(node.data)} // קביעת הנתונים לעריכה
+                onClick={() => handleEdit(node.data)}
                 data-bs-toggle="modal" 
-                data-bs-target="#EditRfqModal" // מתייחס ל-id של המודל
+                data-bs-target={`#${modalId}`}
             >
                 Edit
             </button>
