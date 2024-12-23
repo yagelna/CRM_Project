@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'apps.inventory',
     'rest_framework',
     'channels',
+    'django_extensions',
 ]
 
 ASGI_APPLICATION = 'crm_project.asgi.application'
