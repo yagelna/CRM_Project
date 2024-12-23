@@ -5,6 +5,8 @@ import UploadBulkModal from '../components/rfqs/UploadBulkModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
 import ActionCellRenderer from '../components/ActionCellRenderer';
+import StatusCellRenderer from '../components/StatusCellRenderer';
+import EmailModal from '../components/rfqs/EmailModal';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -37,9 +39,15 @@ const Rfqs = () => {
         { field: "target_price", headerName: "Target Price" },
         { field: "qty_requested", headerName: "Quantity"},
         { field: "manufacturer", headerName: "Manufacturer" },
+        { 
+            field: "status",
+            headerName: "Status",
+            cellRenderer: "statusCellRenderer",
+        },
         {
             field: "actions",
             headerName: "Actions",
+            cellEditorPopup: "true",
             cellRenderer: "actionCellRenderer",
             cellRendererParams: {
                 handleDelete: handleDelete,
@@ -119,12 +127,13 @@ const Rfqs = () => {
                     defaultColDef={{ flex: 1, filter: true}}
                     pagination={true}
                     paginationPageSize={20}
-                    components={{ actionCellRenderer: ActionCellRenderer }}
+                    components={{ actionCellRenderer: ActionCellRenderer, statusCellRenderer: StatusCellRenderer }}
                   />
             </div>
 
             <AddRfqModal id="addRfqModal" mode="create" handleUpdateRfqs={handleUpdateRfqs}/>
             <AddRfqModal id="EditRfqModal" mode="edit" rfqData={selectedRfq} handleUpdateRfqs={handleUpdateRfqs}/>
+            <EmailModal id="emailModal"/>
             <UploadBulkModal id="UploadBulkModal"/>
             
         </div>

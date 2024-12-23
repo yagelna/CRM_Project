@@ -15,12 +15,16 @@ const UploadBulkModal = ({ id }) => {
         formData.append('file', file);
 
         try {
-            const response = await axios.post('http://localhost:8000/api/rfqs/upload/', formData, {
+            const response = await axios.post('http://localhost:8000/api/inventory/upload/', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
             setUploadStatus(response.data.message);
+            alert('File uploaded successfully');
+            document.querySelector(`#${id} .btn-close`).click();
+
+
         } catch (error) {
             console.error('Error uploading file: ', error);
             setUploadStatus('Error uploading file');
@@ -28,7 +32,7 @@ const UploadBulkModal = ({ id }) => {
     };
 
     return (
-        <Modal id={id} title='Upload Bulk RFQs'>
+        <Modal id={id} title='Upload Bulk Inventory'>
             <form>
                 <div className="mb-3">
                     <input

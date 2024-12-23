@@ -9,20 +9,24 @@ const ActionCellRenderer = ({ api, node, handleDelete, handleEdit, modalId}) => 
     };
 
     return (
-        <div>
-            <button
-                className="btn btn-primary btn-sm me-2"
+        <div className="btn-group btn-group-sm" role="group" aria-label="Small button group">
+            <button 
+                type="button"
+                className="btn btn-outline-danger"
                 onClick={() => handleEdit(node.data)}
                 data-bs-toggle="modal" 
                 data-bs-target={`#${modalId}`}
             >
-                Edit
+                <i className="bi bi-pencil"></i>
             </button>
             <button 
-                className="btn btn-danger btn-sm"
+                type="button"
+                className="btn btn-outline-primary"
                 onClick={Delete}
             >
-                Delete
+                <i className="bi bi-trash3"></i>
+            </button>
+            <button type="button" className="btn btn-outline-secondary"><i className="bi bi-envelope"></i>
             </button>
         </div>
 
@@ -30,4 +34,6 @@ const ActionCellRenderer = ({ api, node, handleDelete, handleEdit, modalId}) => 
 }
 
 export default ActionCellRenderer;
+
+
 
