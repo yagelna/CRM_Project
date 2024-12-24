@@ -67,9 +67,7 @@ const Rfqs = () => {
     };
     useEffect(() => {
         fetchRfqs();
-    }, []);
-
-    // open websocket connection
+        // open websocket connection
     const ws = new WebSocket('ws://localhost:8000/ws/rfqs/');
     ws.onopen = () => {
         console.log('Websocket connected');
@@ -83,7 +81,8 @@ const Rfqs = () => {
     ws.onclose = () => {
         console.log('WebSocket connection closed');
     };
-
+        
+    }, []); 
 
 
     //update rfqs state after adding or editing an rfq
