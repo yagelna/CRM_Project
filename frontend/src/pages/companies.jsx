@@ -41,7 +41,7 @@ const Companies = () => {
       cellRendererParams: {
         handleDelete: handleDelete,
         handleEdit: (company) => setSelectedCompany(company),
-        modalId: "EditCompanyModal",
+        mouduleName: "Company",
       },
     },
   ]);
