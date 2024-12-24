@@ -45,7 +45,7 @@ const Inventory = () => {
             cellRendererParams: {
                 handleDelete: handleDelete,
                 handleEdit: (inventoryItem) => setSelectedItem(inventoryItem),
-                modalId: "EditInventoryModal",
+                mouduleName: "Inventory",
             },
         },
     ]);

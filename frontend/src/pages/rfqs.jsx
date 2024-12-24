@@ -52,7 +52,7 @@ const Rfqs = () => {
             cellRendererParams: {
                 handleDelete: handleDelete,
                 handleEdit: (rfq) => setSelectedRfq(rfq),
-                modalId: "EditRfqModal",
+                mouduleName: "Rfq",
             },
         },
     ]);
@@ -133,7 +133,7 @@ const Rfqs = () => {
 
             <AddRfqModal id="addRfqModal" mode="create" handleUpdateRfqs={handleUpdateRfqs}/>
             <AddRfqModal id="EditRfqModal" mode="edit" rfqData={selectedRfq} handleUpdateRfqs={handleUpdateRfqs}/>
-            <EmailModal id="emailModal"/>
+            <EmailModal id="SendEmailModal" rfqData={selectedRfq}/>
             <UploadBulkModal id="UploadBulkModal"/>
             
         </div>

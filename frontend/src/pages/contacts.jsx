@@ -42,7 +42,7 @@ const Contacts = () => {
       cellRendererParams: {
         handleDelete: handleDelete,
         handleEdit: (contact) => setSelectedContact(contact),
-        modalId: "EditContactModal",
+        mouduleName: "Contact",
       },
     },
   ]);
