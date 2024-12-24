@@ -1,12 +1,29 @@
 import React, { useState, useEffect} from 'react';
 import axios from 'axios';
 import Modal from '../modal/modal';
-
-const EmailModal = ({ id, rfq }) => {
+ 
+const EmailModal = ({ id, rfqData, mode}) => {
     // State for recipient details
-    const [recipientName, setRecipientName] = useState(rfq?.customer?.name || "");
-    const [recipientEmail, setRecipientEmail] = useState(rfq?.customer?.email || "");
-    const [companyName, setCompanyName] = useState(rfq?.company?.name || "");
+
+
+    const [formData, setFormData] = useState({
+            customer_name: ' ',
+            email: ' ',
+            company: ' ',
+        });
+    
+    useEffect(() => {
+        if(rfqData){
+            console.log(rfqData);
+            setFormData({
+                customer_name: rfqData.contact_object?.name || '',
+                email: rfqData.contact_object?.email || '',
+                company: rfqData.contact_object?.company_object?.name || '',
+            });
+        }
+
+    }, [rfqData]);
+
 
     return (
         <Modal id={id} title="Send Email">
@@ -18,7 +35,7 @@ const EmailModal = ({ id, rfq }) => {
                         type="text"
                         className="form-control"
                         id="recipientName"
-                        value={recipientName}
+                        value={formData.customer_name}
                         onChange={(e) => setRecipientName(e.target.value)}
                     />
                 </div>
@@ -29,7 +46,7 @@ const EmailModal = ({ id, rfq }) => {
                         type="email"
                         className="form-control"
                         id="recipientEmail"
-                        value={recipientEmail}
+                        value={formData.email}
                         onChange={(e) => setRecipientEmail(e.target.value)}
                     />
                 </div>
@@ -40,7 +57,7 @@ const EmailModal = ({ id, rfq }) => {
                         type="text"
                         className="form-control"
                         id="companyName"
-                        value={companyName}
+                        value={formData.company}
                         onChange={(e) => setCompanyName(e.target.value)}
                     />
                 </div>
