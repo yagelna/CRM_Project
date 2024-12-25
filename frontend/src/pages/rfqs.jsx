@@ -36,9 +36,13 @@ const Rfqs = () => {
     // Column Definitions: Defines & controls grid columns.
     const [colDefs, setColDefs] = useState([
         { field: "mpn", headerName: "MPN"},
-        { field: "target_price", headerName: "Target Price" },
-        { field: "qty_requested", headerName: "Quantity"},
-        { field: "manufacturer", headerName: "Manufacturer" },
+        { field: "target_price", headerName: "T/P" },
+        { field: "qty_requested", headerName: "Requested Qty" },
+        { field: "manufacturer", headerName: "MFG" },
+        { field: "source", headerName: "Source" },
+        { field: "contact_object.name", headerName: "Contact Name" },
+        { field: "contact_object.company_object.name", headerName: "Company Name" },
+        { field: "contact_object.company_object.country", headerName: "Country" },
         { 
             field: "status",
             headerName: "Status",
@@ -54,8 +58,19 @@ const Rfqs = () => {
                 handleEdit: (rfq) => setSelectedRfq(rfq),
                 mouduleName: "Rfq",
             },
+            pinned: "right",
+            width: 120,
+            filter: false,
+            sortable: false,
+            cellStyle: { textAlign: 'center' }
         },
     ]);
+
+    const gridOptions = {
+        defaultColDef: {
+            domLayout: 'normal',
+        },
+    };
 
     // fetch rfqs from the backend function
     const fetchRfqs = () => {
@@ -121,6 +136,7 @@ const Rfqs = () => {
                   <AgGridReact
                     ref={gridRef}
                     columnDefs={colDefs}
+                    gridOptions={gridOptions}
                     rowData={rfqs}
                     theme={myTheme}
                     defaultColDef={{ flex: 1, filter: true}}

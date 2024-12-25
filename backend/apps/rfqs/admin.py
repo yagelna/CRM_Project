@@ -11,7 +11,7 @@ class RFQAdmin(admin.ModelAdmin):
     list_per_page = 25 
     fieldsets = ( # this is the form that will be displayed when editing an RFQ
         (None, {
-            'fields': ('mpn', 'manufacturer', 'qty_requested', 'target_price', 'customer', 'company', 'inventory_item', 'offered_price', 'dc_requested', 'source', 'status')
+            'fields': ('mpn', 'manufacturer', 'qty_requested', 'target_price', 'customer', 'company', 'inventory_item', 'offered_price', 'date_code', 'source', 'status')
         }),
     )
     add_fieldsets = ( # this is the form that will be displayed when adding a new RFQ

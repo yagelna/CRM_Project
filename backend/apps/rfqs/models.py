@@ -14,8 +14,9 @@ class RFQ(models.Model):
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
     inventory_item = models.ForeignKey(InventoryItem, on_delete=models.SET_NULL, null=True, blank=True)
     qty_requested = models.IntegerField(blank=True, null=True)
+    qty_offered = models.IntegerField(blank=True, null=True)
     offered_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    dc_requested = models.CharField(max_length=50, blank=True, null=True) # date code requested
+    date_code = models.CharField(max_length=50, blank=True, null=True) # date code requested
     source = models.CharField(max_length=255, choices=[ 
         ('website', 'Website'),
         ('netcomponents', 'NetComponents'),
