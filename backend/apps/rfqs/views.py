@@ -1,11 +1,12 @@
 from django.shortcuts import render
-from rest_framework import viewsets
 from .models import RFQ, Contact, Company
 from .serializers import RFQSerializer
+from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.views import APIView
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from utils.email_utils import send_html_email
 import logging
 logger = logging.getLogger('myapp')
 
@@ -49,3 +50,13 @@ class RFQViewSet(viewsets.ModelViewSet):
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+class SendEmailView(APIView):
+    def post(self, request):
+        data = request.data
+        formData = data.get("formData")
+        template = data.get("template")
+        logger.debug("Debug - formData: %s", formData)
+        logger.debug("Debug - template: %s", template)
+        send_html_email(formData, template)
+        return Response({"success": "Email sent successfully"})
