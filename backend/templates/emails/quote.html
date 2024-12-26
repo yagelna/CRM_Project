@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+	background-color: #f4f4f4;
+        }
+        .container {
+            width: 100%;
+ max-width: 1200px;
+margin: 20px auto;
+            padding: 20px;
+            box-sizing: border-box;
+background-color: #ffffff;
+box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            width: 150px;
+        }
+        .divider {
+            border-top: 1px solid #ddd;
+            margin: 20px 0;
+        }
+        .customer-info {
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            margin-top: 20px;
+        }
+.customer-info h3 {
+            margin: 0 0 10px;
+            color: #003366;
+            margin-bottom: 10px;
+            font-size: 18px
+
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 0px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .total {
+            font-weight: bold;
+        }
+        .terms {
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header section -->
+        <div class="header">
+            <a href="https://flychips.com/" target="_blank">
+                <img src="https://flychips.com/wp-content/uploads/2024/07/PNG-01.png" alt="Company Logo" width="500" style="max-width: 500px; max-height: 80px; width: auto; height: auto; display: block; margin: 0 auto;">
+            </a>
+            <h2>Quotation</h2>
+        </div>
+
+        <div class="divider"></div>
+        <div class="customer-info">
+                <h3>Customer Information</h3>
+                <p><strong>Company Name: </strong> {{company}}</p>
+                <p><strong>Contact Person: </strong> {{customer_name}}</p>
+                <p><strong>Email: </strong> {{email}}</p>
+                <p><strong>Date: </strong> TODO</p>
+        </div>
+
+        <!-- Quotation Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Mfg</th>
+                    <th>Date Code</th>
+                    <th>Qty/MOQ</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{mpn}}</td>
+                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{manufacturer}}</td>
+                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{date_code}}</td>
+                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{qty}}</td>
+                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{unit_price}}$</td>
+                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{total_price}}$</td>
+                <!-- Add more rows as necessary -->
+                <tr class="total">
+                    <td colspan="5">Total Amount:</td>
+                    <td>{{total_price}}$</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Terms Section -->
+        <div class="terms">
+            <h3 style="font-size: 22px; margin-top: 0; color: #003366;">Terms & Conditions</h3>
+	<p style="font-size: 14px; color: #000;"><strong>Incoterms: </strong>Goods are sold under standard EXW terms.</p>
+	<p style="font-size: 14px; color: #000;"><strong>Payment Terms: </strong>Payment by TT in advance.</p>
+	<p style="font-size: 14px; color: #000;"><strong>Offer Validity: </strong>This offer is valid for 2 days, subject to prior sale.</p>
+	<p style="font-size: 14px; color: #000;"><strong>Quotation Terms: </strong>Based on NCNR conditions (Non-Cancellable, Non-Returnable).</p>
+	<p style="font-size: 14px; color: #000;">Fly Chips' standard terms and conditions apply. full details at: <a href="https://www.flychips.com" target="_blank" style="color: #3498db; text-decoration: none;">https://www.flychips.com</a>.</p>
+	<p style="font-size: 14px; color: #000">If you have any questions or need further clarification, please do not hesitate to contact us.</p>
+        </div>
+    </div>
+<div class="footer">
+            <p style="margin: 5px 0; color: #7f8c8d">Thank you for considering our quotation. We look forward to doing business with you.</p>
+            <p style="margin: 5px 0; color: #7f8c8d">Fly Chips Electronics Components Ltd.</p>
+            <p style="margin: 5px 0; color: #7f8c8d">Tel: +972-74-7041441</p>
+            <p style="margin: 5px 0; color: #7f8c8d">E-mail: <a href="mailto:sales@flychips.com" style="color: #3498db; text-decoration: none;">sales@flychips.com</a></p>
+            <p style="margin: 5px 0; color: #7f8c8d">Adom 34, Kanot 7982500, ISRAEL</p>
+            <p style="margin: 5px 0; color: #7f8c8d">Visit us at <a href="https://flychips.com/" target="_blank" style="color: #3498db; text-decoration: none;">flychips.com</a></p>
+</div>
+</body>
+</html>

@@ -8,10 +8,11 @@ const EmailModal = ({ id, rfqData, mode}) => {
             customer_name: '',
             email:'',
             company: '',
-            manafacturer: '',
+            manufacturer: '',
             qty: '',
             unit_price: '',
             date_code: '',
+            mpn: '',
         });
 
     const [activeTab, setActiveTab] = useState('quote-tab');
@@ -27,6 +28,7 @@ const EmailModal = ({ id, rfqData, mode}) => {
                 qty: rfqData.qty_requested || '',
                 unit_price: rfqData.offered_price || '',
                 date_code: rfqData.date_code || '',
+                mpn: rfqData.mpn || '',
             });
             console.log('formData after update:', formData);
         }
@@ -34,46 +36,59 @@ const EmailModal = ({ id, rfqData, mode}) => {
 
     const handleSendEmail = () => {
         if (activeTab === 'quote-tab') {
-            console.log('Sending Quote email');
-        } else if (activeTab === 'tp-alert-tab') {
-            console.log('Sending T/P Alert email');
-        } else if (activeTab === 'no-stock-tab') {
-            console.log('Sending No Stock email');
-        } else if (activeTab === 'mov-requirement-tab') {
-            console.log('Sending MOV Requirement email');
-        } else if (activeTab === 'no-export-tab') {
-            console.log('Sending No Export email');
+            //list of missing fields
+            const missingFields = [];
+            if (!formData.manufacturer) missingFields.push('Manufacturer');
+            if (!formData.date_code) missingFields.push('Date Code');
+            if (!formData.qty) missingFields.push('Qty/MOQ');
+            if (!formData.unit_price) missingFields.push('Unit Price');
+            if (missingFields.length > 0) {
+                const confirmSend = window.confirm(`The following fields are missing:\n${missingFields.join(', ')}.\nAre you sure you want to send the email?`);
+                if (!confirmSend) return;
+            }
+        }
+        console.log("trying to send email")
+        try {
+            const res = axios.post('http://localhost:8000/api/send-email/', {
+                formData,
+                template: activeTab,
+            });
+            console.log("Email sent successfully:", res);
+            // TODO: show a success message to the user
+            // TODO: if changes were made to the RFQ, update the RFQ in the database
+        } catch (error) {
+            console.error("Error sending email:", error);
         }
         console.log(formData);
     }
 
 
     return (
-        <Modal id={id} title="Send Email">
+        <Modal id={id} title={`Send Email - ${formData.mpn}`}>
             <div className="p-3">
-                <div className="form-floating mb-1">
+                <div className="form-floating form-floating-sm mb-3">
                     <input 
                         type="email"
-                        className="form-control"
+                        className="form-control input-sz"
                         id="floatingInput"
                         placeholder="Email address" 
-                        value={formData.email} 
+                        value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                     <label htmlFor="floatingInput">Email address</label>    
                 </div>
-                <div className="form-floating mb-1">
+                <div className="form-floating form-floating-sm mb-3">
                     <input 
                         type="text"
-                        className="form-control" 
+                        className="form-control input-sz" 
                         id="floatingCompany" 
                         placeholder="Company" 
                         value={formData.company}
                         onChange={(e) => setFormData({ ...formData, company: e.target.value })} />
                     <label htmlFor="floatingCompany">Company</label>
                 </div>
-                <div className="form-floating mb-1">
+                <div className="form-floating form-floating-sm mb-1">
                     <input type="text" 
-                        className="form-control" 
+                        className="form-control input-sz" 
                         id="floatingContact" 
                         placeholder="Contact" 
                         value={formData.customer_name}
@@ -107,10 +122,10 @@ const EmailModal = ({ id, rfqData, mode}) => {
                 <div className="tab-pane fade show active" id="quote-tab" role="tabpanel">
                     <p>Here you can draft and send a Quote email.</p>
                     <div className="row g-2">
-                        <div className="form-floating col-sm">
+                        <div className="form-floating form-floating-sm col-sm">
                             <input 
                                 type="text" 
-                                className="form-control" 
+                                className="form-control input-sz"
                                 id="floatingMfg"
                                 placeholder="Mfg" 
                                 aria-label="Mfg"
@@ -118,9 +133,9 @@ const EmailModal = ({ id, rfqData, mode}) => {
                                 onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })} />
                             <label htmlFor="floatingMfg">Mfg</label>
                         </div>
-                        <div className="form-floating col-sm">
+                        <div className="form-floating form-floating-sm col-sm">
                             <input type="text" 
-                                className="form-control" 
+                                className="form-control input-sz"
                                 id="floatingDC"
                                 placeholder="Date Code" 
                                 aria-label="Date Code"
@@ -130,26 +145,26 @@ const EmailModal = ({ id, rfqData, mode}) => {
                         </div>
                     </div>
                     <div className="row g-2 mt-2">
-                        <div className="form-floating col-sm">
+                        <div className="form-floating form-floating-sm col-sm">
                             <input 
                                 type="text" 
-                                className="form-control"
+                                className="form-control input-sz"
                                 id="floatingQty"
                                 placeholder="Qty/MOQ" 
                                 aria-label="Qty/MOQ"
                                 value={formData.qty}
-                                onChange={(e) => setFormData({ ...formData, qty: e.target.value })} />
+                                onChange={(e) => setFormData({ ...formData, qty: Number(e.target.value) })} />
                             <label htmlFor="floatingQty">Qty/MOQ</label>
                         </div>
-                        <div className="form-floating col-sm">
+                        <div className="form-floating form-floating-sm col-sm">
                             <input 
-                                type="text" 
-                                className="form-control"
+                                type="number" 
+                                className="form-control input-sz"
                                 id="floatingUnitPrice"
                                 placeholder="Unit Price" 
                                 aria-label="Unit Price"
                                 value={formData.unit_price}
-                                onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })} />
+                                onChange={(e) => setFormData({ ...formData, unit_price: Number(e.target.value) })} />
                             <label htmlFor="floatingUnitPrice">Unit Price</label>
                         </div>
                     </div>  

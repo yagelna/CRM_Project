@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from apps.rfqs.views import SendEmailView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,4 +24,5 @@ urlpatterns = [
     path('api/', include('apps.contacts.urls')),
     path('api/', include('apps.companies.urls')),
     path('api/', include('apps.inventory.urls')),
+    path('api/send-email/', SendEmailView.as_view(), name='send-email'),
 ]

@@ -19,9 +19,9 @@ class RFQ(models.Model):
     date_code = models.CharField(max_length=50, blank=True, null=True) # date code requested
     source = models.CharField(max_length=255, choices=[ 
         ('website', 'Website'),
-        ('netcomponents', 'NetComponents'),
-        ('icsource', 'ICSource'),
-        ('private', 'Private'),
+        ('netCOMPONENTS', 'NetComponents'),
+        ('IC Source', 'ICSource'),
+        ('Private', 'Private'),
     ])
     status = models.CharField(max_length=50, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
