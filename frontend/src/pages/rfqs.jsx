@@ -59,7 +59,7 @@ const Rfqs = () => {
                 mouduleName: "Rfq",
             },
             pinned: "right",
-            width: 120,
+            width: 126,
             filter: false,
             sortable: false,
             cellStyle: { textAlign: 'center' }
