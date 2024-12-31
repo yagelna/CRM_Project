@@ -24,7 +24,7 @@ def send_html_email(data, template):
     logger.debug("Debug - Data: %s", data)
     #if quote-tab, calculate the total price and add it to the data
     if (template=="quote-tab"):
-        data['total_price'] = data['unit_price'] * data['qty']
+        data['total_price'] = data['offered_price'] * data['qty_offered']
     logger.debug("Debug - Data2: %s", data)
     email_body = render_to_string(template_dict[template][0], data)
     email = EmailMessage(

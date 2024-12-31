@@ -36,14 +36,6 @@ body {
     justify-content: center; /* מרכז את התוכן לאורך */
 }
 
-.ag-theme-alpine .ag-cell {
-    overflow: visible !important; /* מאפשר ל-dropdown להיות מחוץ לגבולות התא */
-}
-
-.ag-theme-alpine .dropdown-menu {
-    z-index: 1050; /* כדי לוודא שה-dropdown יופיע מעל כל האלמנטים האחרים */
-}
-
 .input-sz {
     font-size: 14px;
 }
