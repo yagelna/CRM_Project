@@ -11,22 +11,23 @@ body {
 }
   
 .sidebar {
-    width: 4.5rem; /* רוחב ה-sidebar */
+    width: 4.5rem; /* רוחב קבוע */
     background-color: #f8f9fa; /* רקע אופציונלי */
 }
   
 .content {
     flex: 1; /* תופס את כל השטח שנותר */
-    padding: 2rem; /* הפחתת המרווח הפנימי */
+    padding: 1rem; /* הפחתת המרווח הפנימי */
     background-color: #f0f0f0; /* רקע אפור */
     display: flex;
     flex-direction: column; /* מאפשר סידור אנכי */
     align-items: center; /* מרכז את התוכן לרוחב */
+    width: 100%;
 }
 
 .container {
     width: 90%; /* משתרע על רוב רוחב הדף */
-    max-width: 1200px; /* רוחב מקסימלי לתוכן */
+    max-width: 90%; /* רוחב מקסימלי לתוכן */
     margin: 0 auto; /* מרכז את התוכן */
     padding: 1rem; /* מרווח פנימי קל */
     background: white; /* רקע לבן */
