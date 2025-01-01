@@ -43,6 +43,8 @@ const Rfqs = () => {
         { field: "contact_object.name", headerName: "Contact Name" },
         { field: "contact_object.company_object.name", headerName: "Company Name" },
         { field: "contact_object.company_object.country", headerName: "Country" },
+        { field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc' },
+        { field: "updated_at", headerName: "Updated At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '' },
         { 
             field: "status",
             headerName: "Status",
@@ -70,6 +72,7 @@ const Rfqs = () => {
         defaultColDef: {
             domLayout: 'normal',
         },
+        enableCellTextSelection: true,
     };
 
     // fetch rfqs from the backend function
