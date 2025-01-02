@@ -7,6 +7,7 @@ import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-communi
 import ActionCellRenderer from '../components/ActionCellRenderer';
 import StatusCellRenderer from '../components/StatusCellRenderer';
 import EmailModal from '../components/rfqs/EmailModal';
+import Offcanvas from '../components/modal/offcanvas';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -14,6 +15,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 const Rfqs = () => {
     const [rfqs, setRfqs] = useState([]);
     const [selectedRfq, setSelectedRfq] = useState(null);
+    const [offcanvasMode, setOffcanvasMode] = useState(null);
     const gridRef = useRef();
     const myTheme = themeQuartz
 	.withParams({
@@ -35,7 +37,20 @@ const Rfqs = () => {
 
     // Column Definitions: Defines & controls grid columns.
     const [colDefs, setColDefs] = useState([
-        { field: "mpn", headerName: "MPN"},
+        { field: "mpn",
+            headerName: "MPN",
+            cellRenderer: (params) => (
+                <a
+                    href="#offcanvasRight"
+                    data-bs-toggle="offcanvas"
+                    className="link-opacity-50-hover fw-medium"
+                    onClick={() => { setSelectedRfq(params.value); setOffcanvasMode('mpn'); }}
+                >
+                    {params.value}
+                </a>
+            ),
+        
+        },
         { field: "target_price", headerName: "T/P" },
         { field: "qty_requested", headerName: "Requested Qty" },
         { field: "manufacturer", headerName: "MFG" },
@@ -124,17 +139,28 @@ const Rfqs = () => {
     return (
         <div className='container mt-4'>
             <h1>Rfqs</h1>
-            <div className="mb-3">
-                <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addRfqModal"> Add RFQ </button>
-                <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#UploadBulkModal"> Upload Bulk RFQs </button>
-                <span>Quick Filter:</span>
-                <input
-                    type="text"
-                    id="filter-text-box"
-                    placeholder="Filter..."
-                    onInput={onFilterTextBoxChanged}
-                />
-            </div>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <button 
+            type="button" 
+            className="btn btn-primary btn-sm me-2 " 
+            data-bs-toggle="modal" 
+            data-bs-target="#addRfqModal">
+            Add RFQ
+        </button>
+    </div>
+
+    <div className="d-flex align-items-center">
+            <input
+            type="text"
+            id="filter-text-box"
+            className="form-control"
+            placeholder="Search..."
+            onInput={onFilterTextBoxChanged}
+            style={{ width: '200px' }}
+        />
+    </div>
+</div>
             <div className="ag-theme-alpine" style={{ height: 600, width: '100%' }}>
                   <AgGridReact
                     ref={gridRef}
@@ -153,8 +179,10 @@ const Rfqs = () => {
             <AddRfqModal id="EditRfqModal" mode="edit" rfqData={selectedRfq} handleUpdateRfqs={handleUpdateRfqs}/>
             <EmailModal id="SendEmailModal" rfqData={selectedRfq}/>
             <UploadBulkModal id="UploadBulkModal"/>
+            <Offcanvas id="offcanvasRight" rfqData={selectedRfq} mode={offcanvasMode} />
             
         </div>
+        
     );
 }
 
