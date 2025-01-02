@@ -1,17 +1,9 @@
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
+from datetime import datetime
 import logging
 logger = logging.getLogger('myapp')
-
-def send_email():
-    send_mail(
-        subject="Test Email",
-        message="This is a test email",
-        from_email="yagelnahshon@gmail.com",
-        recipient_list=["yagel@flychips.com"],
-        fail_silently=False,
-    )
 
 def send_html_email(data, template):
     template_dict = {
@@ -26,6 +18,7 @@ def send_html_email(data, template):
     if (template=="quote-tab"):
         data['total_price'] = data['offered_price'] * data['qty_offered']
     logger.debug("Debug - Data2: %s", data)
+    data['current_time'] = datetime.now().strftime("%d-%m-%Y %H:%M")
     email_body = render_to_string(template_dict[template][0], data)
     email = EmailMessage(
         subject=template_dict[template][1].format(mpn=data['mpn']),
@@ -34,4 +27,4 @@ def send_html_email(data, template):
         to=["yagel@flychips.com"],
     )
     email.content_subtype = "html"
-    email.send()
+    email.send()    

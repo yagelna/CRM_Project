@@ -5,6 +5,7 @@ body {
     background-color: #dddddd;
 }
 
+
 .App {
     display: flex; /* סידור האלמנטים בצד אחד של השני */
     height: 100vh; /* גובה מלא של הדף */
