@@ -44,7 +44,7 @@ const Rfqs = () => {
                     href="#offcanvasRight"
                     data-bs-toggle="offcanvas"
                     className="link-opacity-50-hover fw-medium"
-                    onClick={() => { setSelectedRfq(params.value); setOffcanvasMode('mpn'); }}
+                    onClick={() => { setSelectedRfq(params.data); setOffcanvasMode('mpn'); }}
                 >
                     {params.value}
                 </a>
