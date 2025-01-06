@@ -21,7 +21,7 @@ const EmailModal = ({ id, rfqData, mode}) => {
     
     useEffect(() => {
         if(rfqData){
-            console.log('rfqData:', rfqData);
+            console.log('rfqData[emailModal]:', rfqData);
             setFormData({
                 customer_name: rfqData.contact_object?.name || '',
                 email: rfqData.contact_object?.email || '',

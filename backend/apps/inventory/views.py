@@ -4,8 +4,50 @@ from .serializers import InventoryItemSerializer
 import pandas as pd
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.views import APIView # import the APIView class for handling file uploads
+from rest_framework.decorators import api_view
 from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
+from elasticsearch import Elasticsearch
+
+es = Elasticsearch(hosts=["http://localhost:9200"])
+
+@api_view(['GET'])
+def search_parts(request, mpn):
+    """
+    Search for parts in the inventory by MPN.
+    Return all parts that match the exact MPN and the 7 most similar MPNs using Elasticsearch.
+    """
+    try:
+        query = {
+            "size": 50,
+            "query": {
+                "bool": {
+                    "should": [
+                        {"match": {"mpn": {"query": mpn, "boost": 2}}},  # Exact match with higher priority
+                        {"fuzzy": {"mpn": {"value": mpn, "fuzziness": "AUTO"}}}  # Similar parts
+                    ]
+                }
+            }
+        }
+
+        res = es.search(index="inventory", body=query)
+        hits = res['hits']['hits']
+
+        # Process results
+        exact_match = [hit['_source'] for hit in hits if hit['_source']['mpn'] == mpn]
+        similar_parts = [
+            hit['_source'] for hit in hits if hit['_source']['mpn'] != mpn
+        ][:7]
+
+        return Response(
+            {"exact_match": exact_match, "similar_parts": similar_parts},
+            status=status.HTTP_200_OK
+        )
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+
 
 class InventoryViewSet(viewsets.ModelViewSet):
     queryset = InventoryItem.objects.all()
