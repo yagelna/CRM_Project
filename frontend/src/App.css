@@ -89,3 +89,13 @@ body {
   transform-origin: 0 0;
   transition: opacity .1s ease-in-out, transform .1s ease-in-out;
 }
+
+.inventory-item-offcanvas-list { 
+    font-size: 14px;
+    margin-bottom: 0;
+    padding: 0;
+}
+
+.offcanvas {
+  --bs-offcanvas-width: 35%;
+}

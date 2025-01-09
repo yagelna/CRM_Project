@@ -22,6 +22,7 @@ const UploadBulkModal = ({ id }) => {
             });
             setUploadStatus(response.data.message);
             alert('File uploaded successfully');
+            console.log(response.data);
             document.querySelector(`#${id} .btn-close`).click();
 
 

@@ -172,6 +172,7 @@ const Rfqs = () => {
                     pagination={true}
                     paginationPageSize={20}
                     components={{ actionCellRenderer: ActionCellRenderer, statusCellRenderer: StatusCellRenderer }}
+                    overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Loading Data...</div>'}
                   />
             </div>
 

@@ -13,7 +13,6 @@ const EmailModal = ({ id, rfqData, mode}) => {
             offered_price: '',
             date_code: '',
             mpn: '',
-            offered_price: '',
         });
 
     const [activeTab, setActiveTab] = useState('quote-tab');

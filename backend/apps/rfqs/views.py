@@ -4,11 +4,27 @@ from .serializers import RFQSerializer
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from utils.email_utils import send_html_email
 import logging
 logger = logging.getLogger('myapp')
+
+@api_view(['GET'])
+def search_rfqs(request, mpn):
+    """
+    Search for RFQs by mpn.
+    Return all RFQs that match the exact mpn.
+    """
+    try:
+        logger.debug(f"Searching for RFQs with MPN: {mpn}")
+        rfqs = RFQ.objects.filter(mpn=mpn)
+        serializer = RFQSerializer(rfqs, many=True)
+        return Response(serializer.data)
+    except RFQ.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
 
 class RFQViewSet(viewsets.ModelViewSet):
     queryset = RFQ.objects.all()

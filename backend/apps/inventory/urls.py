@@ -7,5 +7,5 @@ router.register(r'inventory', InventoryViewSet, basename='inventory')
 
 urlpatterns = [
     path('inventory/upload/', BulkUploadView.as_view(), name='bulk-upload'),
-    path('inventory/search/<str:mpn>/', search_parts, name='search-parts'),
+    path('inventory/search/<path:mpn>/', search_parts, name='search-parts'),
 ] + router.urls

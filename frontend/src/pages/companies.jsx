@@ -43,6 +43,11 @@ const Companies = () => {
         handleEdit: (company) => setSelectedCompany(company),
         mouduleName: "Company",
       },
+      pinned: "right",
+            width: 126,
+            filter: false,
+            sortable: false,
+            cellStyle: { textAlign: 'center' }
     },
   ]);
 
@@ -89,7 +94,7 @@ const Companies = () => {
             onInput={onFilterTextBoxChanged}
         />
       </div>
-      <div className="ag-theme-alpine" style={{ height: 400, width: '100%' }}>
+      <div className="ag-theme-alpine" style={{ height: 600, width: '100%' }}>
         <AgGridReact
           ref={gridRef}
           columnDefs={colDefs}
@@ -97,7 +102,8 @@ const Companies = () => {
           components={{ actionCellRenderer: ActionCellRenderer }}
           theme={myTheme}
           pagination={true}
-          paginationPageSize={10}
+          paginationPageSize={20}
+          overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Loading Data...</div>'}
         />
       </div>
       <AddCompanyModal id="addCompanyModal" mode='create' handleUpdateCompanies={handleUpdateCompanies}/>
