@@ -99,3 +99,7 @@ body {
 .offcanvas {
   --bs-offcanvas-width: 35%;
 }
+
+.table-item {
+    font-size: 0.7rem;
+}

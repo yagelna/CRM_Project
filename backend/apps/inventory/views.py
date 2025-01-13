@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView # import the APIView class for handling file uploads
 from rest_framework.decorators import api_view
 from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
+from django.db import connection
 import logging
 logger = logging.getLogger('myapp')
 
@@ -24,7 +25,38 @@ def search_parts(request, mpn):
     except InventoryItem.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND) 
 
-
+@api_view(['GET'])
+def search_similar_parts(request, mpn):
+    """
+    Search for similar parts based on MPN similarity using raw SQL.
+    """
+    query = """
+        SELECT 
+            mpn,
+            SUM(quantity) AS total_quantity,
+            STRING_AGG(supplier || '(' || quantity || ')', ', ') AS supplier_quantities,
+            STRING_AGG(supplier || '(' || date_code || ')', ', ') AS supplier_dc,
+            MAX(manufacturer) AS manufacturer,
+            similarity(mpn, %s) AS similarity_score
+        FROM 
+            inventory_inventoryitem
+        WHERE 
+            similarity(mpn, %s) > 0.5
+        GROUP BY 
+            mpn
+        ORDER BY 
+            similarity_score DESC
+        LIMIT 10;
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(query, [mpn, mpn])
+            columns = [col[0] for col in cursor.description]
+            results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        
+        return Response(results, status=200)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 
 class InventoryViewSet(viewsets.ModelViewSet):
     queryset = InventoryItem.objects.all()

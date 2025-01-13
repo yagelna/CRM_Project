@@ -29,6 +29,7 @@ const Offcanvas = ({id, title, rfqData}) => {
     const [historyError, setHistoryError] = useState(null);
 
     useEffect(() => {
+        console.log("offcanvas useEffect: ");
         if(rfqData){
             console.log("rfqData [offcanvas]: ", rfqData);
             setData({
@@ -47,6 +48,19 @@ const Offcanvas = ({id, title, rfqData}) => {
                 }
             });
 
+            const accordionElements = document.querySelectorAll('.accordion-collapse'); 
+            const accordionButtons = document.querySelectorAll('.accordion-button');
+            accordionElements.forEach((element, index) => {
+                if (index === 0) {
+                    element.classList.add('show');
+                    accordionButtons[index].classList.remove('collapsed');
+                }
+                else {
+                    element.classList.remove('show');
+                    accordionButtons[index].classList.add('collapsed');
+                }
+            });
+    
             fetchAvailability(rfqData.mpn);
             fetchHistory(rfqData.mpn);
         }
@@ -58,7 +72,8 @@ const Offcanvas = ({id, title, rfqData}) => {
         setInventoryError(null);
         try {
             const encodedMpn = encodeURIComponent(mpn);
-            const response = await axios.get(`http://localhost:8000/api/inventory/search/${encodedMpn}/`);
+            const response = await axios.get(`http://localhost:8000/api/inventory/search-similar/${encodedMpn}/`);
+            console.log("response [inventory]: ", response.data);
             if(response.data){
                 setInventoryData(response.data);
             }
@@ -98,7 +113,15 @@ const Offcanvas = ({id, title, rfqData}) => {
                 </div>
                 <hr className='m-0'/>
                 <div className="offcanvas-body">
-                    <h6>RFQ Details</h6>
+                <div className="accordion" id="accordionExample">
+                <div className="accordion-item">
+                    <h2 className="accordion-header">
+                    <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        RFQ Details
+                    </button>
+                    </h2>
+                    <div id="collapseOne" className="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                    <div className="accordion-body">
                     <div className="row">
                         <div className="col-6">
                             <p><span className="fw-bold">Manufacturer:</span> {Data.manufacturer}</p>
@@ -113,66 +136,93 @@ const Offcanvas = ({id, title, rfqData}) => {
                             <p><span className="fw-bold">Email:</span> {Data.contact_object.email}</p>
                         </div>
                     </div>
-                    <hr/>
-                    <h6>Part Availability</h6>
-                    {inventoryLoading && <p>Loading...</p>}
-                    {inventoryError && <p className="text-danger">{inventoryError}</p>}
-                    {!inventoryLoading && inventoryData.length === 0 && <p>No matching inventory found.</p>}
-                    {!inventoryLoading && inventoryData.length > 0 && (
-                        <table className="table">
-                        <thead>
-                            <tr style={{fontSize: '0.9rem'}}>
-                            <th scope="col">Supplier</th>
-                            <th scope="col">Quantity</th>
-                            <th scope="col">D/C</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {inventoryData.map((item) => (
-                            <tr key={item.id} style={{fontSize: '0.9rem'}}>
-                                <td>{item.supplier || '-'}</td>
-                                <td>{item.quantity || '-'}</td>
-                                <td>{(!item.date_code || item.date_code === 'nan') ? '-' : item.date_code}</td>
-                            </tr>
-                            ))}
-                        </tbody>
-                        </table>
-                    )}
-                    <hr/>
-                    <h6>RFQ History</h6>
-                    {historyLoading && <p>Loading...</p>}
-                    {historyError && <p className="text-danger">{historyError}</p>}
-                    {!historyLoading && historyData.length === 1 && <p>No history found.</p>}
-                    {!historyLoading && historyData.length > 1 && (
-                        <table className="table">
-                        <thead>
-                            <tr style={{fontSize: '0.8rem'}}>
-                            <th scope="col">Company</th>
-                            <th scope="col">Target Price</th>
-                            <th scope="col">Offered Price</th>
-                            <th scope="col">Requested Qty</th>
-                            <th scope="col">Offered Qty</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {historyData.map((item) => (
-                            item.id !== rfqData.id &&
-                            <tr key={item.id} style={{fontSize: '0.8rem'}}>
-                                <td>{item.contact_object.company_name || '-'}</td>
-                                <td>{item.target_price || '-'}</td>
-                                <td>{item.offered_price || '-'}</td>
-                                <td>{item.qty_requested || '-'}</td>
-                                <td>{item.qty_offered || '-'}</td>
-                                <td>{item.status || '-'}</td>
-                                <td>{item.created_at || '-'}</td>
-                               
-                            </tr>
-                            ))}
-                        </tbody>
-                        </table>
-                    )}
+
+                    </div>
+                    </div>
+                </div>
+                <div className="accordion-item">
+                    <h2 className="accordion-header">
+                    <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Part Availability
+                    </button>
+                    </h2>
+                    <div id="collapseTwo" className="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                    <div className="accordion-body">
+                        {inventoryLoading && <p>Loading...</p>}
+                        {inventoryError && <p className="text-danger">{inventoryError}</p>}
+                        {!inventoryLoading && inventoryData.length === 0 && <p>No matching inventory found.</p>}
+                        {!inventoryLoading && inventoryData.length > 0 && (
+                            <table className="table">
+                            <thead>
+                                <tr style={{fontSize: '0.8rem'}}>
+                                <th scope="col">MPN</th>
+                                <th scope="col">Total Qty</th>
+                                <th scope="col">Mfg</th>
+                                <th scope="col">Supplier</th>
+                                <th scope="col">D/C</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {inventoryData.map((item) => (
+                                <tr key={item.id} className={item.similarity_score === 1 ? 'table-item table-success' : 'table-item'}>
+                                    <td>{item.mpn || '-'}</td>
+                                    <td>{item.total_quantity || '-'}</td>
+                                    <td>{item.manufacturer || '-'}</td>
+                                    <td>{item.supplier_quantities || '-'}</td>
+                                    <td>{item.supplier_dc || '-'}</td>
+                                </tr>
+                                ))}
+                            </tbody>
+                            </table>
+                        )}
+                    </div>
+                    </div>
+                </div>
+                <div className="accordion-item">
+                    <h2 className="accordion-header">
+                    <button className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        RFQ History
+                    </button>
+                    </h2>
+                    <div id="collapseThree" className="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                    <div className="accordion-body">
+                        {historyLoading && <p>Loading...</p>}
+                        {historyError && <p className="text-danger">{historyError}</p>}
+                        {!historyLoading && historyData.length === 1 && <p>No history found.</p>}
+                        {!historyLoading && historyData.length > 1 && (
+                            <table className="table">
+                            <thead>
+                                <tr style={{fontSize: '0.8rem'}}>
+                                <th scope="col">Company</th>
+                                <th scope="col">Target Price</th>
+                                <th scope="col">Offered Price</th>
+                                <th scope="col">Requested Qty</th>
+                                <th scope="col">Offered Qty</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {historyData.map((item) => (
+                                item.id !== rfqData.id &&
+                                <tr key={item.id} style={{fontSize: '0.8rem'}}>
+                                    <td>{item.contact_object.company_name || '-'}</td>
+                                    <td>{item.target_price || '-'}</td>
+                                    <td>{item.offered_price || '-'}</td>
+                                    <td>{item.qty_requested || '-'}</td>
+                                    <td>{item.qty_offered || '-'}</td>
+                                    <td>{item.status || '-'}</td>
+                                    <td>{item.created_at || '-'}</td>
+                                
+                                </tr>
+                                ))}
+                            </tbody>
+                            </table>
+                        )}
+                    </div>
+                    </div>
+                </div>
+                </div>
                 </div>
             </div>
         );
