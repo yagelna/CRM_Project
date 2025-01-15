@@ -14,7 +14,8 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 import apps.rfqs.routing
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'crm_project.settings')
+settings_module = 'crm_project.deployment_settings' if 'RENDER_EXTERNAL_HOSTNAME' in os.environ else 'crm_project.settings'
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_module)
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),

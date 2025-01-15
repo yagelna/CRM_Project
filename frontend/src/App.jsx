@@ -15,7 +15,6 @@ function App() {
       <div className="App">
         <Sidebar />
         <div className="content">
-          <Routes></Routes>
           <Routes>
             <Route path="/rfqs" element={<Rfqs />} />
             <Route path="/contacts" element={<Contacts />} />
