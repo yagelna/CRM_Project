@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../../AxiosInstance';
 import Modal from '../modal/modal';
 import Select from 'react-select';
 
@@ -28,13 +28,13 @@ const AddContactModal = ({ id, mode, contactData, handleUpdateContacts }) => {
     }, [mode, contactData]);
     
     const fetchCompanies = (query = '') => {
-        axios.get(`http://localhost:8000/api/company-search/?q=${query}`)
+        axiosInstance.get(`api/company-search/?q=${query}`)
             .then((response) => setCompanies(response.data))
             .catch((error) => console.error('Error fetching companies:', error));
     };
 
     const handleCreateCompany = () => {
-        axios.post('http://localhost:8000/api/companies/', newCompany)
+        axiosInstance.post('api/companies/', newCompany)
             .then((response) => {
                 console.log("Company created successfully: ", response.data);
                 setCompanies((prevCompanies) => [...prevCompanies, response.data]);
@@ -48,7 +48,7 @@ const AddContactModal = ({ id, mode, contactData, handleUpdateContacts }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (mode === 'create') {
-            axios.post('http://localhost:8000/api/contacts/', formData)
+            axiosInstance.post('api/contacts/', formData)
                 .then((response) => {
                     console.log("Contact added successfully: ", response.data);
                     handleUpdateContacts(response.data, 'create');
@@ -61,7 +61,7 @@ const AddContactModal = ({ id, mode, contactData, handleUpdateContacts }) => {
                 .catch((error) => console.error('Error adding contact: ' + error));
             }
         else if (mode === 'edit') {
-            axios.put(`http://localhost:8000/api/contacts/${contactData.id}/`, formData)
+            axiosInstance.put(`api/contacts/${contactData.id}/`, formData)
                 .then((response) => {
                     console.log("Contact updated successfully: ", response.data);
                     handleUpdateContacts(response.data, 'edit');

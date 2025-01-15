@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from 'react';
-import axios from 'axios';
+import axiosInstance from '../../AxiosInstance';
 import Modal from '../modal/modal';
 
 const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
@@ -34,7 +34,7 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
             supplier: formData.supplier === 'Other' ? customSupplier : formData.supplier,
         };
         if (mode === 'create') {
-            axios.post('http://localhost:8000/api/inventory/', dataToSubmit)
+            axiosInstance.post('api/inventory/', dataToSubmit)
                 .then((response) => {
                     console.log("Inventory Item added successfully: ", response.data);
                     handleUpdateInventory(response.data, 'create');
@@ -52,7 +52,7 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                 .catch((error) => console.error('Error adding inventory item: ' + error));
             }
         else if (mode === 'edit') {
-            axios.put(`http://localhost:8000/api/inventory/${itemData.id}/`, dataToSubmit)
+            axiosInstance.put(`api/inventory/${itemData.id}/`, dataToSubmit)
                 .then((response) => {
                     console.log("Inventory updated successfully: ", response.data);
                     handleUpdateInventory(response.data, 'edit');

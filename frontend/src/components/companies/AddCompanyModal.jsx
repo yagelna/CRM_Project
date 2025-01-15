@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../../AxiosInstance';
 import Modal from '../modal/modal';
 
 const AddCompanyModal = ({ id, mode, companyData, handleUpdateCompanies }) => {
@@ -20,7 +20,7 @@ const AddCompanyModal = ({ id, mode, companyData, handleUpdateCompanies }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (mode === 'create') {
-            axios.post('http://localhost:8000/api/companies/', formData)
+            axiosInstance.post('api/companies/', formData)
                 .then((response) => {
                     console.log("Company added successfully: ", response.data);
                     handleUpdateCompanies(response.data, 'create');
@@ -35,7 +35,7 @@ const AddCompanyModal = ({ id, mode, companyData, handleUpdateCompanies }) => {
                 .catch((error) => console.error('Error adding company: ' + error));
             }
         else if (mode === 'edit') {
-            axios.put(`http://localhost:8000/api/companies/${companyData.id}/`, formData)
+            axiosInstance.put(`api/companies/${companyData.id}/`, formData)
                 .then((response) => {
                     console.log("Company updated successfully: ", response.data);
                     handleUpdateCompanies(response.data, 'edit');
