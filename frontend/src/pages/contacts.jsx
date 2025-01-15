@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
+import axiosInstance from '../AxiosInstance';
 import AddContactModal from '../components/contacts/AddContactModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
@@ -21,7 +21,7 @@ const Contacts = () => {
 
   // delete contact by id
   const handleDelete = (id) => {
-    axios.delete(`http://localhost:8000/api/contacts/${id}/`)
+    axiosInstance.delete(`api/contacts/${id}/`)
       .then((response) => {
         setContacts(contacts.filter((contact) => contact.id !== id));
         fetchContacts();
@@ -54,7 +54,7 @@ const Contacts = () => {
 
   // fetch contacts from the backend
   const fetchContacts = () => {
-    axios.get('http://localhost:8000/api/contacts')
+    axiosInstance.get('api/contacts')
       .then((response) => {
         setContacts(response.data);
       })

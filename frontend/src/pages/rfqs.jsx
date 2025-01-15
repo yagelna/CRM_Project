@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
+import axiosInstance from '../AxiosInstance';
 import AddRfqModal from '../components/rfqs/AddRfqModal';
 import UploadBulkModal from '../components/rfqs/UploadBulkModal';
 import { AgGridReact } from 'ag-grid-react';
@@ -27,7 +27,7 @@ const Rfqs = () => {
 
     // delete rfq by id
     const handleDelete = (id) => {
-        axios.delete(`http://localhost:8000/api/rfqs/${id}/`)    
+        axiosInstance.delete(`api/rfqs/${id}/`)    
             .then((response) => {
                 setRfqs(rfqs.filter((rfq) => rfq.id !== id));
                 fetchRfqs();
@@ -92,7 +92,7 @@ const Rfqs = () => {
 
     // fetch rfqs from the backend function
     const fetchRfqs = () => {
-        axios.get('http://localhost:8000/api/rfqs')
+        axiosInstance.get('api/rfqs/')
             .then((response) => {
                 setRfqs(response.data);
             })

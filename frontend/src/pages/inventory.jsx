@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
+import axiosInstance from '../AxiosInstance';
 import AddInventoryModal from '../components/inventory/AddInventoryModal';
 import UploadBulkModal from '../components/inventory/UploadBulkModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
 import ActionCellRenderer from '../components/ActionCellRenderer';
+import axios from 'axios';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -22,7 +23,7 @@ const Inventory = () => {
 
     // delete inventory by id
     const handleDelete = (id) => {
-        axios.delete(`http://localhost:8000/api/inventory/${id}/`)    
+        axiosInstance.delete(`api/inventory/${id}/`)
             .then((response) => {
                 setInventory(inventory.filter((inventory) => inventory.id !== id));
                 fetchInventory();
@@ -64,7 +65,7 @@ const Inventory = () => {
 
     // fetch inventory from the backend
     const fetchInventory = () => {
-        axios.get('http://localhost:8000/api/inventory')
+        axiosInstance.get('api/inventory/')
             .then((response) => {
                 setInventory(response.data);
             })

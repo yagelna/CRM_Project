@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from 'react';
-import axios from 'axios';
+import axiosInstance from '../../AxiosInstance';
 import Modal from '../modal/modal';
  
 const EmailModal = ({ id, rfqData, mode}) => {
@@ -40,7 +40,7 @@ const EmailModal = ({ id, rfqData, mode}) => {
             const { company, email, customer_name, ...updatedData } = formData;
             console.log('updatedData:', updatedData);
             console.log("formData:", formData);
-            const res = await axios.patch(`http://localhost:8000/api/rfqs/${rfqData.id}/`, {
+            const res = await axiosInstance.patch(`api/rfqs/${rfqData.id}/`, {
                 ...updatedData,
                 status: status,
             });
@@ -64,7 +64,7 @@ const EmailModal = ({ id, rfqData, mode}) => {
             }
         }
         try {
-            const res = await axios.post('http://localhost:8000/api/send-email/', {
+            const res = await axiosInstance.post('api/send-email/', {
                 formData,
                 template: activeTab,
             });

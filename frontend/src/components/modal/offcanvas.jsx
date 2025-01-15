@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from 'react'; 
-import axios from 'axios';
+import axiosInstance from '../../AxiosInstance';
 
 // Offcanvas: Displays an offcanvas modal with RFQ details, history of the mpn from other rfqs and the availability of the part in the inventory.
 const Offcanvas = ({id, title, rfqData}) => {
@@ -72,7 +72,7 @@ const Offcanvas = ({id, title, rfqData}) => {
         setInventoryError(null);
         try {
             const encodedMpn = encodeURIComponent(mpn);
-            const response = await axios.get(`http://localhost:8000/api/inventory/search-similar/${encodedMpn}/`);
+            const response = await axiosInstance.get(`api/inventory/search-similar/${encodedMpn}/`);
             console.log("response [inventory]: ", response.data);
             if(response.data){
                 setInventoryData(response.data);
@@ -91,7 +91,7 @@ const Offcanvas = ({id, title, rfqData}) => {
         setHistoryError(null);
         try {
             const encodedMpn = encodeURIComponent(mpn);
-            const response = await axios.get(`http://localhost:8000/api/rfqs/search/${encodedMpn}/`);
+            const response = await axiosInstance.get(`api/rfqs/search/${encodedMpn}/`);
             console.log("response [history]: ", response.data);
             if(response.data){
                 setHistoryData(response.data);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
+import axiosInstance from '../AxiosInstance';
 import AddCompanyModal from '../components/companies/AddCompanyModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
@@ -20,12 +20,12 @@ const Companies = () => {
     });
   // delete company by id
   const handleDelete = (id) => {
-      axios.delete(`http://localhost:8000/api/companies/${id}/`)
-        .then((response) => {
-          setCompanies(companies.filter((company) => company.id !== id));
-          fetchCompanies();
-        })
-        .catch((error) => console.error('Error deleting company: ' + error));
+    axiosInstance.delete(`api/companies/${id}/`)
+      .then((response) => {
+        setCompanies(companies.filter((company) => company.id !== id));
+        fetchCompanies();
+      })
+      .catch((error) => console.error('Error deleting company: ' + error));
   };
 
   // Column Definitions: Defines & controls grid columns.
@@ -53,7 +53,7 @@ const Companies = () => {
 
   // fetch companies from the backend
   const fetchCompanies = () => {
-    axios.get('http://localhost:8000/api/companies')
+    axiosInstance.get('api/companies')
       .then((response) => {
         setCompanies(response.data);
       })

@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from 'react';
-import axios from 'axios';
+import axiosInstance from '../../AxiosInstance';
 import Modal from '../modal/modal';
 
 const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
@@ -8,7 +8,7 @@ const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
         target_price: '',
         qty_requested: '',
         manufacturer: '',
-        source: 'private',
+        source: 'Private',
     });
 
     useEffect(() => {
@@ -21,7 +21,7 @@ const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
         e.preventDefault();
         if (mode === 'create') {
             console.log("formData in create: ", formData);
-            axios.post('http://localhost:8000/api/rfqs/', formData)
+            axiosInstance.post('api/rfqs/', formData)
                 .then((response) => {
                     console.log("Rfq added successfully: ", response.data);
                     handleUpdateRfqs(response.data, 'create');
@@ -30,14 +30,14 @@ const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
                         target_price: '',
                         qty_requested: '',
                         manufacturer: '',
-                        source: 'private',
+                        source: 'Private',
                     });
                     console.log("formData after create: ", formData);
                 })
                 .catch((error) => console.error('Error adding rfq: ' + error));
             }
         else if (mode === 'edit') {
-            axios.put(`http://localhost:8000/api/rfqs/${rfqData.id}/`, formData)
+            axiosInstance.put(`api/rfqs/${rfqData.id}/`, formData)
                 .then((response) => {
                     console.log("Rfq updated successfully: ", response.data);
                     handleUpdateRfqs(response.data, 'edit');

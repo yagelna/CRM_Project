@@ -1,5 +1,5 @@
 import React, { useState, useEffect} from 'react';
-import axios from 'axios';
+import axiosInstance from '../../AxiosInstance';
 import Modal from '../modal/modal';
 
 const UploadBulkModal = ({ id }) => {
@@ -15,7 +15,7 @@ const UploadBulkModal = ({ id }) => {
         formData.append('file', file);
 
         try {
-            const response = await axios.post('http://localhost:8000/api/rfqs/upload/', formData, {
+            const response = await axiosInstance.post('api/rfqs/upload/', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
