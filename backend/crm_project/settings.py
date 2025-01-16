@@ -50,9 +50,11 @@ INSTALLED_APPS = [
     'apps.contacts',
     'apps.companies',
     'apps.inventory',
+    'apps.users',
     'rest_framework',
     'channels',
     'django_extensions',
+    'knox',
 ]
 
 ASGI_APPLICATION = 'crm_project.asgi.application'
@@ -77,6 +79,12 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+]
+
+AUTH_USER_MODEL = 'users.CustomUser'
+
+AUTHENTICATION_BACKENDS = [
+    'apps.users.auth_backend.EmailAuthBackend',
 ]
 
 ROOT_URLCONF = 'crm_project.urls'
@@ -170,7 +178,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.AllowAny', # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! change to IsAuthenticated when ready
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'knox.auth.TokenAuthentication',
     ],
 }
 
