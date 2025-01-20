@@ -6,7 +6,7 @@ python manage.py collectstatic --noinput
 python manage.py migrate
 
 # Check if superuser should be created
-python manage.py shell -c "from apps.users.models import CustomUser; CustomUser.objects.create_superuser(email='admin@example.com', password='password123')"
+# python manage.py shell -c "from apps.users.models import CustomUser; CustomUser.objects.create_superuser(email='mail@example.com', password='passss')"
 if [[ $CREATE_SUPERUSER ]] then
     python manage.py shell -c "
 import os
