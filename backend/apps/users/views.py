@@ -9,7 +9,7 @@ from knox.models import AuthToken
 User = get_user_model()
 
 class LoginViewSet(viewsets.ViewSet):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny] 
     serializer_class = LoginSerializer
 
     def create(self, request):

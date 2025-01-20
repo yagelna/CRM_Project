@@ -23,8 +23,8 @@ def send_html_email(data, template):
     email = EmailMessage(
         subject=template_dict[template][1].format(mpn=data['mpn']),
         body=email_body,
-        from_email="yagelnahshon@gmail.com",
-        to=["yagel@flychips.com"],
+        from_email="sales@flychips.com",
+        to=[data['email']],
     )
     email.content_subtype = "html"
     email.send()    
