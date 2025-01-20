@@ -22,7 +22,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-     "https://crm-project-frontend-qp2h.onrender.com",
+     "https://crm-frontend-rret.onrender.com",
 ]
 
 STORAGES = {

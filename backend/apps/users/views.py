@@ -32,7 +32,7 @@ class LoginViewSet(viewsets.ViewSet):
             return Response(serializer.errors, status=400)
 
 class RegisterViewSet(viewsets.ViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
 
