@@ -58,6 +58,26 @@ def search_similar_parts(request, mpn):
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
+@api_view(['GET'])
+def get_suppliers(request):
+    """
+    Get a list of unique suppliers in the inventory.
+    """
+    query = """
+        SELECT supplier
+        FROM public.inventory_inventoryitem
+        GROUP BY supplier
+        ORDER BY MIN(id);
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            results = [row[0] for row in cursor.fetchall()]
+        
+        return Response({"suppliers": results}, status=200)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+    
 class InventoryViewSet(viewsets.ModelViewSet):
     queryset = InventoryItem.objects.all()
     serializer_class = InventoryItemSerializer

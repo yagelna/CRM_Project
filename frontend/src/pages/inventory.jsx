@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axiosInstance from '../AxiosInstance';
 import AddInventoryModal from '../components/inventory/AddInventoryModal';
 import UploadBulkModal from '../components/inventory/UploadBulkModal';
+import ExportModal from '../components/inventory/ExportModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
 import ActionCellRenderer from '../components/ActionCellRenderer';
@@ -76,7 +77,6 @@ const Inventory = () => {
         fetchInventory();
     }, []);
 
-
     //update inventory state after adding or editing an inventory
     const handleUpdateInventory = (updatedInventoryItem, mode) => { 
         if (mode === 'create') {
@@ -102,6 +102,7 @@ const Inventory = () => {
             <div className="mb-3">
                 <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addInventoryModal"> Add Item </button>
                 <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#UploadBulkModal"> Upload Bulk Inventory </button>
+                <button type="button" className="btn btn-primary ms-2 me-2" data-bs-toggle="modal" data-bs-target="#ExportModal">Export</button>
                 <span>Quick Filter:</span>
                 <input
                     type="text"
@@ -128,6 +129,8 @@ const Inventory = () => {
             <AddInventoryModal id="addInventoryModal" mode="create" handleUpdateInventory={handleUpdateInventory}/>
             <AddInventoryModal id="EditInventoryModal" mode="edit" itemData={selectedItem} handleUpdateInventory={handleUpdateInventory}/>
             <UploadBulkModal id="UploadBulkModal"/>
+            <ExportModal id="ExportModal"/>
+            
         </div>
     );
 }
