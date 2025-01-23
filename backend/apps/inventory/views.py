@@ -11,6 +11,8 @@ from django.db import connection
 import logging
 logger = logging.getLogger('myapp')
 
+
+# search_parts view to search for parts by MPN
 @api_view(['GET'])
 def search_parts(request, mpn):
     """
@@ -25,6 +27,7 @@ def search_parts(request, mpn):
     except InventoryItem.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND) 
 
+# search_similar_parts view to search for similar parts by MPN
 @api_view(['GET'])
 def search_similar_parts(request, mpn):
     """
@@ -58,6 +61,7 @@ def search_similar_parts(request, mpn):
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
+# get_suppliers view to get a list of unique suppliers
 @api_view(['GET'])
 def get_suppliers(request):
     """
@@ -77,7 +81,27 @@ def get_suppliers(request):
         return Response({"suppliers": results}, status=200)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+# export_data view to export inventory data to a CSV/Excel file
+@api_view(['GET'])
+def export_data(request):
+    """
+    Export inventory data to a CSV/Excel file.
+    """
+    # get suppliers from request query params 
+    #if inventory format is enabled, get all fields where supplier is in the list of suppliers (by the same order)
+    #else, get only necessary fields for icsource/netcomponents format where supplier is in the list of suppliers (by the same order)
+    # create a pandas DataFrame from the filtered data according to the requsted files
+    # if there is more then one data format requested, create multiple files and zip them together
+    # return the zip file as a response
     
+
+    
+
+    
+
+
+
 class InventoryViewSet(viewsets.ModelViewSet):
     queryset = InventoryItem.objects.all()
     serializer_class = InventoryItemSerializer
