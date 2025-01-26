@@ -37,7 +37,7 @@ const Rfqs = () => {
 
     // Column Definitions: Defines & controls grid columns.
     const [colDefs, setColDefs] = useState([
-        { field: "mpn",
+        {   field: "mpn",
             headerName: "MPN",
             cellRenderer: (params) => (
                 <a
@@ -49,21 +49,22 @@ const Rfqs = () => {
                     {params.value}
                 </a>
             ),
-        
+            width: 200,
         },
-        { field: "target_price", headerName: "T/P" },
-        { field: "qty_requested", headerName: "Requested Qty" },
-        { field: "manufacturer", headerName: "MFG" },
-        { field: "source", headerName: "Source" },
-        { field: "contact_object.name", headerName: "Contact Name" },
-        { field: "contact_object.company_object.name", headerName: "Company Name" },
-        { field: "contact_object.company_object.country", headerName: "Country" },
-        { field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc' },
-        { field: "updated_at", headerName: "Updated At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '' },
+        {   field: "target_price", headerName: "TP", width: 80 },
+        {   field: "qty_requested", headerName: "QTY", width: 90 },
+        {   field: "manufacturer", headerName: "MFG", flex: 0.7 },
+        {   field: "source", headerName: "Source", flex: 1 },
+        // { field: "contact_object.name", headerName: "Contact Name" },
+        {   field: "contact_object.company_object.name", headerName: "Company Name", flex: 1 },
+        {   field: "contact_object.company_object.country", headerName: "Country", flex: 1 },
+        {   field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc', hide: true },
+        {   field: "updated_at", headerName: "Updated At",flex: 1, valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '' },
         { 
             field: "status",
             headerName: "Status",
             cellRenderer: "statusCellRenderer",
+            flex: 1,
         },
         {
             field: "actions",
@@ -168,7 +169,7 @@ const Rfqs = () => {
                     gridOptions={gridOptions}
                     rowData={rfqs}
                     theme={myTheme}
-                    defaultColDef={{ flex: 1, filter: true}}
+                    defaultColDef={{filter: true}}
                     pagination={true}
                     paginationPageSize={20}
                     components={{ actionCellRenderer: ActionCellRenderer, statusCellRenderer: StatusCellRenderer }}
@@ -181,9 +182,7 @@ const Rfqs = () => {
             <EmailModal id="SendEmailModal" rfqData={selectedRfq}/>
             <UploadBulkModal id="UploadBulkModal"/>
             <Offcanvas id="offcanvasRight" rfqData={selectedRfq} mode={offcanvasMode} />
-            
         </div>
-        
     );
 }
 

@@ -7,7 +7,6 @@ class StatusCellRenderer {
         this.eGui = document.createElement("span");
         this.eGui.setAttribute("class", "badge border border-primary text-primary");
         this.eGui.innerHTML = params.value;
-        
     }
 
     getGui() {

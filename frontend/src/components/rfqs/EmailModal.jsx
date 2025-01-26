@@ -37,6 +37,7 @@ const EmailModal = ({ id, rfqData, mode}) => {
 
     const updateRfq = async (status) => {
         try {
+            console.log('im here');
             const { company, email, customer_name, ...updatedData } = formData;
             console.log('updatedData:', updatedData);
             console.log("formData:", formData);
@@ -45,6 +46,8 @@ const EmailModal = ({ id, rfqData, mode}) => {
                 status: status,
             });
             console.log("RFQ updated successfully:", res);
+            // refresh the ag-grid
+            mode.refreshAgGrid();
         } catch (error) {
             console.error("Error updating RFQ:", error);
         }
@@ -204,6 +207,7 @@ const EmailModal = ({ id, rfqData, mode}) => {
                     </div>
                 </div>
                 <button className="btn btn-primary mt-3" data-bs-dismiss="modal" onClick={handleSendEmail}>Send Email</button>
+                <button className="btn btn-secondary mt-3 ms-3" data-bs-dismiss="modal" onClick={() => updateRfq('unattractive')}>Unattractive Offer</button>
             </Modal>
             {toast.show && (
                 <div className={`toast-container position-fixed bottom-0 end-0 p-3`}>

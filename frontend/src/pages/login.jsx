@@ -26,7 +26,7 @@ const Login = () => {
             });
             console.log(res.data);
             localStorage.setItem('access_token', res.data.token);
-            navigate('/dashboard');
+            navigate('/rfqs');
             setSuccess(true);
         } catch (error) {
             console.error("Login failed", error);

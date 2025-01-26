@@ -113,6 +113,10 @@ const Offcanvas = ({id, title, rfqData}) => {
                 </div>
                 <hr className='m-0'/>
                 <div className="offcanvas-body">
+                <button type="button" class="btn btn-primary btn-sm mb-2" data-bs-toggle="modal" data-bs-target="#SendEmailModal">
+                    Send Qoute 
+                    <i className="bi bi-envelope ms-2"></i>
+                </button>
                 <div className="accordion" id="accordionExample">
                 <div className="accordion-item">
                     <h2 className="accordion-header">
