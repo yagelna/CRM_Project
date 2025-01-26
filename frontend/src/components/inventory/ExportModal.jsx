@@ -7,12 +7,11 @@ const ExportModal = ({ id }) => {
     const [netComponentsEnabled, setNetComponentsEnabled] = useState(false);
     const [icSourceEnabled, setIcSourceEnabled] = useState(false);
     const [inventoryEnabled, setInventoryEnabled] = useState(false);
-    const [stockNetComponentsRows, setStockNetComponentsRows] = useState("");
-    const [availableNetComponentsRows, setAvailableNetComponentsRows] = useState("");
-    const [stockIcSourceRows, setStockIcSourceRows] = useState("");
-    const [availableIcSourceRows, setAvailableIcSourceRows] = useState("");
+    const [netComponentsRows, setNetComponentsRows] = useState({ stock: "", available: "" });
+    const [icSourceRows, setIcSourceRows] = useState({ stock: "", available: "" });
     const [fileFormat, setFileFormat] = useState("xlsx");
 
+    // Fetch suppliers from the server
     const fetchSuppliers = () => {
         axiosInstance
             .get("api/inventory/suppliers/")
@@ -22,69 +21,64 @@ const ExportModal = ({ id }) => {
             .catch((error) => console.error("Error fetching suppliers: " + error));
     };
 
+    // Handle supplier selection
     const handleSupplierSelection = (supplier) => {
         const index = selectedSuppliers.indexOf(supplier);
         if (index === -1) {
-            // Add supplier if not selected
             setSelectedSuppliers((prev) => [...prev, supplier]);
         } else {
-            // Remove supplier if already selected
             setSelectedSuppliers((prev) => prev.filter((item) => item !== supplier));
         }
     };
 
+    // Helper to get the badge order for suppliers
     const getBadgeOrder = (supplier) => {
         const index = selectedSuppliers.indexOf(supplier);
         return index !== -1 ? index + 1 : null;
     };
 
+    // Handle the export logic
     const handleExport = () => {
-        // validate the export options
         if (!netComponentsEnabled && !icSourceEnabled && !inventoryEnabled) {
             alert("Please select at least one export option.");
             return;
         }
-        
+
         if (selectedSuppliers.length === 0) {
             alert("Please select at least one supplier.");
             return;
         }
 
-        if (netComponentsEnabled && !netComponentsRows) {
-            alert("Please enter the maximum number of rows for netComponents.");
-            return;
-        }
-
-        if (icSourceEnabled && !icSourceRows) {
-            alert("Please enter the maximum number of rows for IC Source.");
-            return;
-        }
-
-        const exportData = {
-            export_options: {
-                net_components: {
-                    enabled: netComponentsEnabled,
-                    stock_max_rows: stockNetComponentsRows || null,
-                    available_max_rows: availableNetComponentsRows || null,
-                },
-                ic_source: {
-                    enabled: icSourceEnabled,
-                    stock_max_rows: stockIcSourceRows || null,
-                    available_max_rows: availableIcSourceRows || null,
-                },
-                inventory: {
-                    enabled: inventoryEnabled,
-                },
-                file_format: fileFormat,
+        const exportOptions = {
+            netComponents: {
+                enabled: netComponentsEnabled,
+                max_stock_rows: parseInt(netComponentsRows.stock) || 0,
+                max_available_rows: parseInt(netComponentsRows.available) || 0,
             },
-            suppliers: selectedSuppliers,
+            icSource: {
+                enabled: icSourceEnabled,
+                max_stock_rows: parseInt(icSourceRows.stock) || 0,
+                max_available_rows: parseInt(icSourceRows.available) || 0,
+            },
+            inventory: {
+                enabled: inventoryEnabled,
+            },
+            selectedSuppliers,
+            fileFormat,
         };
 
         axiosInstance
-            .post("/api/export/", exportData)
+            .post("/api/inventory/export/", exportOptions, { responseType: "blob" })
             .then((response) => {
-                console.log("Export successful:", response.data);
-                alert("Export completed successfully!");
+                // Handle file download
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement("a");
+                link.href = url;
+                link.setAttribute("download", `export.zip`); // קובץ ZIP
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                console.log("Export successful.", response);
             })
             .catch((error) => {
                 console.error("Export failed:", error);
@@ -106,7 +100,6 @@ const ExportModal = ({ id }) => {
                     </div>
                     <div className="modal-body d-flex flex-column justify-content-center">
                         <p>Choose the format to export the data:</p>
-                        <p> NOTE: if netComponents or IC Source is enabled, please enter the maximum number of rows to export. </p>
                         {/* NetComponents Switch */}
                         <div className="form-check form-switch d-flex align-items-center">
                             <input
@@ -124,19 +117,21 @@ const ExportModal = ({ id }) => {
                                 <div>
                                     <input
                                         type="number"
-                                        id="stockNetComponentsRows"
-                                        className="form-control form-control-sm w-auto"
-                                        value={stockNetComponentsRows}
-                                        onChange={(e) => setStockNetComponentsRows(e.target.value)}
-                                        placeholder="Stock Max Rows"
+                                        className="form-control form-control-sm w-auto mt-1"
+                                        placeholder="Max Stock Rows"
+                                        value={netComponentsRows.stock}
+                                        onChange={(e) =>
+                                            setNetComponentsRows((prev) => ({ ...prev, stock: e.target.value }))
+                                        }
                                     />
                                     <input
                                         type="number"
-                                        id="availableNetComponentsRows"
-                                        className="form-control form-control-sm w-auto"
-                                        value={availableNetComponentsRows}
-                                        onChange={(e) => setAvailableNetComponentsRows(e.target.value)}
-                                        placeholder="Available Max Rows"
+                                        className="form-control form-control-sm w-auto mt-1"
+                                        placeholder="Max Available Rows"
+                                        value={netComponentsRows.available}
+                                        onChange={(e) =>
+                                            setNetComponentsRows((prev) => ({ ...prev, available: e.target.value }))
+                                        }
                                     />
                                 </div>
                             )}
@@ -158,24 +153,25 @@ const ExportModal = ({ id }) => {
                                 <div>
                                     <input
                                         type="number"
-                                        id="stockIcSourceRows"
-                                        className="form-control form-control-sm w-auto"
-                                        value={stockIcSourceRows}
-                                        onChange={(e) => setStockIcSourceRows(e.target.value)}
-                                        placeholder="Stock Max Rows"
+                                        className="form-control form-control-sm w-auto mt-1"
+                                        placeholder="Max Stock Rows"
+                                        value={icSourceRows.stock}
+                                        onChange={(e) =>
+                                            setIcSourceRows((prev) => ({ ...prev, stock: e.target.value }))
+                                        }
                                     />
                                     <input
                                         type="number"
-                                        id="availableIcSourceRows"
-                                        className="form-control form-control-sm w-auto"
-                                        value={availableIcSourceRows}
-                                        onChange={(e) => setAvailableIcSourceRows(e.target.value)}
-                                        placeholder="Available Max Rows"
+                                        className="form-control form-control-sm w-auto mt-1"
+                                        placeholder="Max Available Rows"
+                                        value={icSourceRows.available}
+                                        onChange={(e) =>
+                                            setIcSourceRows((prev) => ({ ...prev, available: e.target.value }))
+                                        }
                                     />
                                 </div>
                             )}
                         </div>
-
                         {/* Inventory Switch */}
                         <div className="form-check form-switch mt-1">
                             <input
@@ -190,31 +186,55 @@ const ExportModal = ({ id }) => {
                                 All Inventory Fields
                             </label>
                         </div>
-
-                        {/* File Format Dropdown with XLSX as default */}
+                        {/* File Format Dropdown */}
                         <div className="dropdown mt-3">
-                            <button className="btn btn-secondary dropdown-toggle btn-sm" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button
+                                className="btn btn-secondary dropdown-toggle btn-sm"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                            >
                                 {fileFormat}
                             </button>
-                            <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <ul className="dropdown-menu">
                                 <li>
-                                    <a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFileFormat("xlsx"); }}>
+                                    <a
+                                        className="dropdown-item"
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setFileFormat("xlsx");
+                                        }}
+                                    >
                                         xlsx
                                     </a>
                                 </li>
                                 <li>
-                                    <a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFileFormat("csv"); }}>
+                                    <a
+                                        className="dropdown-item"
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setFileFormat("csv");
+                                        }}
+                                    >
                                         csv
                                     </a>
                                 </li>
                                 <li>
-                                    <a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); setFileFormat("xls"); }}>
+                                    <a
+                                        className="dropdown-item"
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setFileFormat("xls");
+                                        }}
+                                    >
                                         xls
                                     </a>
                                 </li>
                             </ul>
                         </div>
-
                         {/* Supplier selection */}
                         <div className="dropdown col-3 mt-3">
                             <button
@@ -229,26 +249,22 @@ const ExportModal = ({ id }) => {
                             </button>
                             <ul
                                 className="dropdown-menu"
-                                aria-labelledby="dropdownMenuButton"
                                 style={{
-                                    maxHeight: "400px", // Limit the height to the modal's height
-                                    overflowY: "auto", // Add scroll if height exceeds
-                                    width: "100%", // Fit the modal's width or less
-                                    fontSize: "14px", // Reduce font size for a compact view
+                                    maxHeight: "400px",
+                                    overflowY: "auto",
+                                    width: "100%",
+                                    fontSize: "14px",
                                 }}
                             >
-                                {/* Select All Option */}
                                 <li>
                                     <a
-                                        className="dropdown-item d-flex justify-content-between align-items-center"
+                                        className="dropdown-item"
                                         href="#"
                                         onClick={(e) => {
                                             e.preventDefault();
                                             if (selectedSuppliers.length === suppliers.length) {
-                                                // Deselect all if already selected
                                                 setSelectedSuppliers([]);
                                             } else {
-                                                // Select all if not already selected
                                                 setSelectedSuppliers(suppliers);
                                             }
                                         }}
@@ -262,7 +278,7 @@ const ExportModal = ({ id }) => {
                                 {suppliers.map((supplier, index) => (
                                     <li key={index}>
                                         <a
-                                            className="dropdown-item d-flex justify-content-between align-items-center"
+                                            className="dropdown-item"
                                             href="#"
                                             onClick={(e) => {
                                                 e.preventDefault();
