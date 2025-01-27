@@ -9,6 +9,7 @@ const Offcanvas = ({id, title, rfqData}) => {
         manufacturer: '',
         target_price: '',
         qty_requested: '',
+        offered_price: '',
         source: '',
         contact_object: {
             name: '',
@@ -37,6 +38,7 @@ const Offcanvas = ({id, title, rfqData}) => {
                 manufacturer: rfqData.manufacturer,
                 target_price: rfqData.target_price,
                 qty_requested: rfqData.qty_requested,
+                offered_price: rfqData.offered_price,
                 source: rfqData.source,
                 contact_object: {
                     name: rfqData.contact_object.name,
@@ -110,11 +112,11 @@ const Offcanvas = ({id, title, rfqData}) => {
                 <div className="offcanvas-header">
                     <h5 className="offcanvas-title" id="offcanvasRightLabel">{Data.mpn}</h5>
                     <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                </div>
+                </div>  
                 <hr className='m-0'/>
                 <div className="offcanvas-body">
-                <button type="button" class="btn btn-primary btn-sm mb-2" data-bs-toggle="modal" data-bs-target="#SendEmailModal">
-                    Send Qoute 
+                <button type="button" className="btn btn-primary btn-sm mb-2" data-bs-toggle="modal" data-bs-target="#SendEmailModal">
+                    Send Quote 
                     <i className="bi bi-envelope ms-2"></i>
                 </button>
                 <div className="accordion" id="accordionExample">
@@ -131,6 +133,7 @@ const Offcanvas = ({id, title, rfqData}) => {
                             <p><span className="fw-bold">Manufacturer:</span> {Data.manufacturer}</p>
                             <p><span className="fw-bold">Target Price:</span> {Data.target_price}</p>
                             <p><span className="fw-bold">Requested Qty:</span> {Data.qty_requested}</p>
+                            <p><span className="fw-bold">Offered Price:</span> {Data.offered_price}</p>
                             <p><span className="fw-bold">Source:</span> {Data.source}</p>
                         </div>
                         <div className="col-6">
