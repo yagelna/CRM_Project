@@ -7,7 +7,7 @@ const EmailModal = ({ id, rfqData, mode}) => {
     const [formData, setFormData] = useState({
             customer_name: '',
             email:'',
-            company: '',
+            company_name: '',
             manufacturer: '',
             qty_offered: '',
             offered_price: '',
@@ -24,7 +24,7 @@ const EmailModal = ({ id, rfqData, mode}) => {
             setFormData({
                 customer_name: rfqData.contact_object?.name || '',
                 email: rfqData.contact_object?.email || '',
-                company: rfqData.contact_object?.company_object?.name || '',
+                company_name: rfqData.contact_object?.company_object?.name || '',
                 manufacturer: rfqData.manufacturer || '',
                 qty_offered: rfqData.qty_requested || '',
                 offered_price: rfqData.offered_price || '',
@@ -38,7 +38,7 @@ const EmailModal = ({ id, rfqData, mode}) => {
     const updateRfq = async (status) => {
         try {
             console.log('im here');
-            const { company, email, customer_name, ...updatedData } = formData;
+            const { company_name, email, customer_name, ...updatedData } = formData;
             console.log('updatedData:', updatedData);
             console.log("formData:", formData);
             const res = await axiosInstance.patch(`api/rfqs/${rfqData.id}/`, {
@@ -46,8 +46,6 @@ const EmailModal = ({ id, rfqData, mode}) => {
                 status: status,
             });
             console.log("RFQ updated successfully:", res);
-            // refresh the ag-grid
-            mode.refreshAgGrid();
         } catch (error) {
             console.error("Error updating RFQ:", error);
         }
@@ -104,8 +102,8 @@ const EmailModal = ({ id, rfqData, mode}) => {
                             className="form-control input-sz" 
                             id="floatingCompany" 
                             placeholder="Company" 
-                            value={formData.company}
-                            onChange={(e) => setFormData({ ...formData, company: e.target.value })} />
+                            value={formData.company_name}
+                            onChange={(e) => setFormData({ ...formData, company_name: e.target.value })} />
                         <label htmlFor="floatingCompany">Company</label>
                     </div>
                     <div className="form-floating form-floating-sm mb-1">
