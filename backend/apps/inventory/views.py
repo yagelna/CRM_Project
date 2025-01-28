@@ -11,10 +11,11 @@ from django.db import connection
 import logging
 from django.http import HttpResponse
 from django.db.models import Case, When
-from import_export.formats.base_formats import XLSX, CSV, XLS
+from import_export.formats.base_formats import XLSX, CSV
 from .resources import InventoryResource, NetComponentsResource, ICSourceResource
 import zipfile
 import io
+import time
 logger = logging.getLogger('myapp')
 
 
@@ -74,7 +75,7 @@ def get_suppliers(request):
     Get a list of unique suppliers in the inventory.
     """
     query = """
-        SELECT supplier
+        SELECT supplier, COUNT(*) AS total_parts
         FROM public.inventory_inventoryitem
         GROUP BY supplier
         ORDER BY MIN(id);
@@ -82,7 +83,12 @@ def get_suppliers(request):
     try:
         with connection.cursor() as cursor:
             cursor.execute(query)
-            results = [row[0] for row in cursor.fetchall()]
+            results = [
+                {
+                    "supplier": row[0],
+                    "total_parts": row[1]
+                } for row in cursor.fetchall()
+            ]
         
         return Response({"suppliers": results}, status=200)
     except Exception as e:
@@ -94,12 +100,8 @@ def export_inventory(request):
     """
     Export inventory data to a CSV/Excel file.
     """
-    # get suppliers from request query params 
-    # if inventory format is enabled, get all fields where supplier is in the list of suppliers (by the same order)
-    # else, get only necessary fields for icsource/netcomponents format where supplier is in the list of suppliers (by the same order)
-    # create a pandas DataFrame from the filtered data according to the requsted files
-    # if there is more then one data format requested, create multiple files and zip them together
-    # return the zip file as a response
+    start_time = time.time()
+    print("Starting export process...")
 
     # Parse JSON data from the request body
     data = request.data
@@ -117,60 +119,75 @@ def export_inventory(request):
         "ic_source_available": data.get("icSource", {}).get("max_available_rows", 0),
     }
 
-    # Debugging
-    print("Suppliers:", suppliers)
-    print("Format:", format_type)
-    print("NetComponents Enabled:", net_components)
-    print("IC Source Enabled:", ic_source)
-    print("Inventory Enabled:", inventory)
-    print("Max Rows:", max_rows)
-
-    #export logic here (e.g., generate files based on data)
+    # Create a zip file buffer to store the exported files
     zip_buffer = io.BytesIO()
     zip_file = zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED)
 
-    # Define a helper function for data export with parameters for queryset, filename, and default resource of InventoryResource
+    # Define a helper function for data export
     def export_data(queryset, filename, resource=InventoryResource):
+        print(f"Exporting data to {filename}...")
+        curr_time = time.time()
         resource = resource()
         dataset = resource.export(queryset)
         if format_type == "xlsx":
             file_format = XLSX
         elif format_type == "csv":
             file_format = CSV
-        elif format_type == "xls":
-            file_format = XLS
         content = file_format().export_data(dataset)
+        print(f"Exported {len(queryset)} rows to {filename} in {time.time() - curr_time:.2f} seconds")
+        curr_time = time.time()
         zip_file.writestr(filename, content)
+        print(f"Zipped {filename} in {time.time() - curr_time:.2f} seconds")
 
     if net_components:
+        print("Starting NetComponents data export")
+        net_start_time = time.time()
+
         stock_limit = max_rows["net_components_stock"]
         available_limit = max_rows["net_components_available"]
         total_limit = stock_limit + available_limit
         # Get the data for NetComponents format (stock and available rows) by same order of suppliers and then separate them
         stock_data = InventoryItem.objects.filter(supplier__in=suppliers).only("mpn", "description", "manufacturer", "quantity", "url").order_by(*[Case(When(supplier=supplier, then=idx), default=999) for idx, supplier in enumerate(suppliers)])[:stock_limit]
         available_data = InventoryItem.objects.filter(supplier__in=suppliers).only("mpn", "description", "manufacturer", "quantity", "url").order_by(*[Case(When(supplier=supplier, then=idx), default=999) for idx, supplier in enumerate(suppliers)])[stock_limit:total_limit]
-        print(stock_data)
-        print(available_data)
+        print(f"NetComponents query time: {time.time() - net_start_time:.2f} seconds")
+
+        file_creation_start = time.time()
         export_data(stock_data, f"netcomponents_stock.{format_type}", NetComponentsResource)
         export_data(available_data, f"netcomponents_available.{format_type}", NetComponentsResource)
+        print(f"NetComponents file creation time: {time.time() - file_creation_start:.2f} seconds")
+        
+
 
     if ic_source:
+        print("Starting IC Source data export")
+        ic_start_time = time.time()
+    
         stock_limit = max_rows["ic_source_stock"]
         available_limit = max_rows["ic_source_available"]
         total_limit = stock_limit + available_limit
         # Get the data for IC Source format (stock and available rows) by same order of suppliers and then separate them
         stock_data = InventoryItem.objects.filter(supplier__in=suppliers).only("mpn", "description", "manufacturer", "quantity").order_by(*[Case(When(supplier=supplier, then=idx), default=999) for idx, supplier in enumerate(suppliers)])[:stock_limit]
         available_data = InventoryItem.objects.filter(supplier__in=suppliers).only("mpn", "description", "manufacturer", "quantity").order_by(*[Case(When(supplier=supplier, then=idx), default=999) for idx, supplier in enumerate(suppliers)])[stock_limit:total_limit]
-        export_data(stock_data, f"icsource_stock.{format_type}")
+        print(f"IC Source query time: {time.time() - ic_start_time:.2f} seconds")
+
+        file_creation_start = time.time()
+        export_data(stock_data, f"icsource_stock.{format_type}", ICSourceResource)
         export_data(available_data, f"icsource_available.{format_type}", ICSourceResource)
+        print(f"IC Source file creation time: {time.time() - file_creation_start:.2f} seconds")
 
     if inventory:
-        # Get the data for inventory format by same order of suppliers
+        print("Starting Inventory data export")
+        inventory_start_time = time.time()
         data = InventoryItem.objects.filter(supplier__in=suppliers).order_by(*[Case(When(supplier=supplier, then=idx), default=999) for idx, supplier in enumerate(suppliers)])
+        print(f"Inventory query time: {time.time() - inventory_start_time:.2f} seconds")
+        file_creation_start = time.time()
         export_data(data, f"inventory.{format_type}", InventoryResource)
+        print(f"Inventory file creation time: {time.time() - file_creation_start:.2f} seconds")
 
     zip_file.close()
     zip_buffer.seek(0)
+
+    print(f"Total export time: {time.time() - start_time:.2f} seconds")
 
     # Return the zip file as a response
     response = HttpResponse(zip_buffer, content_type="application/zip")

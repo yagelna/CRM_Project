@@ -10,6 +10,7 @@ const ExportModal = ({ id }) => {
     const [netComponentsRows, setNetComponentsRows] = useState({ stock: "", available: "" });
     const [icSourceRows, setIcSourceRows] = useState({ stock: "", available: "" });
     const [fileFormat, setFileFormat] = useState("xlsx");
+    const [selectedSuppliersCount, setSelectedSuppliersCount] = useState(0);
 
     // Fetch suppliers from the server
     const fetchSuppliers = () => {
@@ -23,17 +24,19 @@ const ExportModal = ({ id }) => {
 
     // Handle supplier selection
     const handleSupplierSelection = (supplier) => {
-        const index = selectedSuppliers.indexOf(supplier);
+        const index = selectedSuppliers.indexOf(supplier.supplier);
         if (index === -1) {
-            setSelectedSuppliers((prev) => [...prev, supplier]);
+            setSelectedSuppliers((prev) => [...prev, supplier.supplier]);
+            setSelectedSuppliersCount((prev) => prev + supplier.total_parts);
         } else {
-            setSelectedSuppliers((prev) => prev.filter((item) => item !== supplier));
+            setSelectedSuppliers((prev) => prev.filter((item) => item !== supplier.supplier));
+            setSelectedSuppliersCount((prev) => prev - supplier.total_parts);
         }
     };
 
     // Helper to get the badge order for suppliers
     const getBadgeOrder = (supplier) => {
-        const index = selectedSuppliers.indexOf(supplier);
+        const index = selectedSuppliers.indexOf(supplier.supplier);
         return index !== -1 ? index + 1 : null;
     };
 
@@ -235,6 +238,9 @@ const ExportModal = ({ id }) => {
                                 </li>
                             </ul>
                         </div>
+                        <div className="mt-3">
+                            <strong>Selected Components Count:</strong> {selectedSuppliersCount}
+                        </div>
                         {/* Supplier selection */}
                         <div className="dropdown col-3 mt-3">
                             <button
@@ -264,8 +270,10 @@ const ExportModal = ({ id }) => {
                                             e.preventDefault();
                                             if (selectedSuppliers.length === suppliers.length) {
                                                 setSelectedSuppliers([]);
+                                                setSelectedSuppliersCount(0);
                                             } else {
-                                                setSelectedSuppliers(suppliers);
+                                                setSelectedSuppliers(suppliers.map((supplier) => supplier.supplier));
+                                                setSelectedSuppliersCount(suppliers.reduce((acc, curr) => acc + curr.total_parts, 0));
                                             }
                                         }}
                                     >
@@ -285,8 +293,8 @@ const ExportModal = ({ id }) => {
                                                 handleSupplierSelection(supplier);
                                             }}
                                         >
-                                            {supplier}
-                                            {selectedSuppliers.includes(supplier) && (
+                                            {supplier.supplier} ({supplier.total_parts})
+                                            {selectedSuppliers.includes(supplier.supplier) && (
                                                 <span className="badge text-bg-primary rounded-pill">
                                                     {getBadgeOrder(supplier)}
                                                 </span>
