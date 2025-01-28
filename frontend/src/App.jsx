@@ -15,7 +15,7 @@ import ProtectedRoute from './components/ProtectedRoutes';
 function App() {
   // Determine if the sidebar should be hidden based on the current location
   const location = useLocation();
-  const noSidebar = !(location.pathname === '/rfqs' || location.pathname === '/contacts' || location.pathname === '/companies' || location.pathname === '/inventory' || location.pathname === '/dashboard');
+  const noSidebar = !(location.pathname === '/rfqs' || location.pathname === '/' || location.pathname === '/contacts' || location.pathname === '/companies' || location.pathname === '/inventory' || location.pathname === '/dashboard');
 
   return (
     <div className="App">
