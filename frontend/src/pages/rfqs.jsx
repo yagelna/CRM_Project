@@ -99,22 +99,24 @@ const Rfqs = () => {
             })
             .catch((error) => console.error('Error fetching rfqs: ' + error));
     };
+    const isDevelopment = import.meta.env.MODE === 'development';
+    const wsBaseURL = isDevelopment ? import.meta.env.VITE_WS_BASE_URL_LOCAL : import.meta.env.VITE_WS_BASE_URL_DEPLOY;
     useEffect(() => {
         fetchRfqs();
-        // open websocket connection
-    const ws = new WebSocket('ws://localhost:8000/ws/rfqs/');
-    ws.onopen = () => {
-        console.log('Websocket connected');
-    };
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("New data received via websocket: ", data);
-        fetchRfqs();
-    };
+        // WebSocket connection
+        const ws = new WebSocket(wsBaseURL);
+        ws.onopen = () => {
+            console.log('Websocket connected');
+        };
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("New data received via websocket: ", data);
+            fetchRfqs(); // fetch rfqs after receiving new data
+        };
 
-    ws.onclose = () => {
-        console.log('WebSocket connection closed');
-    };
+        ws.onclose = () => {
+            console.log('WebSocket connection closed');
+        };
         
     }, []); 
 
