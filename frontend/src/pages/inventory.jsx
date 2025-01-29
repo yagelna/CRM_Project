@@ -6,7 +6,6 @@ import ExportModal from '../components/inventory/ExportModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
 import ActionCellRenderer from '../components/ActionCellRenderer';
-import axios from 'axios';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 

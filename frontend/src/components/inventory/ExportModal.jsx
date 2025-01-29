@@ -9,7 +9,7 @@ const ExportModal = ({ id }) => {
     const [inventoryEnabled, setInventoryEnabled] = useState(false);
     const [netComponentsRows, setNetComponentsRows] = useState({ stock: "", available: "" });
     const [icSourceRows, setIcSourceRows] = useState({ stock: "", available: "" });
-    const [fileFormat, setFileFormat] = useState("xlsx");
+    const [fileFormat, setFileFormat] = useState("csv");
     const [selectedSuppliersCount, setSelectedSuppliersCount] = useState(0);
 
     // Fetch suppliers from the server
@@ -206,18 +206,6 @@ const ExportModal = ({ id }) => {
                                         href="#"
                                         onClick={(e) => {
                                             e.preventDefault();
-                                            setFileFormat("xlsx");
-                                        }}
-                                    >
-                                        xlsx
-                                    </a>
-                                </li>
-                                <li>
-                                    <a
-                                        className="dropdown-item"
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault();
                                             setFileFormat("csv");
                                         }}
                                     >
@@ -230,10 +218,10 @@ const ExportModal = ({ id }) => {
                                         href="#"
                                         onClick={(e) => {
                                             e.preventDefault();
-                                            setFileFormat("xls");
+                                            setFileFormat("xlsx");
                                         }}
                                     >
-                                        xls
+                                        xlsx
                                     </a>
                                 </li>
                             </ul>
@@ -264,7 +252,7 @@ const ExportModal = ({ id }) => {
                             >
                                 <li>
                                     <a
-                                        className="dropdown-item"
+                                        className="dropdown-item d-flex justify-content-between align-items-center"
                                         href="#"
                                         onClick={(e) => {
                                             e.preventDefault();
@@ -286,7 +274,7 @@ const ExportModal = ({ id }) => {
                                 {suppliers.map((supplier, index) => (
                                     <li key={index}>
                                         <a
-                                            className="dropdown-item"
+                                            className="dropdown-item d-flex justify-content-between align-items-center"
                                             href="#"
                                             onClick={(e) => {
                                                 e.preventDefault();

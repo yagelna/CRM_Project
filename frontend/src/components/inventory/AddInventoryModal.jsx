@@ -49,7 +49,11 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                     });
                     setCustomSupplier('');
                 })
-                .catch((error) => console.error('Error adding inventory item: ' + error));
+                .catch((error) => {
+                    if (error.response) {
+                        console.error("Error adding inventory:", JSON.stringify(error.response.data, null, 2));
+                    }
+                });
             }
         else if (mode === 'edit') {
             axiosInstance.put(`api/inventory/${itemData.id}/`, dataToSubmit)
