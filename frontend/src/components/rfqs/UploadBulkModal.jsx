@@ -1,6 +1,6 @@
 import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
-import Modal from '../modal/modal';
+import Modal from '../common/modal';
 
 const UploadBulkModal = ({ id }) => {
     const [file, setFile] = useState(null);

@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
-import Sidebar from './components/sidebar';
+import Sidebar from './components/common/sidebar';
 import Contacts from './pages/contacts';
 import Companies from './pages/companies';
 import Inventory from './pages/inventory';

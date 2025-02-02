@@ -30,10 +30,11 @@ const Companies = () => {
 
   // Column Definitions: Defines & controls grid columns.
   const [colDefs, setColDefs] = useState([
-    { field: "name", headerName: "Name"},
-    { field: "domain", headerName: "Domain" },
-    { field: "country", headerName: "Country"},
-    { field: "address", headerName: "Full Address" },
+    { field: "name", headerName: "Name", flex: 1.5},
+    { field: "domain", headerName: "Domain", flex: 1 },
+    { field: "country", headerName: "Country", flex: 1 },
+    { field: "address", headerName: "Full Address", flex: 1 },
+    { field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc', flex: 1 },
     {
       field: "actions",
       headerName: "Actions",

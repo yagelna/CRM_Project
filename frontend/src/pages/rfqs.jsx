@@ -5,9 +5,9 @@ import UploadBulkModal from '../components/rfqs/UploadBulkModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
 import ActionCellRenderer from '../components/ActionCellRenderer';
-import StatusCellRenderer from '../components/StatusCellRenderer';
+import StatusCellRenderer from '../components/rfqs/StatusCellRenderer';
 import EmailModal from '../components/rfqs/EmailModal';
-import Offcanvas from '../components/modal/offcanvas';
+import Offcanvas from '../components/rfqs/RfqOffcanvas';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
