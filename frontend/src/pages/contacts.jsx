@@ -31,10 +31,11 @@ const Contacts = () => {
 
   // Column Definitions: Defines & controls grid columns.
   const [colDefs, setColDefs] = useState([
-    { field: "name", headerName: "Name"},
-    { field: "email", headerName: "Email" },
-    { field: "phone", headerName: "Phone"},
-    { field: "company_name", headerName: "Company" },
+    { field: "name", headerName: "Name", flex: 1},
+    { field: "email", headerName: "Email", flex: 1 },
+    { field: "phone", headerName: "Phone", flex: 1 },
+    { field: "company_name", headerName: "Company", flex: 1 },
+    { field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc', flex: 1 },
     {
       field: "actions",
       headerName: "Actions",
