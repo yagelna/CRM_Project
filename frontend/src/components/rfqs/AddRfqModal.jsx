@@ -1,6 +1,6 @@
 import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
-import Modal from '../modal/modal';
+import Modal from '../common/modal';
 
 const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
     const [formData, setFormData] = useState({

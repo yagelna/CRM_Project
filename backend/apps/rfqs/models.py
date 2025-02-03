@@ -23,6 +23,7 @@ class RFQ(models.Model):
         ('IC Source', 'ICSource'),
         ('Private', 'Private'),
     ])
+    stock_source = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=50, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

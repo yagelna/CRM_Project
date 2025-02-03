@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import RFQ, Contact, Company
+from .models import RFQ, Contact, Company, InventoryItem
 from .serializers import RFQSerializer
 from rest_framework import viewsets, status
 from rest_framework import permissions
@@ -54,14 +54,26 @@ class RFQViewSet(viewsets.ModelViewSet):
             request.data['customer'] = contact.id
             request.data['company'] = contact.company.id if contact.company else None
 
-        # check if there is a similar RFQ in the last 30 days and if so, use the same price and qty offered and send a quote
+        # check if the MPN is in stock and if so, set the stock_source field accordingly
         mpn = request.data.get('mpn')
+        suppliers = InventoryItem.objects.filter(mpn=mpn).values_list('supplier', flat=True)
+        if suppliers:
+            if len(suppliers) == 1 and suppliers[0] == 'Fly Chips':
+                request.data['stock_source'] = 'Stock'
+            elif 'Fly Chips' in suppliers:
+                request.data['stock_source'] = 'Stock & Available'
+            else:
+                request.data['stock_source'] = 'Available'
+        else:
+            request.data['stock_source'] = None
+
+        # check if there is a similar RFQ in the last 30 days and if so, use the same price and qty offered and send a quote
         last_month = now() - timedelta(days=30)
         similar_rfq = RFQ.objects.filter(mpn=mpn, updated_at__gte=last_month, offered_price__isnull=False).order_by('-updated_at').first()
         if similar_rfq:
             new_tp = request.data.get('target_price')
-            if new_tp and similar_rfq.offered_price > new_tp:
-                logger.debug("Debug - Similar RFQ Offered Price is less than Target Price")
+            if new_tp is None or similar_rfq.offered_price > new_tp:
+                logger.debug("Debug - Using previous RFQ's offer for the new RFQ")
                 request.data['offered_price'] = similar_rfq.offered_price
                 request.data['qty_offered'] = similar_rfq.qty_offered
                 request.data['date_code'] = similar_rfq.date_code

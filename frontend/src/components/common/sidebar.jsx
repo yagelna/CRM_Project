@@ -36,6 +36,11 @@ const Sidebar = () => {
           <i className="bi bi-archive"></i>
         </a>
       </li>
+      <li className="nav-item">
+        <a href="/ai" className="nav-link py-3 border-bottom rounded-0" data-bs-toggle="tooltip" data-bs-placement="right" aria-label="AI" data-bs-original-title="AI">
+          <i className="bi bi-lightbulb"></i>
+        </a>
+      </li>
 
     </ul>
     </div>
