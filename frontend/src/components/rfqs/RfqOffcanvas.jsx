@@ -2,7 +2,7 @@ import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
 
 // Offcanvas: Displays an offcanvas modal with RFQ details, history of the mpn from other rfqs and the availability of the part in the inventory.
-const Offcanvas = ({id, title, rfqData}) => {
+const Offcanvas = ({id, rfqData, handleAutoFill}) => {
 
     const [Data , setData] = useState({
         mpn: '',
@@ -11,6 +11,7 @@ const Offcanvas = ({id, title, rfqData}) => {
         qty_requested: '',
         offered_price: '',
         source: '',
+        date_code: '',
         contact_object: {
             name: '',
             email: '',
@@ -40,6 +41,7 @@ const Offcanvas = ({id, title, rfqData}) => {
                 qty_requested: rfqData.qty_requested,
                 offered_price: rfqData.offered_price,
                 source: rfqData.source,
+                date_code: rfqData.date_code,
                 contact_object: {
                     name: rfqData.contact_object.name,
                     email: rfqData.contact_object.email,
@@ -141,6 +143,7 @@ const Offcanvas = ({id, title, rfqData}) => {
                     <p><span className="fw-bold">Company Name:</span> {Data.contact_object.company_object.name}</p>
                     <p><span className="fw-bold">Country:</span> {Data.contact_object.company_object.country}</p>
                     <p><span className="fw-bold">Email:</span> {Data.contact_object.email}</p>
+                    <p><span className="fw-bold">Date Code:</span> {Data.date_code}</p>
                 </div>
                 </div>
 
@@ -200,6 +203,7 @@ const Offcanvas = ({id, title, rfqData}) => {
                     <table className="table">
                     <thead>
                     <tr style={{fontSize: '0.8rem'}}>
+                    <th scope="col"></th>
                     <th scope="col">Company</th>
                     <th scope="col">Target Price</th>
                     <th scope="col">Offered Price</th>
@@ -214,6 +218,16 @@ const Offcanvas = ({id, title, rfqData}) => {
                     {historyData.map((item) => (
                     item.id !== rfqData.id &&
                     <tr key={item.id} style={{fontSize: '0.8rem'}}>
+                        <td>
+                            <button 
+                                className="btn btn-sm btn-outline-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#SendEmailModal"
+                                onClick={() => handleAutoFill(item)}
+                                title="Auto Fill Email Modal">
+                                <i className="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </td>
                         <td>{item.contact_object.company_name || '-'}</td>
                         <td>{item.target_price || '-'}</td>
                         <td>{item.offered_price || '-'}</td>
@@ -222,7 +236,6 @@ const Offcanvas = ({id, title, rfqData}) => {
                         <td>{item.date_code || '-'}</td>
                         <td>{item.status || '-'}</td>
                         <td>{new Date(item.created_at).toISOString().split('T')[0] || '-'}</td>
-                    
                     </tr>
                     ))}
                     </tbody>

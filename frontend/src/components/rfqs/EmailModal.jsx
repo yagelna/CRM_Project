@@ -2,7 +2,7 @@ import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
 import Modal from '../common/modal';
  
-const EmailModal = ({ id, rfqData, mode}) => {
+const EmailModal = ({ id, rfqData, autoFillData }) => {
     // State for recipient details
     const [formData, setFormData] = useState({
             customer_name: '',
@@ -33,11 +33,22 @@ const EmailModal = ({ id, rfqData, mode}) => {
             });
             console.log('formData after update:', formData);
         }
-    }, [rfqData]);
+        if(autoFillData){
+            setFormData({
+                ...formData,
+                manufacturer: autoFillData.manufacturer || '',
+                qty_offered: autoFillData.qty_offered || '',
+                offered_price: autoFillData.offered_price || '',
+                date_code: autoFillData.date_code || '',
+            });
+            console.log('formData after autoFill:', formData);
+            
+        }
+    
+    }, [rfqData, autoFillData]);
 
     const updateRfq = async (status) => {
         try {
-            console.log('im here');
             const { company_name, email, customer_name, ...updatedData } = formData;
             console.log('updatedData:', updatedData);
             console.log("formData:", formData);
@@ -80,7 +91,6 @@ const EmailModal = ({ id, rfqData, mode}) => {
         }
         console.log(formData);
     }
-
 
     return (
         <>
@@ -188,8 +198,6 @@ const EmailModal = ({ id, rfqData, mode}) => {
                                 <label htmlFor="floatingUnitPrice">Unit Price</label>
                             </div>
                         </div>  
-                        
-                    
                     </div>
                     <div className="tab-pane fade" id="tp-alert-tab" role="tabpanel">
                         <p>Here you can draft and send a T/P Alert email.</p>

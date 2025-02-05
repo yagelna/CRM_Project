@@ -15,7 +15,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 const Rfqs = () => {
     const [rfqs, setRfqs] = useState([]);
     const [selectedRfq, setSelectedRfq] = useState(null);
-    const [offcanvasMode, setOffcanvasMode] = useState(null);
+    const [autoFillData, setAutoFillData] = useState(null);
     const gridRef = useRef();
     const myTheme = themeQuartz
 	.withParams({
@@ -44,7 +44,7 @@ const Rfqs = () => {
                     href="#offcanvasRight"
                     data-bs-toggle="offcanvas"
                     className="link-opacity-50-hover fw-medium"
-                    onClick={() => { setSelectedRfq(params.data); setOffcanvasMode('mpn'); }}
+                    onClick={() => { setSelectedRfq(params.data) }}
                 >
                     {params.value}
                 </a>
@@ -118,6 +118,17 @@ const Rfqs = () => {
         ws.onclose = () => {
             console.log('WebSocket connection closed');
         };
+        const emailModal = document.getElementById('SendEmailModal');
+        const handleModalClose = () => {
+            console.log('Email modal closed');
+            setAutoFillData(null);
+        };
+        emailModal.addEventListener('hidden.bs.modal', handleModalClose);
+
+        return () => {
+            ws.close();
+            emailModal.removeEventListener('hidden.bs.modal', handleModalClose);
+        };
         
     }, []); 
 
@@ -182,9 +193,9 @@ const Rfqs = () => {
 
             <AddRfqModal id="addRfqModal" mode="create" handleUpdateRfqs={handleUpdateRfqs}/>
             <AddRfqModal id="EditRfqModal" mode="edit" rfqData={selectedRfq} handleUpdateRfqs={handleUpdateRfqs}/>
-            <EmailModal id="SendEmailModal" rfqData={selectedRfq}/>
+            <EmailModal id="SendEmailModal" rfqData={selectedRfq} autoFillData={autoFillData} onHide={() => console.log('Email modal closed')}/>
             <UploadBulkModal id="UploadBulkModal"/>
-            <Offcanvas id="offcanvasRight" rfqData={selectedRfq} mode={offcanvasMode} />
+            <Offcanvas id="offcanvasRight" rfqData={selectedRfq} handleAutoFill={(data) => setAutoFillData(data)}/>
         </div>
     );
 }
