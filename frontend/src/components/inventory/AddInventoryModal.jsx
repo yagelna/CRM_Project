@@ -10,7 +10,7 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
         date_code: '',
         supplier: 'FlyChips',
         location: '',
-        cost: '',
+        price: '',
     });
 
     const [customSupplier, setCustomSupplier] = useState('');
@@ -45,7 +45,7 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                         date_code: '',
                         supplier: 'FlyChips',
                         location: '',
-                        cost: '',
+                        price: '',
                     });
                     setCustomSupplier('');
                 })
@@ -146,9 +146,9 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Cost"
-                        value={formData.cost}
-                        onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
+                        placeholder="Price"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     />
                 </div>
                 <div className="modal-footer">
