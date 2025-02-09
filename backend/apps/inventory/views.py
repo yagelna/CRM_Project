@@ -1,3 +1,4 @@
+import math
 from rest_framework import viewsets
 from .models import InventoryItem
 from .serializers import InventoryItemSerializer
@@ -47,6 +48,7 @@ def search_similar_parts(request, mpn):
             SUM(quantity) AS total_quantity,
             STRING_AGG(supplier || '(' || quantity || ')', ', ') AS supplier_quantities,
             STRING_AGG(supplier || '(' || date_code || ')', ', ') AS supplier_dc,
+            STRING_AGG(supplier || '(' || price || ')', ', ') AS supplier_prices,
             MAX(manufacturer) AS manufacturer,
             similarity(mpn, %s) AS similarity_score
         FROM 
@@ -188,7 +190,7 @@ def export_inventory(request):
         inventory_start_time = time.time()
         
         data = InventoryItem.objects.filter(supplier__in=suppliers).order_by(*[Case(When(supplier=supplier, then=idx), default=999) for idx, supplier in enumerate(suppliers)])
-        fields = ["mpn", "description", "manufacturer", "quantity", "supplier", "location", "date_code", "cost", "url"]
+        fields = ["mpn", "description", "manufacturer", "quantity", "supplier", "location", "date_code", "price", "url"]
         print(f"Inventory query time: {time.time() - inventory_start_time:.2f} seconds")
 
         file_creation_start = time.time()
@@ -234,21 +236,28 @@ class BulkUploadView(APIView):
                 inventory_items = []
                 for index, row in chunk.iterrows():
                     try:
-                        #validate the row
+                        #validate required fields
                         if not row['mpn'] or not row['quantity'] or not row['supplier']:
                             raise ValueError("MPN, quantity, and supplier are required fields")
                         try:
                             quantity = int(row['quantity'])
                         except ValueError:
                             raise ValueError(f"Invalid quantity value: {row['quantity']}")
+                        
+                        price = row.get('price', None)
+                        if price is not None and isinstance(price, float) and math.isnan(price):
+                            price = None
+
                         item = InventoryItem(
                             mpn = row['mpn'],
                             quantity = quantity,
-                            manufacturer = row.get('manufacturer', ''),
-                            location = row.get('location', ''),
-                            supplier = row.get('supplier', ''),
-                            description = row.get('description', ''),
-                            date_code = row.get('dc', ''),
+                            manufacturer = row.get('manufacturer', None),
+                            location = row.get('location', None),
+                            supplier = row.get('supplier', None),
+                            description = row.get('description', None),
+                            date_code = row.get('dc', None),
+                            price = price,
+                            url = row.get('url', None),
                         )
                         print(f"Adding item {item.mpn}")
                         inventory_items.append(item)

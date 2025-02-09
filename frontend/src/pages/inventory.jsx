@@ -38,7 +38,7 @@ const Inventory = () => {
         { field: "date_code", headerName: "Date Code" },
         { field: "supplier", headerName: "Supplier" },
         { field: "location", headerName: "Location" },
-        { field: "cost", headerName: "Cost" },
+        { field: "price", headerName: "Price" },
         {
             field: "actions",
             headerName: "Actions",
