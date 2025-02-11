@@ -13,6 +13,7 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
             offered_price: '',
             date_code: '',
             mpn: '',
+            notes: '',
         });
 
     const [activeTab, setActiveTab] = useState('quote-tab');
@@ -30,6 +31,7 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                 offered_price: rfqData.offered_price || '',
                 date_code: rfqData.date_code || '',
                 mpn: rfqData.mpn || '',
+                notes: rfqData.notes || '',
             });
             console.log('formData after update:', formData);
         }
@@ -197,6 +199,18 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                                     onChange={(e) => setFormData({ ...formData, offered_price: Number(e.target.value) })} />
                                 <label htmlFor="floatingUnitPrice">Unit Price</label>
                             </div>
+                            <div className="form-floating form-floating-sm mb-3">
+                                <textarea 
+                                    className="form-control input-sz" 
+                                    id="floatingNotes" 
+                                    placeholder="Add notes here..." 
+                                    value={formData.notes}
+                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                    style={{ height: "50px" }}
+                                />
+                                <label htmlFor="floatingNotes">Notes</label>
+                            </div>
+
                         </div>  
                     </div>
                     <div className="tab-pane fade" id="tp-alert-tab" role="tabpanel">
