@@ -51,6 +51,7 @@ class RFQViewSet(viewsets.ModelViewSet):
                     company = Company.objects.create(name=company_name, domain=company_domain, country=country)
                 contact_name = request.data.get('contact_name')
                 contact = Contact.objects.create(name=contact_name, email=email, company=company)
+            print(contact.id)   
             request.data['customer'] = contact.id
             request.data['company'] = contact.company.id if contact.company else None
 
