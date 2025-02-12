@@ -251,13 +251,13 @@ class BulkUploadView(APIView):
                         item = InventoryItem(
                             mpn = row['mpn'],
                             quantity = quantity,
-                            manufacturer = row.get('manufacturer', None),
-                            location = row.get('location', None),
+                            manufacturer = self.convert_nan_to_none(row.get('manufacturer', None)),
+                            location = self.convert_nan_to_none(row.get('location', None)),
                             supplier = row.get('supplier', None),
-                            description = row.get('description', None),
-                            date_code = row.get('dc', None),
+                            description = self.convert_nan_to_none(row.get('description', None)),
+                            date_code = self.convert_nan_to_none(row.get('dc', None)),
                             price = price,
-                            url = row.get('url', None),
+                            url = self.convert_nan_to_none(row.get('url', None))
                         )
                         print(f"Adding item {item.mpn}")
                         inventory_items.append(item)
@@ -283,5 +283,8 @@ class BulkUploadView(APIView):
             print(f"Error uploading file: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+    def convert_nan_to_none(self, value):
+        if pd.isna(value):
+            return None
+        return value
     
- 
