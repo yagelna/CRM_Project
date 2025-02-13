@@ -33,27 +33,27 @@ class RFQViewSet(viewsets.ModelViewSet):
     serializer_class = RFQSerializer
 
     def create(self, request, *args, **kwargs):
-
-        logger.debug("Debug - Request Data: %s", request.data)
-        # check if the email is associated with a contact and if so, add the contact and company to the RFQ, if not, create a new contact
-        email = request.data.get('email')
-        logger.debug("Debug - Email: %s", email)
-        if email:
-            contact = Contact.objects.filter(email=email).first()
-            logger.debug("Debug - Contact: %s", contact)
-
-            if not contact:
-                company_domain = email.split('@')[1]
-                company = Company.objects.filter(domain=company_domain).first()
-                if not company:
-                    company_name = request.data.get('company_name')
-                    country = request.data.get('country')
-                    company = Company.objects.create(name=company_name, domain=company_domain, country=country)
-                contact_name = request.data.get('contact_name')
-                contact = Contact.objects.create(name=contact_name, email=email, company=company)
-            print(contact.id)   
-            request.data['customer'] = contact.id
-            request.data['company'] = contact.company.id if contact.company else None
+        contact = None
+        
+        if(request.data.get('company') and request.data.get('contact')):
+            logger.debug("Manual RFQ creation detected with data: %s", request.data)
+            request.data['customer'] = request.data.get('contact')
+        else:
+            logger.debug("Creating RFQ from email with data: %s", request.data)
+            email = request.data.get('email')
+            if email:
+                contact = Contact.objects.filter(email=email).first()
+                if not contact:
+                    company_domain = email.split('@')[1]
+                    company = Company.objects.filter(domain=company_domain).first()
+                    if not company:
+                        company_name = request.data.get('company_name')
+                        country = request.data.get('country')
+                        company = Company.objects.create(name=company_name, domain=company_domain, country=country)
+                    contact_name = request.data.get('contact_name')
+                    contact = Contact.objects.create(name=contact_name, email=email, company=company)
+                request.data['customer'] = contact.id
+                request.data['company'] = contact.company.id if contact.company else None
 
         # check if the MPN is in stock and if so, set the stock_source field accordingly
         mpn = request.data.get('mpn')
@@ -61,7 +61,7 @@ class RFQViewSet(viewsets.ModelViewSet):
         if suppliers:
             if len(suppliers) == 1 and suppliers[0] == 'Fly Chips':
                 request.data['stock_source'] = 'Stock'
-            elif 'Fly Chips' in suppliers:
+            elif any('Fly Chips' in supplier for supplier in suppliers):
                 request.data['stock_source'] = 'Stock & Available'
             else:
                 request.data['stock_source'] = 'Available'
@@ -73,6 +73,13 @@ class RFQViewSet(viewsets.ModelViewSet):
         similar_rfq = RFQ.objects.filter(mpn=mpn, updated_at__gte=last_month, offered_price__isnull=False).order_by('-updated_at').first()
         if similar_rfq:
             new_tp = request.data.get('target_price')
+            if new_tp is not None:
+                try:
+                    new_tp = float(new_tp)
+                except ValueError:
+                    new_tp = None
+                    logger.error("Failed to convert target_price to float")
+
             if new_tp is None or similar_rfq.offered_price > new_tp:
                 logger.debug("Debug - Using previous RFQ's offer for the new RFQ")
                 request.data['offered_price'] = similar_rfq.offered_price

@@ -18,9 +18,9 @@ class RFQ(models.Model):
     offered_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     date_code = models.CharField(max_length=50, blank=True, null=True) # date code requested
     source = models.CharField(max_length=255, choices=[ 
-        ('website', 'Website'),
-        ('netCOMPONENTS', 'NetComponents'),
-        ('IC Source', 'ICSource'),
+        ('Website', 'Website'),
+        ('NetComponents', 'NetComponents'),
+        ('ICSource', 'ICSource'),
         ('Private', 'Private'),
     ])
     stock_source = models.CharField(max_length=255, blank=True, null=True)
