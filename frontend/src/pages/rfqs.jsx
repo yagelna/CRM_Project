@@ -27,12 +27,16 @@ const Rfqs = () => {
 
     // delete rfq by id
     const handleDelete = (id) => {
-        axiosInstance.delete(`api/rfqs/${id}/`)    
-            .then((response) => {
-                setRfqs(rfqs.filter((rfq) => rfq.id !== id));
-                fetchRfqs();
-            })
-            .catch((error) => console.error('Error deleting rfq: ' + error));
+        if (window.confirm(`Are you sure you want to delete RFQ with ID: ${id}?`)) {
+            axiosInstance.delete(`api/rfqs/${id}/`)    
+                .then((response) => {
+                    console.log('Rfq deleted successfully');
+                    setRfqs(rfqs.filter((rfq) => rfq.id !== id));
+                    // fetchRfqs();
+                    setSelectedRfq(null);
+                })
+                .catch((error) => console.error('Error deleting rfq: ' + error));
+        }
     };
 
     // Column Definitions: Defines & controls grid columns.
@@ -67,22 +71,22 @@ const Rfqs = () => {
             cellRenderer: "statusCellRenderer",
             flex: 0.8,
         },
-        {
-            field: "actions",
-            headerName: "Actions",
-            cellEditorPopup: "true",
-            cellRenderer: "actionCellRenderer",
-            cellRendererParams: {
-                handleDelete: handleDelete,
-                handleEdit: (rfq) => setSelectedRfq(rfq),
-                mouduleName: "Rfq",
-            },
-            pinned: "right",
-            width: 126,
-            filter: false,
-            sortable: false,
-            cellStyle: { textAlign: 'center' }
-        },
+        // {
+        //     field: "actions",
+        //     headerName: "Actions",
+        //     cellEditorPopup: "true",
+        //     cellRenderer: "actionCellRenderer",
+        //     cellRendererParams: {
+        //         handleDelete: handleDelete,
+        //         handleEdit: (rfq) => setSelectedRfq(rfq),
+        //         mouduleName: "Rfq",
+        //     },
+        //     pinned: "right",
+        //     width: 126,
+        //     filter: false,
+        //     sortable: false,
+        //     cellStyle: { textAlign: 'center' }
+        // },
     ]);
 
     const gridOptions = {
@@ -141,6 +145,9 @@ const Rfqs = () => {
             setRfqs((prevRfqs) =>
                 prevRfqs.map((rfq) => (rfq.id === updatedRfq.id ? updatedRfq : rfq))
             );
+            if (selectedRfq && selectedRfq.id === updatedRfq.id) {
+                setSelectedRfq(updatedRfq);
+            }
         }
     };
 
@@ -195,7 +202,7 @@ const Rfqs = () => {
             <AddRfqModal id="EditRfqModal" mode="edit" rfqData={selectedRfq} handleUpdateRfqs={handleUpdateRfqs}/>
             <EmailModal id="SendEmailModal" rfqData={selectedRfq} autoFillData={autoFillData} onHide={() => console.log('Email modal closed')}/>
             <UploadBulkModal id="UploadBulkModal"/>
-            <Offcanvas id="offcanvasRight" rfqData={selectedRfq} handleAutoFill={(data) => setAutoFillData(data)}/>
+            <Offcanvas id="offcanvasRight" rfqData={selectedRfq} handleAutoFill={(data) => setAutoFillData(data)} onDeleteRequest={handleDelete}/>
         </div>
     );
 }

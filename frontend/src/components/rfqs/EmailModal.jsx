@@ -51,7 +51,7 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
 
     const updateRfq = async (status) => {
         try {
-            const { company_name, email, customer_name, ...updatedData } = formData;
+            const { company_name, email, customer_name, mpn, ...updatedData } = formData;
             console.log('updatedData:', updatedData);
             console.log("formData:", formData);
             const res = await axiosInstance.patch(`api/rfqs/${rfqData.id}/`, {
@@ -153,6 +153,19 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                 <div className="tab-content mt-3">
                     <div className="tab-pane fade show active" id="quote-tab" role="tabpanel">
                         <p>Here you can draft and send a Quote email.</p>
+                        <div className="row g-2 mt-2">
+                            <div className="form-floating form-floating-sm mb-3 col">
+                                <input
+                                    type="text"
+                                    className="form-control input-sz"
+                                    id="floatingMpn"
+                                    placeholder="MPN"
+                                    aria-label="MPN"
+                                    value={formData.mpn}
+                                    onChange={(e) => setFormData({ ...formData, mpn: e.target.value })} />
+                                <label htmlFor="floatingMpn">MPN</label>
+                            </div>
+                        </div>
                         <div className="row g-2">
                             <div className="form-floating form-floating-sm col-sm">
                                 <input 
@@ -175,7 +188,7 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                                     onChange={(e) => setFormData({ ...formData, date_code: e.target.value })} />
                                 <label htmlFor="floatingDC">Date Code</label>
                             </div>
-                        </div>
+                            </div>
                         <div className="row g-2 mt-2">
                             <div className="form-floating form-floating-sm col-sm">
                                 <input 
@@ -199,7 +212,9 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                                     onChange={(e) => setFormData({ ...formData, offered_price: Number(e.target.value) })} />
                                 <label htmlFor="floatingUnitPrice">Unit Price</label>
                             </div>
-                            <div className="form-floating form-floating-sm mb-3">
+                        </div>  
+                        <div className="row g-2 mt-2">
+                            <div className="form-floating form-floating-sm mb-3 col">
                                 <textarea 
                                     className="form-control input-sz" 
                                     id="floatingNotes" 
@@ -210,8 +225,7 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                                 />
                                 <label htmlFor="floatingNotes">Notes</label>
                             </div>
-
-                        </div>  
+                        </div>
                     </div>
                     <div className="tab-pane fade" id="tp-alert-tab" role="tabpanel">
                         <p>Here you can draft and send a T/P Alert email.</p>
