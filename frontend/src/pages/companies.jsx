@@ -4,7 +4,7 @@ import AddCompanyModal from '../components/companies/AddCompanyModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
 import ActionCellRenderer from '../components/ActionCellRenderer';
-import Offcanvas from '../components/companies/CompanyOffcanvas';
+import CompanyOffcanvas from '../components/companies/CompanyOffcanvas';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -122,6 +122,7 @@ const Companies = () => {
         <AgGridReact
           ref={gridRef}
           columnDefs={colDefs}
+          gridOptions={gridOptions}
           rowData={companies}
           components={{ actionCellRenderer: ActionCellRenderer }}
           theme={myTheme}
@@ -132,7 +133,7 @@ const Companies = () => {
       </div>
       <AddCompanyModal id="addCompanyModal" mode='create' handleUpdateCompanies={handleUpdateCompanies}/>
       <AddCompanyModal id="EditCompanyModal" mode='edit' companyData={selectedCompany} handleUpdateCompanies={handleUpdateCompanies}/>  
-      <Offcanvas id="companyOffcanvas" companyData={selectedCompany} onDeleteRequest={handleDelete}/>
+      <CompanyOffcanvas id="companyOffcanvas" companyData={selectedCompany} onDeleteRequest={handleDelete}/>
     </div>
 
 

@@ -1,11 +1,11 @@
 from rest_framework.response import Response
 from rest_framework import viewsets
 from .models import Company
-from contacts.models import Contact
-from rfqs.models import RFQ
+from ..contacts.models import Contact
+from ..rfqs.models import RFQ
 from .serializers import CompanySerializer
-from contacts.serializers import ContactSerializer
-from rfqs.serializers import RFQSerializer
+from ..contacts.serializers import ContactSerializer
+from ..rfqs.serializers import RFQSerializer
 from rest_framework.decorators import api_view
 
 class CompanyViewSet(viewsets.ModelViewSet):

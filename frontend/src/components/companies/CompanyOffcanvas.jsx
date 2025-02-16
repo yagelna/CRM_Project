@@ -2,7 +2,7 @@ import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
 
 // Offcanvas: Displays an offcanvas modal with Company details, company's contacts, company's RFQs, and actions to edit or delete the company.
-const Offcanvas = ({id, companyData, onDeleteRequest}) => {
+const CompanyOffcanvas = ({id, companyData, onDeleteRequest}) => {
 
     const [Data, setData] = useState({
         name: '',
@@ -41,6 +41,8 @@ const Offcanvas = ({id, companyData, onDeleteRequest}) => {
                     accordionButtons[index].classList.add('collapsed');
                 }
             });
+            fetchCompanyContacts();
+            fetchCompanyRfqs();
         }
     }, [companyData]);
 
@@ -68,6 +70,25 @@ const Offcanvas = ({id, companyData, onDeleteRequest}) => {
         }
         finally {
             setCompanyContactsLoading(false);
+        }
+    }
+
+    const fetchCompanyRfqs = async () => {
+        setCompanyRfqsLoading(true);
+        setCompanyRfqsError(null);
+        if (!companyData || !companyData.id) {
+            console.error('Company data is missing or invalid.');
+            return;
+        }
+        try {
+            const response = await axiosInstance.get(`api/companies/${companyData.id}/rfqs/`);
+            setCompanyRfqs(response.data);
+            setCompanyRfqsLoading(false);
+        } catch (error) {
+            setCompanyRfqsError(error);
+        }
+        finally {
+            setCompanyRfqsLoading(false);
         }
     }
 
@@ -159,11 +180,39 @@ const Offcanvas = ({id, companyData, onDeleteRequest}) => {
                         </h2>
                         <div className="accordion-collapse collapse" id="companyRfqs" data-bs-parent="#companyAccordion">
                             <div className="accordion-body">
-                                <div className="row">
-                                    <div className="col-12">
-                                        <p>No RFQs found.</p>
+                                {companyRfqsLoading && <p>Loading...</p>}
+                                {companyRfqsError && <p className='text-danger'>Error loading RFQs: {companyRfqsError.message}</p>}
+                                {!companyRfqsLoading && !companyRfqsError && companyRfqs.length === 0 && <p>No RFQs found.</p>}
+                                {!companyRfqsLoading && !companyRfqsError && companyRfqs.length > 0 && (
+                                    <div className="table-responsive">
+                                        <table className="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>MPN</th>
+                                                    <th>MFG</th>
+                                                    <th>QTY</th>
+                                                    <th>T/P</th>
+                                                    <th>Status</th>
+                                                    <th>Date</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {companyRfqs.map((rfq) => (
+                                                    <tr key={rfq.id}>
+                                                        <td>{rfq.mpn}</td>
+                                                        <td>{rfq.manufacturer}</td>
+                                                        <td>{rfq.qty_requested}</td>
+                                                        <td>{rfq.target_price}</td>
+                                                        <td>{rfq.status}</td>
+                                                        <td>{rfq.created_at}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                            
+                                        </table>
                                     </div>
-                                </div>
+                                )                                        
+                                }                            
                             </div>
                         </div>  
                     </div>
@@ -172,4 +221,4 @@ const Offcanvas = ({id, companyData, onDeleteRequest}) => {
         </div>
     );
 };
-export default Offcanvas;
+export default CompanyOffcanvas;
