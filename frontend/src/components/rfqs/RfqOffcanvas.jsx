@@ -144,30 +144,29 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
             <div className="accordion" id="accordionExample">
             <div className="accordion-item">
                 <h2 className="accordion-header">
-                <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                RFQ Details
-                </button>
+                    <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    RFQ Details
+                    </button>
                 </h2>
                 <div id="collapseOne" className="accordion-collapse collapse show" data-bs-parent="#accordionExample">
-                <div className="accordion-body">
-                <div className="row">
-                <div className="col-6">
-                    <p><span className="fw-bold">Manufacturer:</span> {Data.manufacturer}</p>
-                    <p><span className="fw-bold">Target Price:</span> {Data.target_price}</p>
-                    <p><span className="fw-bold">Requested Qty:</span> {Data.qty_requested}</p>
-                    <p><span className="fw-bold">Offered Price:</span> {Data.offered_price}</p>
-                    <p><span className="fw-bold">Source:</span> {Data.source}</p>
-                </div>
-                <div className="col-6">
-                    <p><span className="fw-bold">Contact Name:</span> {Data.contact_object.name}</p>
-                    <p><span className="fw-bold">Company Name:</span> {Data.contact_object.company_object.name}</p>
-                    <p><span className="fw-bold">Country:</span> {Data.contact_object.company_object.country}</p>
-                    <p><span className="fw-bold">Email:</span> {Data.contact_object.email}</p>
-                    <p><span className="fw-bold">Date Code:</span> {Data.date_code}</p>
-                </div>
-                </div>
-
-                </div>
+                    <div className="accordion-body">
+                        <div className="row">
+                            <div className="col-6">
+                                <p><span className="fw-bold">Manufacturer:</span> {Data.manufacturer}</p>
+                                <p><span className="fw-bold">Target Price:</span> {Data.target_price}</p>
+                                <p><span className="fw-bold">Requested Qty:</span> {Data.qty_requested}</p>
+                                <p><span className="fw-bold">Offered Price:</span> {Data.offered_price}</p>
+                                <p><span className="fw-bold">Source:</span> {Data.source}</p>
+                            </div>
+                            <div className="col-6">
+                                <p><span className="fw-bold">Contact Name:</span> {Data.contact_object.name}</p>
+                                <p><span className="fw-bold">Company Name:</span> {Data.contact_object.company_object.name}</p>
+                                <p><span className="fw-bold">Country:</span> {Data.contact_object.company_object.country}</p>
+                                <p><span className="fw-bold">Email:</span> {Data.contact_object.email}</p>
+                                <p><span className="fw-bold">Date Code:</span> {Data.date_code}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div className="accordion-item">
