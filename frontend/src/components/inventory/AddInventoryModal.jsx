@@ -11,6 +11,7 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
         supplier: 'FlyChips',
         location: '',
         price: '',
+        url: null,
     });
 
     const [customSupplier, setCustomSupplier] = useState('');
@@ -32,6 +33,8 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
         const dataToSubmit = {
             ...formData,
             supplier: formData.supplier === 'Other' ? customSupplier : formData.supplier,
+            date_code: formData.date_code === 'nan' ? null : formData.date_code,
+            url: formData.url === 'nan' ? null : formData.url,
         };
         if (mode === 'create') {
             axiosInstance.post('api/inventory/', dataToSubmit)
@@ -56,6 +59,7 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                 });
             }
         else if (mode === 'edit') {
+            console.log("Updating inventory item: ", dataToSubmit);
             axiosInstance.put(`api/inventory/${itemData.id}/`, dataToSubmit)
                 .then((response) => {
                     console.log("Inventory updated successfully: ", response.data);
@@ -88,7 +92,7 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                 </div>
                 <div className="mb-3">
                     <input
-                        type="text"
+                        type="number"
                         className="form-control"
                         placeholder="Quantity"
                         value={formData.quantity}
@@ -144,7 +148,8 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                 </div>
                 <div className="mb-3">
                     <input
-                        type="text"
+                        type="number"
+                        step="0.01"
                         className="form-control"
                         placeholder="Price"
                         value={formData.price}

@@ -2,7 +2,7 @@ import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
 
 // Offcanvas: Displays an offcanvas modal with RFQ details, history of the mpn from other rfqs and the availability of the part in the inventory.
-const Offcanvas = ({id, rfqData, handleAutoFill}) => {
+const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
 
     const [Data , setData] = useState({
         mpn: '',
@@ -43,11 +43,11 @@ const Offcanvas = ({id, rfqData, handleAutoFill}) => {
                 source: rfqData.source,
                 date_code: rfqData.date_code,
                 contact_object: {
-                    name: rfqData.contact_object.name,
-                    email: rfqData.contact_object.email,
+                    name: rfqData.contact_object?.name || '',
+                    email: rfqData.contact_object?.email || '',
                     company_object: {
-                        name: rfqData.contact_object.company_object.name,
-                        country: rfqData.contact_object.company_object.country
+                        name: rfqData.contact_object?.company_object?.name || '',
+                        country: rfqData.contact_object?.company_object?.country || ''
                     }
                 }
             });
@@ -109,6 +109,14 @@ const Offcanvas = ({id, rfqData, handleAutoFill}) => {
         }
     }
 
+    const handleDelete = () => {
+        if (!rfqData || !rfqData.id) {
+            console.error('RFQ data is missing or invalid.');
+            return;
+        }
+        onDeleteRequest(rfqData.id);
+    };
+
         return (
             <div className="offcanvas offcanvas-end" tabIndex="-1" id={id} aria-labelledby="offcanvasRightLabel">
             <div className="offcanvas-header">
@@ -117,37 +125,48 @@ const Offcanvas = ({id, rfqData, handleAutoFill}) => {
             </div>  
             <hr className='m-0'/>
             <div className="offcanvas-body">
-            <button type="button" className="btn btn-primary btn-sm mb-2" data-bs-toggle="modal" data-bs-target="#SendEmailModal">
+            {/* send quote button */}
+            <button type="button" className="btn btn-primary btn-sm mb-2 me-2" data-bs-toggle="modal" data-bs-target="#SendEmailModal">
                 Send Quote 
                 <i className="bi bi-envelope ms-2"></i>
             </button>
+            {/* edit rfq button */}
+            <button type="button" className="btn btn-warning btn-sm mb-2 me-2" data-bs-toggle="modal" data-bs-target="#EditRfqModal">
+                Edit RFQ
+                <i className="bi bi-pencil ms-2"></i>
+            </button>
+            {/* delete rfq button */}
+            <button type="button" className="btn btn-danger btn-sm mb-2" data-bs-dismiss="offcanvas" aria-label="Delete" onClick={handleDelete}>
+                Delete RFQ
+                <i className="bi bi-trash ms-2"></i>
+            </button>
+
             <div className="accordion" id="accordionExample">
             <div className="accordion-item">
                 <h2 className="accordion-header">
-                <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                RFQ Details
-                </button>
+                    <button className="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    RFQ Details
+                    </button>
                 </h2>
                 <div id="collapseOne" className="accordion-collapse collapse show" data-bs-parent="#accordionExample">
-                <div className="accordion-body">
-                <div className="row">
-                <div className="col-6">
-                    <p><span className="fw-bold">Manufacturer:</span> {Data.manufacturer}</p>
-                    <p><span className="fw-bold">Target Price:</span> {Data.target_price}</p>
-                    <p><span className="fw-bold">Requested Qty:</span> {Data.qty_requested}</p>
-                    <p><span className="fw-bold">Offered Price:</span> {Data.offered_price}</p>
-                    <p><span className="fw-bold">Source:</span> {Data.source}</p>
-                </div>
-                <div className="col-6">
-                    <p><span className="fw-bold">Contact Name:</span> {Data.contact_object.name}</p>
-                    <p><span className="fw-bold">Company Name:</span> {Data.contact_object.company_object.name}</p>
-                    <p><span className="fw-bold">Country:</span> {Data.contact_object.company_object.country}</p>
-                    <p><span className="fw-bold">Email:</span> {Data.contact_object.email}</p>
-                    <p><span className="fw-bold">Date Code:</span> {Data.date_code}</p>
-                </div>
-                </div>
-
-                </div>
+                    <div className="accordion-body">
+                        <div className="row">
+                            <div className="col-6">
+                                <p><span className="fw-bold">Manufacturer:</span> {Data.manufacturer}</p>
+                                <p><span className="fw-bold">Target Price:</span> {Data.target_price}</p>
+                                <p><span className="fw-bold">Requested Qty:</span> {Data.qty_requested}</p>
+                                <p><span className="fw-bold">Offered Price:</span> {Data.offered_price}</p>
+                                <p><span className="fw-bold">Source:</span> {Data.source}</p>
+                            </div>
+                            <div className="col-6">
+                                <p><span className="fw-bold">Contact Name:</span> {Data.contact_object.name}</p>
+                                <p><span className="fw-bold">Company Name:</span> {Data.contact_object.company_object.name}</p>
+                                <p><span className="fw-bold">Country:</span> {Data.contact_object.company_object.country}</p>
+                                <p><span className="fw-bold">Email:</span> {Data.contact_object.email}</p>
+                                <p><span className="fw-bold">Date Code:</span> {Data.date_code}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div className="accordion-item">
@@ -230,7 +249,7 @@ const Offcanvas = ({id, rfqData, handleAutoFill}) => {
                                 <i className="bi bi-arrow-clockwise"></i>
                             </button>
                         </td>
-                        <td>{item.contact_object.company_name || '-'}</td>
+                        <td>{item.contact_object?.company_name || '-'}</td>
                         <td>{item.target_price || '-'}</td>
                         <td>{item.offered_price || '-'}</td>
                         <td>{item.qty_requested || '-'}</td>

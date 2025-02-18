@@ -4,6 +4,7 @@ import AddContactModal from '../components/contacts/AddContactModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
 import ActionCellRenderer from '../components/ActionCellRenderer';
+import ContactOffcanvas from '../components/contacts/ContactOffcanvas';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -21,17 +22,31 @@ const Contacts = () => {
 
   // delete contact by id
   const handleDelete = (id) => {
-    axiosInstance.delete(`api/contacts/${id}/`)
-      .then((response) => {
-        setContacts(contacts.filter((contact) => contact.id !== id));
-        fetchContacts();
-      })
-      .catch((error) => console.error('Error deleting contact: ' + error));
+    if (window.confirm(`Are you sure you want to delete Contact with ID: ${id}?`)) {
+      axiosInstance.delete(`api/contacts/${id}/`)
+        .then((response) => {
+          console.log('Contact deleted successfully');
+          setContacts(contacts.filter((contact) => contact.id !== id));
+          setSelectedContact(null);
+        })
+        .catch((error) => console.error('Error deleting contact: ' + error));
+    }
   };  
 
   // Column Definitions: Defines & controls grid columns.
   const [colDefs, setColDefs] = useState([
-    { field: "name", headerName: "Name", flex: 1},
+    { field: "name", headerName: "Name",
+      cellRenderer: (params) => (
+        <a
+          href="#contactOffcanvas"
+          data-bs-toggle="offcanvas"
+          className="link-opacity-50-hover fw-medium"
+          onClick={() => { setSelectedContact(params.data) }}
+        >
+          {params.value}
+        </a>
+      ),
+      flex: 1},
     { field: "email", headerName: "Email", flex: 1 },
     { field: "phone", headerName: "Phone", flex: 1 },
     { field: "company_name", headerName: "Company", flex: 1 },
@@ -52,6 +67,13 @@ const Contacts = () => {
             cellStyle: { textAlign: 'center' }
     },
   ]);
+
+  const gridOptions = {
+    defaultColDef: {
+      domLayout: 'normal',
+    },
+    enableCellTextSelection: true,
+  };
 
   // fetch contacts from the backend
   const fetchContacts = () => {
@@ -102,16 +124,18 @@ const Contacts = () => {
         <AgGridReact
           ref={gridRef}
           columnDefs={colDefs}
+          gridOptions={gridOptions}
           rowData={contacts}
           theme={myTheme}
           pagination={true}
           paginationPageSize={20}
           components={{ actionCellRenderer: ActionCellRenderer }}
-          overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Loading Data...</div>'}
+          overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
         />
       </div>
       <AddContactModal id="addContactModal" mode="create" handleUpdateContacts={handleUpdateContacts} />
       <AddContactModal id="EditContactModal" mode="edit" contactData={selectedContact} handleUpdateContacts={handleUpdateContacts}  />
+      <ContactOffcanvas id="contactOffcanvas" contactData={selectedContact} onDeleteRequest={handleDelete} />
     </div>
 
   );

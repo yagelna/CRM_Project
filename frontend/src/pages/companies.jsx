@@ -4,6 +4,7 @@ import AddCompanyModal from '../components/companies/AddCompanyModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
 import ActionCellRenderer from '../components/ActionCellRenderer';
+import CompanyOffcanvas from '../components/companies/CompanyOffcanvas';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -20,17 +21,32 @@ const Companies = () => {
     });
   // delete company by id
   const handleDelete = (id) => {
-    axiosInstance.delete(`api/companies/${id}/`)
-      .then((response) => {
-        setCompanies(companies.filter((company) => company.id !== id));
-        fetchCompanies();
-      })
-      .catch((error) => console.error('Error deleting company: ' + error));
+    if (window.confirm(`Are you sure you want to delete Company with ID: ${id}?`)) {
+      axiosInstance.delete(`api/companies/${id}/`)
+        .then((response) => {
+          console.log('Company deleted successfully');
+          setCompanies(companies.filter((company) => company.id !== id));
+          setSelectedCompany(null);
+        })
+        .catch((error) => console.error('Error deleting company: ' + error));
+    }
   };
 
   // Column Definitions: Defines & controls grid columns.
   const [colDefs, setColDefs] = useState([
-    { field: "name", headerName: "Name", flex: 1.5},
+    { field: "name",
+      headerName: "Name",
+      cellRenderer: (params) => (
+        <a
+          href="#companyOffcanvas"
+          data-bs-toggle="offcanvas"
+          className="link-opacity-50-hover fw-medium"
+          onClick={() => { setSelectedCompany(params.data) }}
+        >
+          {params.value}
+        </a>
+      ),
+      flex: 1.5},
     { field: "domain", headerName: "Domain", flex: 1 },
     { field: "country", headerName: "Country", flex: 1 },
     { field: "address", headerName: "Full Address", flex: 1 },
@@ -51,6 +67,13 @@ const Companies = () => {
             cellStyle: { textAlign: 'center' }
     },
   ]);
+
+  const gridOptions = {
+    defaultColDef: {
+      domLayout: 'normal',
+    },
+    enableCellTextSelection: true,
+  };
 
   // fetch companies from the backend
   const fetchCompanies = () => {
@@ -99,16 +122,18 @@ const Companies = () => {
         <AgGridReact
           ref={gridRef}
           columnDefs={colDefs}
+          gridOptions={gridOptions}
           rowData={companies}
           components={{ actionCellRenderer: ActionCellRenderer }}
           theme={myTheme}
           pagination={true}
           paginationPageSize={20}
-          overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Loading Data...</div>'}
+          overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
         />
       </div>
       <AddCompanyModal id="addCompanyModal" mode='create' handleUpdateCompanies={handleUpdateCompanies}/>
       <AddCompanyModal id="EditCompanyModal" mode='edit' companyData={selectedCompany} handleUpdateCompanies={handleUpdateCompanies}/>  
+      <CompanyOffcanvas id="companyOffcanvas" companyData={selectedCompany} onDeleteRequest={handleDelete}/>
     </div>
 
 
