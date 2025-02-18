@@ -14,6 +14,7 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
             date_code: '',
             mpn: '',
             notes: '',
+            auto_quote_validity: 7,
         });
 
     const [activeTab, setActiveTab] = useState('quote-tab');
@@ -32,6 +33,7 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                 date_code: rfqData.date_code || '',
                 mpn: rfqData.mpn || '',
                 notes: rfqData.notes || '',
+                auto_quote_validity: rfqData.auto_quote_validity || 7,
             });
             console.log('formData after update:', formData);
         }
@@ -51,9 +53,8 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
 
     const updateRfq = async (status) => {
         try {
-            const { company_name, email, customer_name, mpn, ...updatedData } = formData;
+            const { company_name, email, customer_name, mpn, ...updatedData } = formData; 
             console.log('updatedData:', updatedData);
-            console.log("formData:", formData);
             const res = await axiosInstance.patch(`api/rfqs/${rfqData.id}/`, {
                 ...updatedData,
                 status: status,
@@ -154,7 +155,7 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                     <div className="tab-pane fade show active" id="quote-tab" role="tabpanel">
                         <p>Here you can draft and send a Quote email.</p>
                         <div className="row g-2 mt-2">
-                            <div className="form-floating form-floating-sm mb-3 col">
+                            <div className="form-floating form-floating-sm mb-3 col-sm">
                                 <input
                                     type="text"
                                     className="form-control input-sz"
@@ -164,6 +165,22 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                                     value={formData.mpn}
                                     onChange={(e) => setFormData({ ...formData, mpn: e.target.value })} />
                                 <label htmlFor="floatingMpn">MPN</label>
+                            </div>
+                            <div className="form-floating form-floating-sm mb-3 col-sm">
+                                <select 
+                                    className="form-select input-sz"
+                                    id="floatingAutoQuoteValidity"
+                                    value={formData.auto_quote_validity}
+                                    onChange={(e) => setFormData({ ...formData, auto_quote_validity: parseInt(e.target.value) })}
+                                >
+                                    <option value={0}>Do Not Auto Quote</option>
+                                    <option value="1">1 day</option>
+                                    <option value="3">3 days</option>
+                                    <option value="7">1 Week</option>
+                                    <option value="14">2 Weeks</option>
+                                    <option value="30">1 Month</option>
+                                </select>
+                                <label htmlFor="floatingAutoQuoteValidity">Auto Quote Validity</label>
                             </div>
                         </div>
                         <div className="row g-2">

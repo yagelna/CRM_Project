@@ -37,7 +37,7 @@ class RFQViewSet(viewsets.ModelViewSet):
         
         if(request.data.get('company') and request.data.get('contact')):
             logger.debug("Manual RFQ creation detected with data: %s", request.data)
-            request.data['customer'] = request.data.get('contact')
+            contact = Contact.objects.filter(id=request.data.get('contact')).first()
         else:
             logger.debug("Creating RFQ from email with data: %s", request.data)
             email = request.data.get('email')
@@ -52,28 +52,37 @@ class RFQViewSet(viewsets.ModelViewSet):
                         company = Company.objects.create(name=company_name, domain=company_domain, country=country)
                     contact_name = request.data.get('contact_name')
                     contact = Contact.objects.create(name=contact_name, email=email, company=company)
-                request.data['customer'] = contact.id
-                request.data['company'] = contact.company.id if contact.company else None
+            else:
+                return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+        request.data['customer'] = contact.id
+        request.data['company'] = contact.company.id if contact.company else None
 
         # check if the MPN is in stock and if so, set the stock_source field accordingly
         mpn = request.data.get('mpn')
         suppliers = InventoryItem.objects.filter(mpn=mpn).values_list('supplier', flat=True)
+        stock_source = None
         if suppliers:
             if len(suppliers) == 1 and suppliers[0] == 'Fly Chips':
-                request.data['stock_source'] = 'Stock'
+                stock_source = 'Stock'
             elif any('Fly Chips' in supplier for supplier in suppliers):
-                request.data['stock_source'] = 'Stock & Available'
+                stock_source = 'Stock & Available'
             else:
-                request.data['stock_source'] = 'Available'
-        else:
-            request.data['stock_source'] = None
+                stock_source = 'Available'
 
-        # check if there is a similar RFQ in the last 30 days and if so, use the same price and qty offered and send a quote
-        last_month = now() - timedelta(days=30)
-        similar_rfq = RFQ.objects.filter(mpn=mpn, updated_at__gte=last_month, offered_price__isnull=False).order_by('-updated_at').first()
+        # check if there is a similar RFQ with a recent auto_quote_deadline and use its offer
+        similar_rfq = RFQ.objects.filter(
+            mpn=mpn,
+            auto_quote_deadline__gte=now(),
+            offered_price__isnull=False
+        ).order_by('-updated_at').first()
+
+        rfq_data = request.data.copy()
+        rfq_data['stock_source'] = stock_source
+
         if similar_rfq:
+            logger.debug(f"Found similar RFQ with MPN: {mpn}")
             new_tp = request.data.get('target_price')
-            if new_tp is not None:
+            if new_tp:
                 try:
                     new_tp = float(new_tp)
                 except ValueError:
@@ -82,19 +91,24 @@ class RFQViewSet(viewsets.ModelViewSet):
 
             if new_tp is None or similar_rfq.offered_price > new_tp:
                 logger.debug("Debug - Using previous RFQ's offer for the new RFQ")
-                request.data['offered_price'] = similar_rfq.offered_price
-                request.data['qty_offered'] = similar_rfq.qty_offered
-                request.data['date_code'] = similar_rfq.date_code
-                request.data['manufacturer'] = similar_rfq.manufacturer
-                request.data['status'] = 'Quote Sent'
-                request.data['customer_name'] = contact.name if contact else None
-                request.data['company_name'] = contact.company.name if contact.company else None
-                send_html_email(request.data, 'quote-tab')
+                rfq_data.update({
+                    'offered_price': similar_rfq.offered_price,
+                    'qty_offered': similar_rfq.qty_offered,
+                    'date_code': similar_rfq.date_code,
+                    'manufacturer': similar_rfq.manufacturer,
+                    'auto_quote_deadline': similar_rfq.auto_quote_deadline,
+                    'parent_rfq': similar_rfq.id,
+                    'status': 'Quote Sent',
+                    'customer_name': contact.name if contact else None,
+                    'company_name': contact.company.name if contact.company else None,
+                    'email': contact.email if contact else None
+                })
+                send_html_email(rfq_data, 'quote-tab')
 
         # create the RFQ
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=rfq_data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        serializer.save()
 
         # send the RFQ to the websocket
         channel_layer = get_channel_layer()
@@ -111,6 +125,12 @@ class RFQViewSet(viewsets.ModelViewSet):
         instance = self.get_object() # get the RFQ instance
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
+        auto_quote_validity = request.data.get('auto_quote_validity')
+        print(auto_quote_validity)
+        if auto_quote_validity is not None:
+            print("Setting auto quote deadline")
+            instance.set_auto_quote_deadline(auto_quote_validity)
+            instance.save()
         self.perform_update(serializer)
 
         # send the RFQ new status to the websocket
