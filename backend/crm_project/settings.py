@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'apps.companies',
     'apps.inventory',
     'apps.users',
+    'apps.usersettings',
     'rest_framework',
     'channels',
     'django_extensions',
@@ -229,8 +230,27 @@ LOGGING = {
 
 # Email settings using Gmail and environment variables
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+EMAIL_ACCOUNTS = {
+    "default": {
+        "EMAIL_HOST": "smtp.gmail.com",
+        "EMAIL_PORT": 587,
+        "EMAIL_USE_TLS": True,
+        "EMAIL_HOST_USER": config('EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": config('EMAIL_HOST_PASSWORD'),
+    },
+    "rfq": {
+        "EMAIL_HOST": "smtp.gmail.com",
+        "EMAIL_PORT": 587,
+        "EMAIL_USE_TLS": True,
+        "EMAIL_HOST_USER": config('RFQ_EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": config('RFQ_EMAIL_HOST_PASSWORD'),
+    },
+    "inventory": {
+        "EMAIL_HOST": "smtp.gmail.com",
+        "EMAIL_PORT": 587,
+        "EMAIL_USE_TLS": True,
+        "EMAIL_HOST_USER": config('INVENTORY_EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": config('INVENTORY_EMAIL_HOST_PASSWORD'),
+    },
+}

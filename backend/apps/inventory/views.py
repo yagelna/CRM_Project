@@ -10,6 +10,7 @@ from rest_framework.decorators import api_view
 from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
 from django.db import connection
 import logging
+from utils.email_utils import send_html_email
 from django.http import HttpResponse
 from django.db.models import Case, When
 from import_export.formats.base_formats import XLSX, CSV
@@ -104,15 +105,19 @@ def export_inventory(request):
     """
     start_time = time.time()
     print("Starting export process...")
-
+  
     # Parse JSON data from the request body
     data = request.data
-
+    actions = data.get("actions", {})
+    send_to_nc = actions.get("sendToNC", False)
+    send_to_ics = actions.get("sendToICS", False)
+    download = actions.get("download", False)
     suppliers = data.get("selectedSuppliers", [])
     format_type = data.get("fileFormat", "csv")
     net_components = data.get("netComponents", {}).get("enabled", False)
     ic_source = data.get("icSource", {}).get("enabled", False)
     inventory = data.get("inventory", {}).get("enabled", False)
+
     max_rows = {
         "net_components_stock": data.get("netComponents", {}).get("max_stock_rows", 0),
         "net_components_available": data.get("netComponents", {}).get("max_available_rows", 0),
@@ -120,12 +125,15 @@ def export_inventory(request):
         "ic_source_available": data.get("icSource", {}).get("max_available_rows", 0),
     }
 
-    # Create a zip file buffer to store the exported files
+    # Create a zip file buffer to store the exported files for download
     zip_buffer = io.BytesIO()
     zip_file = zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED)
 
+    nc_attachments = []
+    ics_attachments = []
+
     # Define a helper function for exporting data using Pandas with specific fields
-    def export_data(queryset, filename, fields, column_names):
+    def export_data(queryset, filename, fields, column_names, recipient=None):
         print(f"Exporting data to {filename}...")
         curr_time = time.time()
         
@@ -141,6 +149,12 @@ def export_inventory(request):
         
         output_buffer.seek(0)
         zip_file.writestr(filename, output_buffer.getvalue())
+
+        if recipient == "netcomponents":
+            nc_attachments.append((filename, output_buffer.getvalue()))
+        elif recipient == "icsource":
+            ics_attachments.append((filename, output_buffer.getvalue()))
+
         print(f"Exported {len(df)} rows to {filename} in {time.time() - curr_time:.2f} seconds")
 
     if net_components:
@@ -160,8 +174,8 @@ def export_inventory(request):
         print(f"NetComponents query time: {time.time() - net_start_time:.2f} seconds")
 
         file_creation_start = time.time()
-        export_data(stock_data, f"netcomponents_stock.{format_type}", fields, column_names)
-        export_data(available_data, f"netcomponents_available.{format_type}", fields, column_names)
+        export_data(stock_data, f"netcomponents_stock.{format_type}", fields, column_names, "netcomponents")
+        export_data(available_data, f"netcomponents_available.{format_type}", fields, column_names, "netcomponents")
         print(f"NetComponents file creation time: {time.time() - file_creation_start:.2f} seconds")
 
     if ic_source:
@@ -181,8 +195,8 @@ def export_inventory(request):
         print(f"IC Source query time: {time.time() - ic_start_time:.2f} seconds")
 
         file_creation_start = time.time()
-        export_data(stock_data, f"icsource_stock.{format_type}", fields, column_names)
-        export_data(available_data, f"icsource_available.{format_type}", fields, column_names)
+        export_data(stock_data, f"icsource_stock.{format_type}", fields, column_names, "icsource")
+        export_data(available_data, f"icsource_available.{format_type}", fields, column_names, "icsource")
         print(f"IC Source file creation time: {time.time() - file_creation_start:.2f} seconds")
 
     if inventory:
@@ -202,10 +216,40 @@ def export_inventory(request):
 
     print(f"Total export time: {time.time() - start_time:.2f} seconds")
 
-    # Return the zip file as a response
-    response = HttpResponse(zip_buffer, content_type="application/zip")
-    response["Content-Disposition"] = "attachment; filename=export.zip"
-    return response
+    if send_to_nc and nc_attachments:
+        print("Sending NetComponents email...")
+        send_html_email(
+            data={
+                "email": "yagel@flychips.com", #datamaster@netcomponents.com
+                "account": "939857",
+            },
+            template="nc-update",
+            from_account="inventory",
+            attachments=[
+                (file_name, io.BytesIO(file_content), "text/csv" if file_name.endswith(".csv") else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                for file_name, file_content in nc_attachments
+            ]
+        )
+
+    if send_to_ics and ics_attachments:
+        print("Sending IC Source email...")
+        send_html_email(
+            data={
+                "email": "yagel@flychips.com", #post@icsource.com
+            },
+            template="ics-update",
+            from_account="inventory",
+            attachments = [
+                (file_name, io.BytesIO(file_content), "text/csv" if file_name.endswith(".csv") else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                for file_name, file_content in ics_attachments
+            ]
+        )
+    if download:
+        response = HttpResponse(zip_buffer, content_type="application/zip")
+        response["Content-Disposition"] = "attachment; filename=export.zip"
+        return response
+    
+    return Response({"success": "Export completed successfully"}, status=200)
 
 class InventoryViewSet(viewsets.ModelViewSet):
     queryset = InventoryItem.objects.all()
