@@ -71,6 +71,28 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
         
     }, [rfqData]);
 
+    const updateRfqStatus = async (status) => {
+        try {
+            const res = await axiosInstance.patch(`api/rfqs/${rfqData.id}/`, {
+                status: status,
+            });
+            console.log("RFQ updated successfully:", res);
+        } catch (error) {
+            console.error("Error updating RFQ:", error);
+        }
+    }
+        //     const { company_name, email, customer_name, mpn, ...updatedData } = formData; 
+        //     console.log('updatedData:', updatedData);
+        //     const res = await axiosInstance.patch(`api/rfqs/${rfqData.id}/`, {
+        //         ...updatedData,
+        //         status: status,
+        //     });
+        //     console.log("RFQ updated successfully:", res);
+        // } catch (error) {
+        //     console.error("Error updating RFQ:", error);
+        // }
+    // }
+
     const fetchAvailability = async (mpn) => {
         setInventoryLoading(true);
         setInventoryError(null);
@@ -134,6 +156,11 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
             <button type="button" className="btn btn-warning btn-sm mb-2 me-2" data-bs-toggle="modal" data-bs-target="#EditRfqModal">
                 Edit RFQ
                 <i className="bi bi-pencil ms-2"></i>
+            </button>
+            {/* unattractive offer button */}
+            <button type="button" className="btn btn-secondary btn-sm mb-2 me-2" data-bs-dismiss="offcanvas" aria-label="Unattractive Offer" onClick={() => updateRfqStatus('unattractive')}>
+                Unattractive Offer
+                <i className="bi bi-eye-slash ms-2"></i>
             </button>
             {/* delete rfq button */}
             <button type="button" className="btn btn-danger btn-sm mb-2" data-bs-dismiss="offcanvas" aria-label="Delete" onClick={handleDelete}>
@@ -237,7 +264,7 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
                     </thead>
                     <tbody>
                     {historyData.map((item) => (
-                    item.id !== rfqData.id &&
+                    (rfqData && item.id !== rfqData.id) &&
                     <tr key={item.id} style={{fontSize: '0.8rem'}}>
                         <td>
                             <button 
