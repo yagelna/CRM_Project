@@ -98,6 +98,43 @@ def get_suppliers(request):
     except Exception as e:
         return Response({"error": str(e)}, status=500)
     
+@api_view(['DELETE'])
+def bulk_delete_inventory(request):
+    """
+    Bulk delete inventory items by ids.
+    """
+    data = request.data
+    print(f"Deleting items with IDs: {data.get('ids', [])}")
+    ids_to_delete = data.get("ids", [])
+    if not ids_to_delete:
+        return Response({"error": "No IDs provided"}, status=400)
+    try:
+        deleted_count, _ = InventoryItem.objects.filter(id__in=ids_to_delete).delete()
+        return Response({"success": f"Deleted {deleted_count} items successfully"}, status=200)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+@api_view(['PATCH'])
+def bulk_edit_inventory(request):
+    """
+    Bulk edit inventory items by ids.
+    """
+    data = request.data
+    print(f"Editing items with data: {data}")
+    ids_to_edit = data.get("ids", [])
+    if not ids_to_edit:
+        return Response({"error": "No IDs provided"}, status=400)
+    updates = data.get("updates", {})
+    if not updates:
+        return Response({"error": "No Fields to update provided"}, status=400)
+    print(f"Updating items with IDs: {ids_to_edit} with updates: {updates}")
+    try:
+        updated_count = InventoryItem.objects.filter(id__in=ids_to_edit).update(**updates)
+        return Response({"success": f"Updated {updated_count} items successfully"}, status=200)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+        
+
 @api_view(['POST'])
 def export_inventory(request):
     """
