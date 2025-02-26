@@ -51,7 +51,7 @@ def search_similar_parts(request, mpn):
             SUM(quantity) AS total_quantity,
             STRING_AGG(supplier || '(' || quantity || ')', ', ') AS supplier_quantities,
             STRING_AGG(supplier || '(' || date_code || ')', ', ') AS supplier_dc,
-            STRING_AGG(supplier || '(' || price || ')', ', ') AS supplier_prices,
+            STRING_AGG(supplier || '(' || cost || ')', ', ') AS supplier_cost,
             MAX(manufacturer) AS manufacturer,
             similarity(mpn, %s) AS similarity_score
         FROM 
@@ -331,6 +331,10 @@ class BulkUploadView(APIView):
                         if price is not None and isinstance(price, float) and math.isnan(price):
                             price = None
 
+                        cost = row.get('cost', None)
+                        if cost is not None and isinstance(cost, float) and math.isnan(cost):
+                            cost = None
+
                         item = InventoryItem(
                             mpn = row['mpn'],
                             quantity = quantity,
@@ -340,6 +344,7 @@ class BulkUploadView(APIView):
                             description = self.convert_nan_to_none(row.get('description', None)),
                             date_code = self.convert_nan_to_none(row.get('dc', None)),
                             price = price,
+                            cost = cost,
                             url = self.convert_nan_to_none(row.get('url', None))
                         )
                         print(f"Adding item {item.mpn}")

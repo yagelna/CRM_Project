@@ -242,7 +242,7 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
                     <th scope="col">Mfg</th>
                     <th scope="col">Supplier</th>
                     <th scope="col">D/C</th>
-                    <th scope="col">Price</th>
+                    <th scope="col">Cost</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -253,7 +253,7 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
                         <td>{item.manufacturer || '-'}</td>
                         <td>{item.supplier_quantities || '-'}</td>
                         <td>{item.supplier_dc || '-'}</td>
-                        <td>{item.supplier_prices || '-'}</td>
+                        <td>{item.cost || '-'}</td>
                     </tr>
                     ))}
                     </tbody>

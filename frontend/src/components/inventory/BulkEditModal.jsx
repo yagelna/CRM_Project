@@ -12,6 +12,7 @@ const BulkEditModal = ({ id, selectedRows }) => {
         { key: "date_code", label: "Date Code", type: "text" },
         { key: "cost", label: "Cost", type: "number" },
         { key: "price", label: "Price", type: "number" },
+        { key: "cost", label: "Cost", type: "number" },
         { key: "location", label: "Location", type: "text" },
         { key: "supplier", label: "Supplier", type: "text" },
         { key: "manufacturer", label: "Manufacturer", type: "text" },
