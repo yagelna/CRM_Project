@@ -1,7 +1,7 @@
 import math
 from rest_framework import viewsets
 from .models import InventoryItem
-from .serializers import InventoryItemSerializer, ExportTaskSerializer
+from .serializers import InventoryItemSerializer
 import pandas as pd
 from rest_framework import status
 from rest_framework.response import Response
@@ -19,7 +19,7 @@ import zipfile
 import pandas as pd
 import io
 import time
-from django_celery_beat.models import PeriodicTask
+# from django_celery_beat.models import PeriodicTask
 
 logger = logging.getLogger('myapp')
 
@@ -376,6 +376,6 @@ class BulkUploadView(APIView):
             return None
         return value
     
-class ExportTaskViewSet(viewsets.ModelViewSet):
-    queryset = PeriodicTask.objects.all()
-    serializer_class = ExportTaskSerializer
+# class ExportTaskViewSet(viewsets.ModelViewSet):
+#     queryset = PeriodicTask.objects.all()
+#     serializer_class = ExportTaskSerializer
