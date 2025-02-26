@@ -259,7 +259,7 @@ def export_inventory(request):
         print("Sending NetComponents email...")
         send_html_email(
             data={
-                "email": "yagel@flychips.com", #datamaster@netcomponents.com
+                "email": "datamaster@netcomponents.com", #datamaster@netcomponents.com
                 "account": "939857",
             },
             template="nc-update",
@@ -274,7 +274,7 @@ def export_inventory(request):
         print("Sending IC Source email...")
         send_html_email(
             data={
-                "email": "yagel@flychips.com", #post@icsource.com
+                "email": "post@icsource.com", #post@icsource.com
             },
             template="ics-update",
             from_account="inventory",
