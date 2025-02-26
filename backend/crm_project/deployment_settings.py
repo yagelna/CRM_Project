@@ -42,9 +42,29 @@ DATABASES = {
 }
 
 # Email settings using Gmail and environment variables
+# Email settings using Gmail and environment variables
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+
+EMAIL_ACCOUNTS = {
+    "default": {
+        "EMAIL_HOST": "smtp.gmail.com",
+        "EMAIL_PORT": 587,
+        "EMAIL_USE_TLS": True,
+        "EMAIL_HOST_USER": os.environ.get('EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": os.environ.get('EMAIL_HOST_PASSWORD'),
+    },
+    "rfq": {
+        "EMAIL_HOST": "smtp.gmail.com",
+        "EMAIL_PORT": 587,
+        "EMAIL_USE_TLS": True,
+        "EMAIL_HOST_USER": os.environ.get('RFQ_EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": os.environ.get('RFQ_EMAIL_HOST_PASSWORD'),
+    },
+    "inventory": {
+        "EMAIL_HOST": "smtp.gmail.com",
+        "EMAIL_PORT": 587,
+        "EMAIL_USE_TLS": True,
+        "EMAIL_HOST_USER": os.environ.get('INVENTORY_EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": os.environ.get('INVENTORY_EMAIL_HOST_PASSWORD'),
+    },
+}
