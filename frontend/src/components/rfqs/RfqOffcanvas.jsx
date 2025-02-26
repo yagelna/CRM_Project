@@ -19,8 +19,8 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
                 name: '',
                 country: ''
             }
-        }
-        
+        },
+        customer_name: ''
     });
 
     const [inventoryData, setInventoryData] = useState([]);
@@ -93,6 +93,26 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
         // }
     // }
 
+    const handleSendEmail = async (template) => {
+        const { contact_object, ...formData } = rfqData;
+        const { email } = contact_object;  // מביא את ה-email מתוך contact_object
+        formData.email = email;  // מוסיף את ה-email ל-formData
+        console.log("formData [send email]: ", formData);
+        try {
+            const res = await axiosInstance.post('api/send-email/', {
+                formData,
+                template: template,
+            });
+            const updatedStatus = template === 'tp-alert-tab' ? 'T/P Alert Sent' : '';
+            updateRfqStatus(updatedStatus);
+            // setToast({ show: true, message: "Email sent successfully", success: true });
+
+        } catch (error) {
+            console.error("Error sending email:", error);
+            // setToast({ show: true, message: "Failed to send email", success: false });
+        }
+    }
+
     const fetchAvailability = async (mpn) => {
         setInventoryLoading(true);
         setInventoryError(null);
@@ -162,6 +182,12 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
                 Unattractive Offer
                 <i className="bi bi-eye-slash ms-2"></i>
             </button>
+            {/* T/P button */}
+            <button type="button" className="btn btn-success btn-sm mb-2 me-2" data-bs-dismiss="offcanvas" aria-label="Target Price" onClick={() => handleSendEmail('tp-alert-tab')}>
+                T/P Alert
+                <i className="bi bi-bell ms-2"></i>
+            </button>
+
             {/* delete rfq button */}
             <button type="button" className="btn btn-danger btn-sm mb-2" data-bs-dismiss="offcanvas" aria-label="Delete" onClick={handleDelete}>
                 Delete RFQ
