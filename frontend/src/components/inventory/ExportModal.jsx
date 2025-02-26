@@ -11,8 +11,43 @@ const ExportModal = ({ id }) => {
     const [icSourceRows, setIcSourceRows] = useState({ stock: "", available: "" });
     const [fileFormat, setFileFormat] = useState("csv");
     const [selectedSuppliersCount, setSelectedSuppliersCount] = useState(0);
+    const [exportOptions, setExportOptions] = useState({
+        download: false,
+        sendToNC: true,
+        sendToICS: true,
+    });
+    const [saveSettings, setSaveSettings] = useState(false);
 
-    // Fetch suppliers from the server
+    // Fetch user settings
+    const fetchUserSettings = () => {
+        axiosInstance
+            .get("api/usersettings/my_settings/")
+            .then((response) => {
+                const settings = response.data;
+                console.log("User settings:", settings);
+                setNetComponentsEnabled(settings.export_netcomponents);
+                setIcSourceEnabled(settings.export_icsource);
+                setInventoryEnabled(settings.export_inventory);
+                setNetComponentsRows({
+                    stock: settings.netcomponents_max_stock || "",
+                    available: settings.netcomponents_max_available || "",
+                });
+                setIcSourceRows({
+                    stock: settings.icsource_max_stock || "",
+                    available: settings.icsource_max_available || "",
+                });
+                setFileFormat(settings.export_file_format);
+                setSelectedSuppliers(settings.selected_suppliers || []);
+
+                const selectedPartsCount = suppliers
+                    .filter((supplier) => (settings.selected_suppliers || []).includes(supplier.supplier))
+                    .reduce((acc, curr) => acc + curr.total_parts, 0);
+                setSelectedSuppliersCount(selectedPartsCount);
+            })
+            .catch((error) => console.error("Error fetching user settings: " + error));
+    };
+
+    // Fetch suppliers list
     const fetchSuppliers = () => {
         axiosInstance
             .get("api/inventory/suppliers/")
@@ -30,7 +65,7 @@ const ExportModal = ({ id }) => {
             setSelectedSuppliersCount((prev) => prev + supplier.total_parts);
         } else {
             setSelectedSuppliers((prev) => prev.filter((item) => item !== supplier.supplier));
-            setSelectedSuppliersCount((prev) => prev - supplier.total_parts);
+            setSelectedSuppliersCount((prev) => Math.max(0,prev - supplier.total_parts));
         }
     };
 
@@ -52,7 +87,7 @@ const ExportModal = ({ id }) => {
             return;
         }
 
-        const exportOptions = {
+        const exportPayload = {
             netComponents: {
                 enabled: netComponentsEnabled,
                 max_stock_rows: parseInt(netComponentsRows.stock) || 0,
@@ -68,20 +103,42 @@ const ExportModal = ({ id }) => {
             },
             selectedSuppliers,
             fileFormat,
+            actions: exportOptions,
         };
 
+        if (saveSettings) {
+            axiosInstance
+                .patch("api/usersettings/update_settings/", {
+                    export_netcomponents: netComponentsEnabled,
+                    netcomponents_max_stock: parseInt(netComponentsRows.stock) || 0,
+                    netcomponents_max_available: parseInt(netComponentsRows.available) || 0,
+                    export_icsource: icSourceEnabled,
+                    icsource_max_stock: parseInt(icSourceRows.stock) || 0,
+                    icsource_max_available: parseInt(icSourceRows.available) || 0,
+                    export_inventory: inventoryEnabled,
+                    export_file_format: fileFormat,
+                    selected_suppliers: selectedSuppliers,
+                })
+                .then((response) => console.log("User settings updated:", response))
+                .catch((error) => console.error("Error updating user settings:", error));
+        }
+
         axiosInstance
-            .post("/api/inventory/export/", exportOptions, { responseType: "blob" })
+            .post("/api/inventory/export/", exportPayload, { responseType: "blob" })
             .then((response) => {
                 // Handle file download
-                const url = window.URL.createObjectURL(new Blob([response.data]));
-                const link = document.createElement("a");
-                link.href = url;
-                link.setAttribute("download", `export.zip`); // קובץ ZIP
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-                console.log("Export successful.", response);
+                if (exportOptions.download) {
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.setAttribute("download", `export.zip`); // קובץ ZIP
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    console.log("Export successful.", response);
+                } else {
+                    console.log("Export was generated successfully but not downloaded (send to NC/ICS via email).");
+                }
             })
             .catch((error) => {
                 console.error("Export failed:", error);
@@ -92,6 +149,14 @@ const ExportModal = ({ id }) => {
     useEffect(() => {
         fetchSuppliers();
     }, []);
+
+    useEffect(() => {
+        if (suppliers.length > 0) {
+            fetchUserSettings();
+        }
+    }, [suppliers]);
+
+
 
     return (
         <div className="modal fade" id={id} tabIndex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
@@ -292,8 +357,58 @@ const ExportModal = ({ id }) => {
                                 ))}
                             </ul>
                         </div>
+                        <div className="form-check">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="downloadFile"
+                                checked={exportOptions.download}
+                                onChange={(e) => setExportOptions({ ...exportOptions, download: e.target.checked })}
+                            />
+                            <label className="form-check-label" htmlFor="downloadFile">
+                                Download File
+                            </label>
+                        </div>
+                        <div className="form-check">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="sendToNC"
+                                checked={exportOptions.sendToNC}
+                                onChange={(e) => setExportOptions({ ...exportOptions, sendToNC: e.target.checked })}
+                            />
+                            <label className="form-check-label" htmlFor="sendToNC">
+                                Send to NetComponents
+                            </label>
+                        </div>
+                        <div className="form-check">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id="sendToICS"
+                                checked={exportOptions.sendToICS}
+                                onChange={(e) => setExportOptions({ ...exportOptions, sendToICS: e.target.checked })}
+                            />
+                            <label className="form-check-label" htmlFor="sendToICS">
+                                Send to IC Source
+                            </label>
+                        </div>
                     </div>
                     <div className="modal-footer">
+                        <div className="form-check form-switch">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                role="switch"
+                                id="saveSettingsSwitch"
+                                checked={saveSettings}
+                                onChange={(e) => setSaveSettings(e.target.checked)}
+                            />
+                            <label className="form-check-label" htmlFor="saveSettingsSwitch">
+                                Save Settings
+                            </label>
+                        </div>
+                        
                         <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
                             Close
                         </button>

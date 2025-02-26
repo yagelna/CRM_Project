@@ -103,7 +103,7 @@ class RFQViewSet(viewsets.ModelViewSet):
                     'company_name': contact.company.name if contact.company else None,
                     'email': contact.email if contact else None
                 })
-                send_html_email(rfq_data, 'quote-tab')
+                send_html_email(rfq_data, 'quote-tab', from_account='rfq')
 
         # create the RFQ
         serializer = self.get_serializer(data=rfq_data)
@@ -155,7 +155,7 @@ class SendEmailView(APIView):
         template = data.get("template")
         logger.debug("Debug - formData: %s", formData)
         logger.debug("Debug - template: %s", template)
-        send_html_email(formData, template)
+        send_html_email(formData, template, from_account='rfq')
         # send the RFQ new status to the websocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)('rfq_updates', {

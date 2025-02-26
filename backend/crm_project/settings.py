@@ -46,16 +46,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_results',
+    'django_celery_beat',
     'corsheaders',
     'apps.rfqs',
     'apps.contacts',
     'apps.companies',
     'apps.inventory',
     'apps.users',
+    'apps.usersettings',
     'rest_framework',
     'channels',
     'django_extensions',
-    'knox',
+    'knox',  
 ]
 
 ASGI_APPLICATION = 'crm_project.asgi.application'
@@ -189,8 +192,20 @@ REST_FRAMEWORK = {
 }
 
 REST_KNOX = {
-    'TOKEN_TTL': timedelta(days=3), # 3 days token expiration
+    'TOKEN_TTL': timedelta(days=7), # 3 days token expiration
 }
+
+# Celery settings
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+# CELERY_RESULT_BACKEND = 'django-db' 
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BEAT_MAX_INTERVAL = 120  # 2 minutes
+
+# Logging settings
 
 LOGGING = {
     'version': 1,
@@ -229,8 +244,27 @@ LOGGING = {
 
 # Email settings using Gmail and environment variables
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+EMAIL_ACCOUNTS = {
+    "default": {
+        "EMAIL_HOST": "smtp.gmail.com",
+        "EMAIL_PORT": 587,
+        "EMAIL_USE_TLS": True,
+        "EMAIL_HOST_USER": config('EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": config('EMAIL_HOST_PASSWORD'),
+    },
+    "rfq": {
+        "EMAIL_HOST": "smtp.gmail.com",
+        "EMAIL_PORT": 587,
+        "EMAIL_USE_TLS": True,
+        "EMAIL_HOST_USER": config('RFQ_EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": config('RFQ_EMAIL_HOST_PASSWORD'),
+    },
+    "inventory": {
+        "EMAIL_HOST": "smtp.gmail.com",
+        "EMAIL_PORT": 587,
+        "EMAIL_USE_TLS": True,
+        "EMAIL_HOST_USER": config('INVENTORY_EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": config('INVENTORY_EMAIL_HOST_PASSWORD'),
+    },
+}
