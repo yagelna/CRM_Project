@@ -25,15 +25,17 @@ const Inventory = () => {
 
     // delete selected rows 
     const handleDelete = async (ids) => {
-        const url = Array.isArray(ids) ? `api/inventory/bulk-delete/` : `api/inventory/${ids}/`;
-        const data = Array.isArray(ids) ? { ids } : null;
-        try {
-            const res = await axiosInstance.delete(url, { data });
-            console.log(res.data);
-            setInventory(prevInventory => prevInventory.filter(item => !ids.includes(item.id)));
-            fetchInventory();
-        } catch (error) {
-            console.error("Delete failed", error);
+        if(window.confirm(`Are you sure you want to delete ${Array.isArray(ids) ? ids.length : 1} item(s)?`)){
+            const url = Array.isArray(ids) ? `api/inventory/bulk-delete/` : `api/inventory/${ids}/`;
+            const data = Array.isArray(ids) ? { ids } : null;
+            try {
+                const res = await axiosInstance.delete(url, { data });
+                console.log(res.data);
+                setInventory(prevInventory => prevInventory.filter(item => !ids.includes(item.id)));
+                fetchInventory();
+            } catch (error) {
+                console.error("Delete failed", error);
+            }
         }
     };
 
