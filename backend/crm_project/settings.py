@@ -46,8 +46,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_celery_results',
-    'django_celery_beat',
     'corsheaders',
     'apps.rfqs',
     'apps.contacts',
@@ -195,15 +193,15 @@ REST_KNOX = {
     'TOKEN_TTL': timedelta(days=7), # 3 days token expiration
 }
 
-# Celery settings
+# # Celery settings
 
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-# CELERY_RESULT_BACKEND = 'django-db' 
-CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
-CELERY_BEAT_MAX_INTERVAL = 120  # 2 minutes
+# CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TASK_SERIALIZER = 'json'
+# # CELERY_RESULT_BACKEND = 'django-db' 
+# CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+# CELERY_BEAT_MAX_INTERVAL = 120  # 2 minutes
 
 # Logging settings
 
