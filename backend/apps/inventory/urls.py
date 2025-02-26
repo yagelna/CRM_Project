@@ -1,9 +1,10 @@
 from rest_framework.routers import DefaultRouter
-from .views import InventoryViewSet, BulkUploadView, search_parts, search_similar_parts, get_suppliers, export_inventory, bulk_delete_inventory, bulk_edit_inventory
+from .views import InventoryViewSet, BulkUploadView, ExportTaskViewSet, search_parts, search_similar_parts, get_suppliers, export_inventory, bulk_delete_inventory, bulk_edit_inventory
 from django.urls import path
 
 router = DefaultRouter()
 router.register(r'inventory', InventoryViewSet, basename='inventory')
+router.register(r'export-tasks', ExportTaskViewSet, basename='export-tasks')
 
 urlpatterns = [
     path('inventory/upload/', BulkUploadView.as_view(), name='bulk-upload'),
