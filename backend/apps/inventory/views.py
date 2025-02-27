@@ -1,7 +1,7 @@
 import math
 from rest_framework import viewsets
 from .models import InventoryItem
-from .serializers import InventoryItemSerializer, ExportTaskSerializer
+from .serializers import InventoryItemSerializer
 import pandas as pd
 from rest_framework import status
 from rest_framework.response import Response
@@ -19,7 +19,6 @@ import zipfile
 import pandas as pd
 import io
 import time
-from django_celery_beat.models import PeriodicTask
 
 logger = logging.getLogger('myapp')
 
@@ -153,13 +152,13 @@ def export_inventory(request):
     download = actions.get("download", False)
     suppliers = data.get("selectedSuppliers", [])
     format_type = data.get("fileFormat", "csv")
-    net_components = data.get("netComponents", {}).get("enabled", False)
+    net_components = data.get("netCOMPONENTS", {}).get("enabled", False)
     ic_source = data.get("icSource", {}).get("enabled", False)
     inventory = data.get("inventory", {}).get("enabled", False)
 
     max_rows = {
-        "net_components_stock": data.get("netComponents", {}).get("max_stock_rows", 0),
-        "net_components_available": data.get("netComponents", {}).get("max_available_rows", 0),
+        "net_components_stock": data.get("netCOMPONENTS", {}).get("max_stock_rows", 0),
+        "net_components_available": data.get("netCOMPONENTS", {}).get("max_available_rows", 0),
         "ic_source_stock": data.get("icSource", {}).get("max_stock_rows", 0),
         "ic_source_available": data.get("icSource", {}).get("max_available_rows", 0),
     }
@@ -375,7 +374,3 @@ class BulkUploadView(APIView):
         if pd.isna(value):
             return None
         return value
-    
-class ExportTaskViewSet(viewsets.ModelViewSet):
-    queryset = PeriodicTask.objects.all()
-    serializer_class = ExportTaskSerializer

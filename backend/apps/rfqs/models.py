@@ -21,7 +21,7 @@ class RFQ(models.Model):
     date_code = models.CharField(max_length=50, blank=True, null=True) # date code requested
     source = models.CharField(max_length=255, choices=[ 
         ('Website', 'Website'),
-        ('netComponents', 'netComponents'),
+        ('netCOMPONENTS', 'netCOMPONENTS'),
         ('IC Source', 'IC Source'),
         ('Private', 'Private'),
     ])
