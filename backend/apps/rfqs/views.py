@@ -62,7 +62,7 @@ class RFQViewSet(viewsets.ModelViewSet):
         suppliers = InventoryItem.objects.filter(mpn=mpn).values_list('supplier', flat=True)
         stock_source = None
         if suppliers:
-            if len(suppliers) == 1 and suppliers[0] == 'Fly Chips':
+            if len(suppliers) == 1 and 'Fly Chips' in suppliers[0]:
                 stock_source = 'Stock'
             elif any('Fly Chips' in supplier for supplier in suppliers):
                 stock_source = 'Stock & Available'
