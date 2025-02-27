@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 # Create your models here.
 class InventoryItem(models.Model):
@@ -21,6 +22,7 @@ class InventoryItem(models.Model):
         return f"{self.mpn} - {self.quantity}"
     
     def clean(self):
-        if self.supplier == "FlyChips" and not self.location:
-            raise ValidationError({'location': "Location is required when the supplier is 'FlyChips'."})
-
+        normalized_supplier = self.strip().lower()
+        required_suppliers = [s.strip().lower() for s in settings.LOCATION_REQUIRED_SUPPLIERS]
+        if any(normalized_supplier.startswith(s) for s in required_suppliers) and not self.location:
+            raise ValidationError({'location': f"Location is required when the supplier is '{self.supplier}'."})

@@ -166,7 +166,7 @@ const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
                     >
                         <option value="Private">Private</option>
                         <option value="netCOMPONENTS">netCOMPONENTS</option>
-                        <option value="ICSource">ICSource</option>
+                        <option value="IC Source">IC Source</option>
                         <option value="Website">Website</option>
 
                     </select>

@@ -11,8 +11,17 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 from decouple import config
 from datetime import timedelta
+
+def get_env_variable(var_name, default=None):
+    return os.environ.get(var_name) or config(var_name, default=default)
+
+def get_list_env_variable(var_name, default=""):
+    """ממיר משתנה סביבה ממחרוזת לרשימה"""
+    value = os.environ.get(var_name) or config(var_name, default=default)
+    return value.split(',') if value else []
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,15 +36,9 @@ SECRET_KEY = 'django-insecure-el6(4g9rpfm7_$)se7nh9k#j$6!^jwue4howrlgp9h4u#2)nmg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'localhost',
-    '.ngrok-free.app',
-]
+ALLOWED_HOSTS = get_list_env_variable('ALLOWED_HOSTS', default='127.0.0.1,localhost')
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://62ec-2a06-c701-7541-c700-8434-8dab-e3fd-8ed7.ngrok-free.app',
-]   
+CSRF_TRUSTED_ORIGINS = get_list_env_variable('CSRF_TRUSTED_ORIGINS', default='')
 
 # Application definition
 
@@ -79,10 +82,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-]
-
+CORS_ALLOWED_ORIGINS = get_list_env_variable('CORS_ALLOWED_ORIGINS', default='http://localhost:5173')
 AUTH_USER_MODEL = 'users.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
@@ -117,11 +117,11 @@ WSGI_APPLICATION = 'crm_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'crm_db',
-        'USER': 'postgres',
-        'PASSWORD': 'flypgpwd',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': get_env_variable('DB_NAME'),
+        'USER': get_env_variable('DB_USER'),
+        'PASSWORD': get_env_variable('DB_PASSWORD'),
+        'HOST': get_env_variable('DB_HOST'),
+        'PORT': get_env_variable('DB_PORT'),
     }
 }
 
@@ -234,24 +234,30 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_ACCOUNTS = {
     "default": {
-        "EMAIL_HOST": "smtp.gmail.com",
-        "EMAIL_PORT": 587,
-        "EMAIL_USE_TLS": True,
-        "EMAIL_HOST_USER": config('EMAIL_HOST_USER'),
-        "EMAIL_HOST_PASSWORD": config('EMAIL_HOST_PASSWORD'),
+        "EMAIL_HOST": get_env_variable('EMAIL_HOST'),
+        "EMAIL_PORT": get_env_variable('EMAIL_PORT'),
+        "EMAIL_USE_TLS": get_env_variable('EMAIL_USE_TLS'),
+        "EMAIL_HOST_USER": get_env_variable('EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": get_env_variable('EMAIL_HOST_PASSWORD'),
     },
     "rfq": {
-        "EMAIL_HOST": "smtp.gmail.com",
-        "EMAIL_PORT": 587,
-        "EMAIL_USE_TLS": True,
-        "EMAIL_HOST_USER": config('RFQ_EMAIL_HOST_USER'),
-        "EMAIL_HOST_PASSWORD": config('RFQ_EMAIL_HOST_PASSWORD'),
+        "EMAIL_HOST": get_env_variable('EMAIL_HOST'),
+        "EMAIL_PORT": get_env_variable('EMAIL_PORT'),
+        "EMAIL_USE_TLS": get_env_variable('EMAIL_USE_TLS'),
+        "EMAIL_HOST_USER": get_env_variable('RFQ_EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": get_env_variable('RFQ_EMAIL_HOST_PASSWORD'),
     },
     "inventory": {
-        "EMAIL_HOST": "smtp.gmail.com",
-        "EMAIL_PORT": 587,
-        "EMAIL_USE_TLS": True,
-        "EMAIL_HOST_USER": config('INVENTORY_EMAIL_HOST_USER'),
-        "EMAIL_HOST_PASSWORD": config('INVENTORY_EMAIL_HOST_PASSWORD'),
+        "EMAIL_HOST": get_env_variable('EMAIL_HOST'),
+        "EMAIL_PORT": get_env_variable('EMAIL_PORT'),
+        "EMAIL_USE_TLS": get_env_variable('EMAIL_USE_TLS'),
+        "EMAIL_HOST_USER": get_env_variable('INVENTORY_EMAIL_HOST_USER'),
+        "EMAIL_HOST_PASSWORD": get_env_variable('INVENTORY_EMAIL_HOST_PASSWORD'),
     },
 }
+
+LOCATION_REQUIRED_SUPPLIERS = get_env_variable('LOCATION_REQUIRED_SUPPLIERS', default='FlyChips,Fly Chips').split(',')
+NC_INVENTORY_UPDATE_EMAIL= get_env_variable('NC_INVENTORY_UPDATE_EMAIL')
+NC_ACCOUNT= get_env_variable('NC_ACCOUNT')
+ICS_INVENTORY_UPDATE_EMAIL= get_env_variable('ICS_INVENTORY_UPDATE_EMAIL')
+STOCK_SUPPLIER = get_env_variable('STOCK_SUPPLIER', default='Fly Chips')
