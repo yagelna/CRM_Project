@@ -165,7 +165,7 @@ const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
                         onChange={(e) => setFormData({ ...formData, source: e.target.value })}
                     >
                         <option value="Private">Private</option>
-                        <option value="NetComponents">NetComponents</option>
+                        <option value="netCOMPONENTS">netCOMPONENTS</option>
                         <option value="ICSource">ICSource</option>
                         <option value="Website">Website</option>
 

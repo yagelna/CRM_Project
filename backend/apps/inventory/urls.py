@@ -4,7 +4,6 @@ from django.urls import path
 
 router = DefaultRouter()
 router.register(r'inventory', InventoryViewSet, basename='inventory')
-# router.register(r'export-tasks', ExportTaskViewSet, basename='export-tasks')
 
 urlpatterns = [
     path('inventory/upload/', BulkUploadView.as_view(), name='bulk-upload'),
