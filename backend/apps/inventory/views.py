@@ -148,6 +148,7 @@ def export_inventory(request):
     # Parse JSON data from the request body
     data = request.data
     source = data.get("source", "web")
+    print(f"Export source: {source}")
 
     # Get the export settings from the latest UserSettings object in the database if source is "make".
     # Otherwise, use the data from the request body. (source is "web")
@@ -177,7 +178,7 @@ def export_inventory(request):
                 "enabled": False,
             }
         }
-        
+    print(f"Export data: {data}")    
     actions = data.get("actions", {})
     send_to_nc = actions.get("sendToNC", False)
     send_to_ics = actions.get("sendToICS", False)
