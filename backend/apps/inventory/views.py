@@ -1,6 +1,7 @@
 import math
 from rest_framework import viewsets
 from .models import InventoryItem
+from ..usersettings.models import UserSettings
 from .serializers import InventoryItemSerializer
 import pandas as pd
 from rest_framework import status
@@ -146,6 +147,37 @@ def export_inventory(request):
   
     # Parse JSON data from the request body
     data = request.data
+    source = data.get("source", "web")
+
+    # Get the export settings from the latest UserSettings object in the database if source is "make".
+    # Otherwise, use the data from the request body. (source is "web")
+    if (source == "make"):
+        settings = UserSettings.objects.filter(auto_update=True).order_by("-updated_at").first()
+        if not settings:
+            return Response({"error": "No user settings found"}, status=400)
+        data = {
+            "actions": {
+                "sendToNC": settings.export_netcomponents,
+                "sendToICS": settings.export_icsource,
+                "download": False,
+            },
+            "selectedSuppliers": settings.selected_suppliers,
+            "fileFormat": settings.export_file_format,
+            "netCOMPONENTS": {
+                "enabled": settings.export_netcomponents,
+                "max_stock_rows": settings.netcomponents_max_stock,
+                "max_available_rows": settings.netcomponents_max_available,
+            },
+            "icSource": {
+                "enabled": settings.export_icsource,
+                "max_stock_rows": settings.icsource_max_stock,
+                "max_available_rows": settings.icsource_max_available,
+            },
+            "inventory": {
+                "enabled": False,
+            }
+        }
+        
     actions = data.get("actions", {})
     send_to_nc = actions.get("sendToNC", False)
     send_to_ics = actions.get("sendToICS", False)
