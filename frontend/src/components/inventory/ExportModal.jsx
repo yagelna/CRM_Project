@@ -17,6 +17,7 @@ const ExportModal = ({ id }) => {
         sendToICS: true,
     });
     const [saveSettings, setSaveSettings] = useState(false);
+    const [autoUpdate, setAutoUpdate] = useState(false);
 
     // Fetch user settings
     const fetchUserSettings = () => {
@@ -88,7 +89,7 @@ const ExportModal = ({ id }) => {
         }
 
         const exportPayload = {
-            netComponents: {
+            netCOMPONENTS: {
                 enabled: netComponentsEnabled,
                 max_stock_rows: parseInt(netComponentsRows.stock) || 0,
                 max_available_rows: parseInt(netComponentsRows.available) || 0,
@@ -104,6 +105,7 @@ const ExportModal = ({ id }) => {
             selectedSuppliers,
             fileFormat,
             actions: exportOptions,
+            source: "web",
         };
 
         if (saveSettings) {
@@ -118,6 +120,7 @@ const ExportModal = ({ id }) => {
                     export_inventory: inventoryEnabled,
                     export_file_format: fileFormat,
                     selected_suppliers: selectedSuppliers,
+                    auto_update: autoUpdate,
                 })
                 .then((response) => console.log("User settings updated:", response))
                 .catch((error) => console.error("Error updating user settings:", error));
@@ -179,7 +182,7 @@ const ExportModal = ({ id }) => {
                                 onChange={(e) => setNetComponentsEnabled(e.target.checked)}
                             />
                             <label className="form-check-label me-3" htmlFor="netComponentsSwitch">
-                                netComponents
+                                netCOMPONENTS
                             </label>
                             {netComponentsEnabled && (
                                 <div>
@@ -395,6 +398,21 @@ const ExportModal = ({ id }) => {
                         </div>
                     </div>
                     <div className="modal-footer">
+                        {saveSettings && (
+                        <div className="form-check form-switch">
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                role="switch"
+                                id="autoUpdateSwitch"
+                                checked={autoUpdate}
+                                onChange={(e) => setAutoUpdate(e.target.checked)}
+                            />
+                            <label className="form-check-label" htmlFor="autoUpdateSwitch">
+                                Auto Update With These Settings (Once a Day)
+                            </label>
+                        </div>
+                        )}
                         <div className="form-check form-switch">
                             <input
                                 className="form-check-input"
