@@ -14,6 +14,7 @@ logger = logging.getLogger('myapp')
 # attachments is an optional parameter that contains a list of triplets (file_name, file_content, content_type) to be attached to the email
 def send_html_email(data, template, from_account="default", attachments=None):
     email_config = settings.EMAIL_ACCOUNTS.get(from_account, settings.EMAIL_ACCOUNTS["default"])
+    print(email_config)
     connection = get_connection(
         host=email_config["EMAIL_HOST"],
         port=email_config["EMAIL_PORT"],
