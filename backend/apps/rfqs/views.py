@@ -11,6 +11,7 @@ from channels.layers import get_channel_layer
 from utils.email_utils import send_html_email
 import logging
 from django.utils.timezone import now, timedelta
+from django.conf import settings
 logger = logging.getLogger('myapp')
 
 @api_view(['GET'])
@@ -62,9 +63,10 @@ class RFQViewSet(viewsets.ModelViewSet):
         suppliers = InventoryItem.objects.filter(mpn=mpn).values_list('supplier', flat=True)
         stock_source = None
         if suppliers:
-            if len(suppliers) == 1 and 'Fly Chips' in suppliers[0]:
+            stock_supplier = settings.STOCK_SUPPLIER.lower().replace("-", "").replace(" ", "")
+            if len(suppliers) == 1 and stock_supplier in suppliers[0].lower().replace("-", "").replace(" ", ""):
                 stock_source = 'Stock'
-            elif any('Fly Chips' in supplier for supplier in suppliers):
+            elif any(stock_supplier in supplier.lower().replace("-", "").replace(" ", "") for supplier in suppliers):
                 stock_source = 'Stock & Available'
             else:
                 stock_source = 'Available'

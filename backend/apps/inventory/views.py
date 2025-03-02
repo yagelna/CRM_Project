@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from django.db.models import Case, When
 from import_export.formats.base_formats import XLSX, CSV
 from .resources import InventoryResource, NetComponentsResource, ICSourceResource
+from django.conf import settings
 import zipfile
 import pandas as pd
 import io
@@ -153,26 +154,26 @@ def export_inventory(request):
     # Get the export settings from the latest UserSettings object in the database if source is "make".
     # Otherwise, use the data from the request body. (source is "web")
     if (source == "make"):
-        settings = UserSettings.objects.filter(auto_update=True).order_by("-updated_at").first()
-        if not settings:
+        user_settings = UserSettings.objects.filter(auto_update=True).order_by("-updated_at").first()
+        if not user_settings:
             return Response({"error": "No user settings found"}, status=400)
         data = {
             "actions": {
-                "sendToNC": settings.export_netcomponents,
-                "sendToICS": settings.export_icsource,
+                "sendToNC": user_settings.export_netcomponents,
+                "sendToICS": user_settings.export_icsource,
                 "download": False,
             },
-            "selectedSuppliers": settings.selected_suppliers,
-            "fileFormat": settings.export_file_format,
+            "selectedSuppliers": user_settings.selected_suppliers,
+            "fileFormat": user_settings.export_file_format,
             "netCOMPONENTS": {
-                "enabled": settings.export_netcomponents,
-                "max_stock_rows": settings.netcomponents_max_stock,
-                "max_available_rows": settings.netcomponents_max_available,
+                "enabled": user_settings.export_netcomponents,
+                "max_stock_rows": user_settings.netcomponents_max_stock,
+                "max_available_rows": user_settings.netcomponents_max_available,
             },
             "icSource": {
-                "enabled": settings.export_icsource,
-                "max_stock_rows": settings.icsource_max_stock,
-                "max_available_rows": settings.icsource_max_available,
+                "enabled": user_settings.export_icsource,
+                "max_stock_rows": user_settings.icsource_max_stock,
+                "max_available_rows": user_settings.icsource_max_available,
             },
             "inventory": {
                 "enabled": False,
@@ -291,8 +292,8 @@ def export_inventory(request):
         print("Sending NetComponents email...")
         send_html_email(
             data={
-                "email": "datamaster@netcomponents.com", #datamaster@netcomponents.com
-                "account": "939857",
+                "email": settings.NC_INVENTORY_UPDATE_EMAIL,
+                "account": settings.NC_ACCOUNT,
             },
             template="nc-update",
             from_account="inventory",
@@ -306,7 +307,7 @@ def export_inventory(request):
         print("Sending IC Source email...")
         send_html_email(
             data={
-                "email": "post@icsource.com", #post@icsource.com
+                "email": settings.ICS_INVENTORY_UPDATE_EMAIL,
             },
             template="ics-update",
             from_account="inventory",
