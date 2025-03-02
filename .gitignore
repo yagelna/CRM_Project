@@ -14,7 +14,7 @@ node_modules
 build/
 
 # General
-/backend/.env
+/backend/**/.env
 *.log
 logs
 npm-debug.log*
