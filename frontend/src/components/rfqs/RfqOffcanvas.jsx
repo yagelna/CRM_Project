@@ -253,7 +253,7 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
                         <td>{item.manufacturer || '-'}</td>
                         <td>{item.supplier_quantities || '-'}</td>
                         <td>{item.supplier_dc || '-'}</td>
-                        <td>{item.cost || '-'}</td>
+                        <td>{item.supplier_cost || '-'}</td>
                     </tr>
                     ))}
                     </tbody>
