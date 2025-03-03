@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'apps.inventory',
     'apps.users',
     'apps.usersettings',
+    'apps.archive',
     'rest_framework',
     'channels',
     'django_extensions',
