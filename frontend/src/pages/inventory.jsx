@@ -14,6 +14,7 @@ const Inventory = () => {
     const [inventory, setInventory] = useState([]);
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedRows, setSelectedRows] = useState([]);
+    const [showArchive, setShowArchive] = useState(false); // false = inventory, true = archive
     const gridRef = useRef();
     const myTheme = themeQuartz
     .withParams({
@@ -22,6 +23,10 @@ const Inventory = () => {
         headerFontSize: 14,
         headerFontWeight: 600
     });
+
+    const toggleInventoryView = () => {
+        setShowArchive(!showArchive);
+    };
 
     // delete selected rows 
     const handleDelete = async (ids) => {
@@ -45,6 +50,38 @@ const Inventory = () => {
             const ids = selectedRows.map(row => row.id);
             handleDelete(ids);
             setSelectedRows([]);
+        }
+    };
+
+    const handleArchive = async () => {
+        if (selectedRows.length === 0) return;
+
+        if(window.confirm(`Are you sure you want to archive ${selectedRows.length} item(s)?`)){
+            const ids = selectedRows.map(row => row.id);
+            try {
+                const res = await axiosInstance.post('api/archive/archive/', { ids });
+                console.log(res.data);
+                setInventory(prevInventory => prevInventory.filter(item => !ids.includes(item.id)));
+                setSelectedRows([]);
+            } catch (error) {
+                console.error("Archive failed", error);
+            }
+        }
+    };
+            
+    const handleRestore = async () => {
+        if (selectedRows.length === 0) return;
+
+        if(window.confirm(`Are you sure you want to restore ${selectedRows.length} item(s)?`)){
+            const ids = selectedRows.map(row => row.id);
+            try {
+                const res = await axiosInstance.post('api/archive/restore/', { ids });
+                console.log(res.data);
+                setInventory(prevInventory => prevInventory.filter(item => !ids.includes(item.id)));
+                setSelectedRows([]);
+            } catch (error) {
+                console.error("Restore failed", error);
+            }
         }
     };
     
@@ -97,7 +134,8 @@ const Inventory = () => {
 
     // fetch inventory from the backend
     const fetchInventory = () => {
-        axiosInstance.get('api/inventory/')
+        const endpoint = showArchive ? 'api/archive/' : 'api/inventory/';
+        axiosInstance.get(endpoint)
             .then((response) => {
                 setInventory(response.data);
             })
@@ -106,7 +144,7 @@ const Inventory = () => {
 
     useEffect(() => { 
         fetchInventory();
-    }, []);
+    }, [showArchive]);
 
     //update inventory state after adding or editing an inventory
     const handleUpdateInventory = (updatedInventoryItem, mode) => { 
@@ -151,14 +189,23 @@ const Inventory = () => {
                                 <i className="bi bi-pencil"></i> Edit
                             </button>
                             {/* archive button */}
-                            <button className="btn btn-outline-primary btn-sm ms-2">
-                                <i className="bi bi-archive"></i> Archive
-                            </button>
+                            {showArchive ? (
+                                <button className="btn btn-outline-success btn-sm" onClick={handleRestore}>
+                                    <i className="bi bi-arrow-counterclockwise"></i> Restore
+                                </button>
+                            ) : (
+                                <button className="btn btn-outline-primary btn-sm ms-2" onClick={handleArchive}>
+                                    <i className="bi bi-archive"></i> Archive
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
                 {/* צד ימין - כפתורים קבועים */}
                 <div>
+                    <button className="btn btn-outline-secondary btn-sm me-2" onClick={toggleInventoryView}>
+                        <i className="bi bi-folder-symlink"></i> {showArchive ? "Show Inventory" : "Show Archive"}
+                    </button>
                     <button type="button" className="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addInventoryModal"> 
                         Add Item 
                     </button>

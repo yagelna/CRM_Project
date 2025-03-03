@@ -81,17 +81,6 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
             console.error("Error updating RFQ:", error);
         }
     }
-        //     const { company_name, email, customer_name, mpn, ...updatedData } = formData; 
-        //     console.log('updatedData:', updatedData);
-        //     const res = await axiosInstance.patch(`api/rfqs/${rfqData.id}/`, {
-        //         ...updatedData,
-        //         status: status,
-        //     });
-        //     console.log("RFQ updated successfully:", res);
-        // } catch (error) {
-        //     console.error("Error updating RFQ:", error);
-        // }
-    // }
 
     const handleSendEmail = async (template) => {
         const { contact_object, ...formData } = rfqData;

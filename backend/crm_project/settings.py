@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'apps.contacts',
     'apps.companies',
     'apps.inventory',
+    'apps.archive',
     'apps.users',
     'apps.usersettings',
     'rest_framework',
