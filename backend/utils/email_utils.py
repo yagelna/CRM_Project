@@ -25,13 +25,13 @@ def send_html_email(data, template, from_account="default", attachments=None):
     company_name = settings.COMPANY_NAME
 
     template_dict = {
-        "quote-tab": ["../templates/emails/quote.html", "Quote For {mpn} [{company_name}]"],
-        "tp-alert-tab": ["../templates/emails/lowtp.html", "Target Price Inquiry {mpn}"],
-        "no-stock-tab": ["../templates/emails/nostock.html","Availability Update for {mpn} - Out of Stock"],
-        "mov-requirement-tab": ["../templates/emails/mov.html", "Minimum Order Value Requirement for {mpn} [{company_name}]"],
-        "no-export-tab": ["../templates/emails/noexport.html", "Export Restriction for {mpn} [{company_name}]"],
-        "ics-update": ["../templates/emails/icsupdate.html", "Stock & Available Stock Update - {company_name}"],
-        "nc-update": ["../templates/emails/ncupdate.html", "Stock & Available Stock Update - {company_name}"],
+        "quote-tab": ["../templates/emails/quote.html", f"Quote For {{mpn}} [{company_name}]"],
+        "tp-alert-tab": ["../templates/emails/lowtp.html", f"Target Price Inquiry {{mpn}}"],
+        "no-stock-tab": ["../templates/emails/nostock.html",f"Availability Update for {{mpn}} - Out of Stock"],
+        "mov-requirement-tab": ["../templates/emails/mov.html", f"Minimum Order Value Requirement for {{mpn}} [{company_name}]"],
+        "no-export-tab": ["../templates/emails/noexport.html", f"Export Restriction for {{mpn}} [{company_name}]"],
+        "ics-update": ["../templates/emails/icsupdate.html", f"Stock & Available Stock Update - {company_name}"],
+        "nc-update": ["../templates/emails/ncupdate.html", f"Stock & Available Stock Update - {company_name}"],
     }
 
     if (template=="quote-tab"):
