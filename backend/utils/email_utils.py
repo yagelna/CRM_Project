@@ -22,14 +22,16 @@ def send_html_email(data, template, from_account="default", attachments=None):
         use_tls=email_config["EMAIL_USE_TLS"],
     )
 
+    company_name = settings.COMPANY_NAME
+
     template_dict = {
-        "quote-tab": ["../templates/emails/quote.html", "Quote For {mpn} [FlyChips]"],
+        "quote-tab": ["../templates/emails/quote.html", "Quote For {mpn} [{company_name}]"],
         "tp-alert-tab": ["../templates/emails/lowtp.html", "Target Price Inquiry {mpn}"],
         "no-stock-tab": ["../templates/emails/nostock.html","Availability Update for {mpn} - Out of Stock"],
-        "mov-requirement-tab": ["../templates/emails/mov.html", "Minimum Order Value Requirement for {mpn} [FlyChips]"],
-        "no-export-tab": ["../templates/emails/noexport.html", "Export Restriction for {mpn} [FlyChips]"],
-        "ics-update": ["../templates/emails/icsupdate.html", "Stock & Available Stock Update - FlyChips"],
-        "nc-update": ["../templates/emails/ncupdate.html", "Stock & Available Stock Update - FlyChips"],
+        "mov-requirement-tab": ["../templates/emails/mov.html", "Minimum Order Value Requirement for {mpn} [{company_name}]"],
+        "no-export-tab": ["../templates/emails/noexport.html", "Export Restriction for {mpn} [{company_name}]"],
+        "ics-update": ["../templates/emails/icsupdate.html", "Stock & Available Stock Update - {company_name}"],
+        "nc-update": ["../templates/emails/ncupdate.html", "Stock & Available Stock Update - {company_name}"],
     }
 
     if (template=="quote-tab"):
