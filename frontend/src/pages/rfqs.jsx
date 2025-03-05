@@ -8,6 +8,7 @@ import ActionCellRenderer from '../components/ActionCellRenderer';
 import StatusCellRenderer from '../components/rfqs/StatusCellRenderer';
 import EmailModal from '../components/rfqs/EmailModal';
 import Offcanvas from '../components/rfqs/RfqOffcanvas';
+import { CONFIG } from '../config';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -104,12 +105,11 @@ const Rfqs = () => {
             })
             .catch((error) => console.error('Error fetching rfqs: ' + error));
     };
-    const isDevelopment = import.meta.env.MODE === 'development';
-    const wsBaseURL = isDevelopment ? import.meta.env.VITE_WS_BASE_URL_LOCAL : import.meta.env.VITE_WS_BASE_URL_DEPLOY;
+
     useEffect(() => {
         fetchRfqs();
         // WebSocket connection
-        const ws = new WebSocket(wsBaseURL);
+        const ws = new WebSocket(CONFIG.WS_BASE_URL);
         ws.onopen = () => {
             console.log('Websocket connected');
         };
