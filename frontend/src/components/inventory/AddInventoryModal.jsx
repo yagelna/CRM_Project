@@ -1,6 +1,7 @@
 import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
 import Modal from '../common/modal';
+import { CONFIG } from '../../config';
 
 const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
     const [formData, setFormData] = useState({
@@ -8,7 +9,7 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
         manufacturer: '',
         quantity: '',
         date_code: '',
-        supplier: 'FlyChips',
+        supplier: CONFIG.DEFAULT_SUPPLIER,
         location: '',
         price: '',
         url: null,
@@ -19,10 +20,10 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
         if (mode === 'edit' && itemData) {
             setFormData({
                 ...itemData,
-                supplier: itemData.supplier === "FlyChips" ? "FlyChips" : "Other", // קביעה אוטומטית של הספק
+                supplier: itemData.supplier === CONFIG.DEFAULT_SUPPLIER ? CONFIG.DEFAULT_SUPPLIER : "Other", // קביעה אוטומטית של הספק
             });
-            if (itemData.supplier !== "FlyChips") {
-                setCustomSupplier(itemData.supplier); // אם זה "Other", להגדיר את שם הספק
+            if (itemData.supplier !== CONFIG.DEFAULT_SUPPLIER) {
+                setCustomSupplier(itemData.supplier);
             }
         }
     }, [mode, itemData]);
@@ -46,7 +47,7 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                         manufacturer: '',
                         quantity: '',
                         date_code: '',
-                        supplier: 'FlyChips',
+                        supplier: CONFIG.DEFAULT_SUPPLIER,
                         location: '',
                         price: '',
                     });
@@ -112,16 +113,16 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                     <label>Supplier</label>
                     <select
                         className="form-select"
-                        value={formData.supplier || "Other"} // אם אין ספק, ברירת המחדל היא "Other"
+                        value={formData.supplier || "Other"}
                         onChange={(e) => {
                             const value = e.target.value;
                             setFormData({ ...formData, supplier: value });
-                            if (value !== "FlyChips") {
-                                setCustomSupplier(''); // איפוס customSupplier אם בוחרים ב-FlyChips
+                            if (value !== CONFIG.DEFAULT_SUPPLIER) {
+                                setCustomSupplier(''); 
                             }
                         }}
                     >
-                        <option value="FlyChips">FlyChips (Stock)</option>
+                        <option value={CONFIG.DEFAULT_SUPPLIER}>{CONFIG.DEFAULT_SUPPLIER} (Stock)</option>
                         <option value="Other">Other (Available)</option>
                     </select>
                 </div>
