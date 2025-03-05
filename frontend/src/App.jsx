@@ -11,12 +11,13 @@ import Home from './pages/home';
 import Login from './pages/login';
 import Register from './pages/register';
 import AI from './pages/ai';
+import Settings from './pages/settings';
 import ProtectedRoute from './components/ProtectedRoutes'; 
 
 function App() {
   // Determine if the sidebar should be hidden based on the current location
   const location = useLocation();
-  const noSidebar = !(location.pathname === '/rfqs' || location.pathname === '/' || location.pathname === '/contacts' || location.pathname === '/companies' || location.pathname === '/inventory' || location.pathname === '/dashboard' || location.pathname === '/ai');
+  const noSidebar = !(location.pathname === '/rfqs' || location.pathname === '/' || location.pathname === '/contacts' || location.pathname === '/companies' || location.pathname === '/inventory' || location.pathname === '/dashboard' || location.pathname === '/ai' || location.pathname === '/settings');
 
   return (
     <div className="App">
@@ -35,8 +36,9 @@ function App() {
             <Route path="/companies" element={<Companies />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/ai" element={<AI />} />
-            
+
           {/* </Route> */}
         </Routes>
       </div>

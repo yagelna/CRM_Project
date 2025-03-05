@@ -22,7 +22,7 @@ class InventoryItem(models.Model):
         return f"{self.mpn} - {self.quantity}"
     
     def clean(self):
-        normalized_supplier = self.strip().lower()
+        normalized_supplier = self.supplier.strip().lower()
         required_suppliers = [s.strip().lower() for s in settings.LOCATION_REQUIRED_SUPPLIERS]
         if any(normalized_supplier.startswith(s) for s in required_suppliers) and not self.location:
             raise ValidationError({'location': f"Location is required when the supplier is '{self.supplier}'."})
