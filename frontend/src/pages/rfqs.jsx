@@ -42,6 +42,13 @@ const Rfqs = () => {
 
     // Column Definitions: Defines & controls grid columns.
     const [colDefs, setColDefs] = useState([
+        {
+            field: "id",
+            headerName: "ID",
+            width: 80,
+            valueFormatter: (params) => '#'+ params.value.toString().padStart(5, '0'),
+            filter: false
+        },
         {   field: "mpn",
             headerName: "MPN",
             cellRenderer: (params) => (

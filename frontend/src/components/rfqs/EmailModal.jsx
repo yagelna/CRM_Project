@@ -1,10 +1,12 @@
 import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
 import Modal from '../common/modal';
+import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
  
 const EmailModal = ({ id, rfqData, autoFillData }) => {
     // State for recipient details
     const [formData, setFormData] = useState({
+            id: '',
             customer_name: '',
             email:'',
             company_name: '',
@@ -19,11 +21,13 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
 
     const [activeTab, setActiveTab] = useState('quote-tab');
     const [toast, setToast] = useState({ show: false, message: "", success: false });
+    const [loading, setLoading] = useState(false);
     
     useEffect(() => {
         if(rfqData){
             console.log('rfqData[emailModal]:', rfqData);
             setFormData({
+                id: rfqData.id || '',
                 customer_name: rfqData.contact_object?.name || '',
                 email: rfqData.contact_object?.email || '',
                 company_name: rfqData.contact_object?.company_object?.name || '',
@@ -78,6 +82,9 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                 if (!confirmSend) return;
             }
         }
+
+        setLoading(true);
+        
         try {
             const res = await axiosInstance.post('api/send-email/', {
                 formData,
@@ -85,12 +92,27 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
             });
             console.log("Email sent successfully:", res);
             setToast({ show: true, message: "Email sent successfully", success: true });
-            const updatedStatus = activeTab === 'quote-tab' ? 'Quote Sent' : activeTab === 'tp-alert-tab' ? 'T/P Alert Sent' : activeTab === 'no-stock-tab' ? 'No Stock Alert Sent' : activeTab === 'mov-requirement-tab' ? 'MOV Requirement Sent' : 'No Export Alert Sent';
+            const updatedStatus =
+                activeTab === 'quote-tab' ? 'Quote Sent' : 
+                activeTab === 'tp-req-tab' ? 'T/P Req Sent' : 
+                activeTab === 'no-stock-tab' ? 'No Stock Alert Sent' : 
+                activeTab === 'mov-requirement-tab' ? 'MOV Requirement Sent' : 
+                'No Export Alert Sent';
             updateRfq(updatedStatus);
+
+            const modalElement = document.getElementById(id);
+            if (modalElement) {
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                if (modalInstance) {
+                    modalInstance.hide();
+            }
+        }
 
         } catch (error) {
             console.error("Error sending email:", error);
             setToast({ show: true, message: "Failed to send email", success: false });
+        } finally {
+            setLoading(false);
         }
         console.log(formData);
     }
@@ -136,8 +158,8 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                     <a className="list-group-item list-group-item-action active" data-bs-toggle="list" href="#quote-tab" role="tab" onClick={() => setActiveTab('quote-tab')}>
                         Quote
                     </a>
-                    <a className="list-group-item list-group-item-action" data-bs-toggle="list" href="#tp-alert-tab" role="tab" onClick={() => setActiveTab('tp-alert-tab')}>
-                        T/P Alert
+                    <a className="list-group-item list-group-item-action" data-bs-toggle="list" href="#tp-req-tab" role="tab" onClick={() => setActiveTab('tp-req-tab')}>
+                        T/P Request
                     </a>
                     <a className="list-group-item list-group-item-action" data-bs-toggle="list" href="#no-stock-tab" role="tab" onClick={() => setActiveTab('no-stock-tab')}>
                         No Stock
@@ -244,8 +266,8 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                             </div>
                         </div>
                     </div>
-                    <div className="tab-pane fade" id="tp-alert-tab" role="tabpanel">
-                        <p>Here you can draft and send a T/P Alert email.</p>
+                    <div className="tab-pane fade" id="tp-req-tab" role="tabpanel">
+                        <p>Here you can draft and send a T/P Request email.</p>
                     </div>
                     <div className="tab-pane fade" id="no-stock-tab" role="tabpanel">
                         <p>Here you can notify the customer that the item is out of stock.</p>
@@ -257,7 +279,14 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                         <p>Here you can notify the customer about export restrictions.</p>
                     </div>
                 </div>
-                <button className="btn btn-primary mt-3" data-bs-dismiss="modal" onClick={handleSendEmail}>Send Email</button>
+                <button className="btn btn-primary mt-3" onClick={handleSendEmail} disabled={loading}>
+                    {loading ? (
+                        <>
+                            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            Sending...
+                        </>
+                    ) : 'Send Email'}
+                    </button>
                 <button className="btn btn-secondary mt-3 ms-3" data-bs-dismiss="modal" onClick={() => updateRfq('unattractive')}>Unattractive Offer</button>
             </Modal>
             {toast.show && (

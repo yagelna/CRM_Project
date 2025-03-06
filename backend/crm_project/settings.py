@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'apps.archive',
     'apps.users',
     'apps.usersettings',
+    'apps.ai_analysis',
     'rest_framework',
     'channels',
     'django_extensions',
@@ -263,3 +264,5 @@ NC_ACCOUNT= get_env_variable('NC_ACCOUNT')
 ICS_INVENTORY_UPDATE_EMAIL= get_env_variable('ICS_INVENTORY_UPDATE_EMAIL')
 STOCK_SUPPLIER = get_env_variable('STOCK_SUPPLIER', default='Fly Chips')
 COMPANY_NAME = get_env_variable('COMPANY_NAME', default='Fly Chips')
+OPENAI_KEY = get_env_variable('OPENAI_KEY')
+ASSISTANT_ID = get_env_variable('ASSISTANT_ID')
