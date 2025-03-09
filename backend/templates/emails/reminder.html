@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quotation</title>
+    <title>Quotation Reminder</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-	        background-color: #f4f4f4;
+            background-color: #f4f4f4;
         }
         .container {
             width: 100%;
@@ -37,12 +37,11 @@
             background-color: #f9f9f9;
             margin-top: 20px;
         }
-.customer-info h3 {
+        .customer-info h3 {
             margin: 0 0 10px;
             color: #003366;
             margin-bottom: 10px;
-            font-size: 18px
-
+            font-size: 18px;
         }
         table {
             width: 100%;
@@ -78,58 +77,49 @@
             <a href="https://flychips.com/" target="_blank">
                 <img src="https://flychips.com/wp-content/uploads/2024/07/PNG-01.png" alt="Company Logo" width="500" style="max-width: 500px; max-height: 80px; width: auto; height: auto; display: block; margin: 0 auto;">
             </a>
-            <h2>Quote Number {{id}}</h2>
+            <h2>Quotation Reminder</h2>
         </div>
 
         <div class="divider"></div>
-        <div class="customer-info">
-                <h3>Customer Information</h3>
-                <p><strong>Company Name: </strong> {{company_name}}</p>
-                <p><strong>Contact Person: </strong> {{customer_name}}</p>
-                <p><strong>Email: </strong> {{email}}</p>
-                <p><strong>Date: </strong> {{current_time}}</p>
-        </div>
+        <p style="font-size: 18px; color: #000; font-weight: bold;">Dear {{customer_name}},</p>
+        <p style="font-size: 18px; color: #000;">
+	This is a friendly reminder regarding your RFQ for {{mpn}}.<br> We noticed that we haven’t received any feedback on the quote we sent you, and we wanted to check if there’s anything we can assist you with.</p>
+	<p style="font-size: 18px; color: #000;">
+	The quote below is still valid, and if you have any questions or need further details, we’re here to help. Please don’t hesitate to reach out to us!</p>
+	<p style="font-size: 18px; color: #000;">
+	We truly appreciate your time and look forward to hearing from you soon.</p>
 
-        <!-- Quotation Table -->
-        <table>
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th>Mfg</th>
-                    <th>Date Code</th>
-                    <th>Qty/MOQ</th>
-                    <th>Unit Price</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{mpn}}</td>
-                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{manufacturer}}</td>
-                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{date_code}}</td>
-                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{qty_offered}}</td>
-                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{offered_price}}$</td>
-                        <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{total_price}}$</td>
-                <!-- Add more rows as necessary -->
-                <tr class="total">
-                    <td colspan="5">Total Amount:</td>
-                    <td>{{total_price}}$</td>
-                </tr>
-            </tbody>
-        </table>
-        <!-- <div class="divider"></div> -->
-        <h3 style="font-size: 18px; margin-top: 3; color: #003366;">Additional Notes</h3>
-        <p style="font-size: 14px; color: #000;">{{ notes }}</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Mfg</th>
+                <th>Date Code</th>
+                <th>Qty/MOQ</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                    <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{mpn}}</td>
+                    <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{manufacturer}}</td>
+                    <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{date_code}}</td>
+                    <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{qty_offered}}</td>
+                    <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{offered_price}}$</td>
+                    <td style="text-align: left; border-bottom: 1px solid #e0e0e0;">{{total_price}}$</td>
+            <!-- Add more rows as necessary -->
+            <tr class="total">
+                <td colspan="5">Total Amount:</td>
+                <td>{{total_price}}$</td>
+            </tr>
+        </tbody>
+    </table>
 
         <!-- Terms Section -->
         <div class="terms">
-            <h3 style="font-size: 22px; margin-top: 0; color: #003366;">Terms & Conditions</h3>
-	<p style="font-size: 14px; color: #000;"><strong>Incoterms: </strong>Goods are sold under standard EXW Israel terms.</p>
-	<p style="font-size: 14px; color: #000;"><strong>Payment Terms: </strong>Payment by TT in advance.</p>
-	<p style="font-size: 14px; color: #000;"><strong>Offer Validity: </strong>This offer is valid for 2 days, subject to prior sale.</p>
-	<p style="font-size: 14px; color: #000;"><strong>Quotation Terms: </strong>Based on NCNR conditions (Non-Cancellable, Non-Returnable).</p>
-	<p style="font-size: 14px; color: #000;">Fly Chips' standard terms and conditions apply. full details at: <a href="https://www.flychips.com" target="_blank" style="color: #3498db; text-decoration: none;">https://www.flychips.com</a>.</p>
-	<p style="font-size: 14px; color: #000">If you have any questions or need further clarification, please do not hesitate to contact us.</p>
+      
+            <p style="font-size: 14px; color: #000">If you have any questions or need further clarification, please do not hesitate to contact us.</p>
         </div>
     </div>
 <div class="footer">
