@@ -39,7 +39,9 @@ def send_html_email(data, template, from_account="default", attachments=None):
         data['total_price'] = float(data['offered_price']) * int(data['qty_offered'])
 
     data['current_time'] = datetime.now().strftime("%d-%m-%Y %H:%M")
-    data['id'] = '#' + str(data.get('id', '')).zfill(6) 
+    print(f'Email data: {data}')
+    data['id'] =str(data.get('id', '')).zfill(6) 
+    print(f'Email id: {data["id"]}')
     email_body = render_to_string(template_dict[template][0], data)
 
     email = EmailMessage(
