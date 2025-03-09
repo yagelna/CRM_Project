@@ -21,7 +21,6 @@ def search_rfqs(request, mpn):
     Return all RFQs that match the exact mpn.
     """
     try:
-        logger.debug(f"Searching for RFQs with MPN: {mpn}")
         rfqs = RFQ.objects.filter(mpn=mpn)
         serializer = RFQSerializer(rfqs, many=True)
         return Response(serializer.data)
@@ -82,7 +81,6 @@ class RFQViewSet(viewsets.ModelViewSet):
         rfq_data['stock_source'] = stock_source
 
         if similar_rfq:
-            logger.debug(f"Found similar RFQ with MPN: {mpn}")
             new_tp = request.data.get('target_price')
             if new_tp:
                 try:
@@ -92,7 +90,6 @@ class RFQViewSet(viewsets.ModelViewSet):
                     logger.error("Failed to convert target_price to float")
 
             if new_tp is None or similar_rfq.offered_price > new_tp:
-                logger.debug("Debug - Using previous RFQ's offer for the new RFQ")
                 rfq_data.update({
                     'offered_price': similar_rfq.offered_price,
                     'qty_offered': similar_rfq.qty_offered,
@@ -100,17 +97,26 @@ class RFQViewSet(viewsets.ModelViewSet):
                     'manufacturer': similar_rfq.manufacturer,
                     'auto_quote_deadline': similar_rfq.auto_quote_deadline,
                     'parent_rfq': similar_rfq.id,
-                    'status': 'Quote Sent',
                     'customer_name': contact.name if contact else None,
                     'company_name': contact.company.name if contact.company else None,
                     'email': contact.email if contact else None
                 })
-                send_html_email(rfq_data, 'quote-tab', from_account='rfq')
 
         # create the RFQ
         serializer = self.get_serializer(data=rfq_data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        rfq_instance = serializer.save()
+
+        # send the RFQ to the customer if the there is similar RFQ
+        if similar_rfq:
+            rfq_data['id'] = rfq_instance.id
+            logger.debug(f"Found similar RFQ with MPN: {mpn}. Sending auto-quote email to customer")
+            try:
+                send_html_email(rfq_data, 'quote-tab', from_account='rfq')
+                rfq_instance.status = 'Quote Sent'
+                rfq_instance.save(update_fields=['status'])
+            except Exception as e:
+                logger.error(f"Failed to send email for RFQ {rfq_instance.id}: {e}")
 
         # send the RFQ to the websocket
         channel_layer = get_channel_layer()
@@ -155,8 +161,6 @@ class SendEmailView(APIView):
         data = request.data
         formData = data.get("formData")
         template = data.get("template")
-        logger.debug("Debug - formData: %s", formData)
-        logger.debug("Debug - template: %s", template)
         send_html_email(formData, template, from_account='rfq')
         # send the RFQ new status to the websocket
         channel_layer = get_channel_layer()
