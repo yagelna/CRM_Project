@@ -33,9 +33,10 @@ def send_html_email(data, template, from_account="default", attachments=None):
         "no-export-tab": ["../templates/emails/noexport.html", f"Export Restriction for {{mpn}} [{company_name}]"],
         "ics-update": ["../templates/emails/icsupdate.html", f"Stock & Available Stock Update - {company_name}"],
         "nc-update": ["../templates/emails/ncupdate.html", f"Stock & Available Stock Update - {company_name}"],
+        "quote-reminder": ["../templates/emails/reminder.html", f"Follow Up on Quote for {{mpn}} [{company_name}]"],
     }
 
-    if (template=="quote-tab"):
+    if (template in ["quote-tab", "quote-reminder"]):
         data['total_price'] = float(data['offered_price']) * int(data['qty_offered'])
 
     data['current_time'] = datetime.now().strftime("%d-%m-%Y %H:%M")

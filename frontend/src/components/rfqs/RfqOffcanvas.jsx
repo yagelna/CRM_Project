@@ -94,15 +94,20 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
 
     const handleSendEmail = async (template) => {
         const { contact_object, ...formData } = rfqData;
-        const { email } = contact_object;  // מביא את ה-email מתוך contact_object
-        formData.email = email;  // מוסיף את ה-email ל-formData
+        const { email } = contact_object; 
+        formData.email = email;
+        if (    rfqData.status !== 'Quote Sent' && rfqData.status !== 'Reminder Sent' && template === 'quote-reminder') {
+            window.alert('Cannot send reminder email for RFQs that have not sent quotes.');
+            return;
+        }
+
         console.log("formData [send email]: ", formData);
         try {
             const res = await axiosInstance.post('api/send-email/', {
                 formData,
                 template: template,
             });
-            const updatedStatus = template === 'tp-req-tab' ? 'T/P Request Sent' : '';
+            const updatedStatus = template === 'tp-req-tab' ? 'T/P Request Sent' : template === 'quote-reminder' ? 'Reminder Sent' : '';
             updateRfqStatus(updatedStatus);
             // setToast({ show: true, message: "Email sent successfully", success: true });
 
@@ -159,8 +164,6 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
     };
 
 
-
-
     return (
         <div className="offcanvas offcanvas-end" tabIndex="-1" id={id} aria-labelledby="offcanvasRightLabel">
             <div className="offcanvas-header">
@@ -187,9 +190,12 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
                 {/* T/P button */}
                 <button type="button" className="btn btn-success btn-sm mb-2 me-2" data-bs-dismiss="offcanvas" aria-label="Target Price" onClick={() => handleSendEmail('tp-req-tab')}>
                     T/P Request
-                    <i className="bi bi-bell ms-2"></i>
+                    <i className="bi bi-bullseye ms-2"></i>
                 </button>
-
+                <button type="button" className="btn btn-info btn-sm mb-2 me-2" data-bs-dismiss="offcanvas" aria-label="Quote Reminder" onClick={() => handleSendEmail('quote-reminder')}>
+                    Quote Reminder
+                    <i className="bi bi-alarm ms-2"></i>
+                </button>
                 {/* delete rfq button */}
                 <button type="button" className="btn btn-danger btn-sm mb-2" data-bs-dismiss="offcanvas" aria-label="Delete" onClick={handleDelete}>
                     Delete RFQ
