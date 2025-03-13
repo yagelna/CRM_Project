@@ -1,25 +1,54 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import AccountSettings from "./AccountSettings";
+import ExportSettings from "./ExportSettings";
+import EmailTemplates from "./EmailTemplates";
+import { useState, useEffect } from "react";
 
 const Settings = () => {
+
+    const [activeTab, setActiveTab] = useState('account');
+
     return (
         <div className="container mt-4">
-            <h1>Settings</h1>
-            <p>Manage your account, system preferences, and templates.</p>
+            <h3>Settings</h3>
+            <p>Manage your account and configure your RFQ Manager preferences.</p>
 
-            <div className="list-group">
-                <Link to="/settings/account" className="list-group-item list-group-item-action">
-                    Account Settings
-                </Link>
-                <Link to="/settings/export" className="list-group-item list-group-item-action">
-                    Export Settings
-                </Link>
-                <Link to="/settings/templates" className="list-group-item list-group-item-action">
-                    Email Templates
-                </Link>
+            {/* Navigation Tabs */}
+            <ul className="nav nav-underline mb-3">
+                <li className="nav-item">
+                    <button 
+                        className={`nav-link ${activeTab === "account" ? "active" : ""}`}
+                        onClick={() => setActiveTab("account")}
+                    >
+                        Account Settings
+                    </button>
+                </li>
+                <li className="nav-item">
+                    <button 
+                        className={`nav-link ${activeTab === "export" ? "active" : ""}`}
+                        onClick={() => setActiveTab("export")}
+                    >
+                        Export Settings
+                    </button>
+                </li>
+                <li className="nav-item">
+                    <button 
+                        className={`nav-link ${activeTab === "templates" ? "active" : ""}`}
+                        onClick={() => setActiveTab("templates")}
+                    >
+                        Email Templates
+                    </button>
+                </li>
+            </ul>
+
+            {/* Tab Content */}
+            <div className="tab-content">
+                {activeTab === "account" && <AccountSettings />}
+                {activeTab === "export" && <ExportSettings />}
+                {activeTab === "templates" && <EmailTemplates />}
             </div>
         </div>
     );
 };
-
 export default Settings;

@@ -48,24 +48,32 @@ const Companies = () => {
       ),
       flex: 1.5},
     { field: "domain", headerName: "Domain", flex: 1 },
+    {
+      field: "website", headerName: "Website", flex: 1,
+      cellRenderer: (params) => {
+        const rawValue = params.value || ""; // אם הערך null או undefined, נשתמש במחרוזת ריקה
+        const url = rawValue.startsWith("http") ? rawValue : `https://${rawValue}`;
+    
+        return rawValue ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="link-opacity-50-hover fw-medium"
+          >
+            {rawValue}
+          </a>
+        ) : (
+          rawValue
+        );
+      }
+    
+    },
     { field: "country", headerName: "Country", flex: 1 },
     { field: "address", headerName: "Full Address", flex: 1 },
+
     { field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc', flex: 1 },
-    {
-      field: "actions",
-      headerName: "Actions",
-      cellRenderer: "actionCellRenderer",
-      cellRendererParams: {
-        handleDelete: handleDelete,
-        handleEdit: (company) => setSelectedCompany(company),
-        mouduleName: "Company",
-      },
-      pinned: "right",
-            width: 126,
-            filter: false,
-            sortable: false,
-            cellStyle: { textAlign: 'center' }
-    },
+    
   ]);
 
   const gridOptions = {

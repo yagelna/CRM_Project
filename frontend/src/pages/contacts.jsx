@@ -3,7 +3,6 @@ import axiosInstance from '../AxiosInstance';
 import AddContactModal from '../components/contacts/AddContactModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
-import ActionCellRenderer from '../components/ActionCellRenderer';
 import ContactOffcanvas from '../components/contacts/ContactOffcanvas';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -50,22 +49,8 @@ const Contacts = () => {
     { field: "email", headerName: "Email", flex: 1 },
     { field: "phone", headerName: "Phone", flex: 1 },
     { field: "company_name", headerName: "Company", flex: 1 },
+    { field: "updated_at", headerName: "Updated At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', flex: 1 },
     { field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc', flex: 1 },
-    {
-      field: "actions",
-      headerName: "Actions",
-      cellRenderer: "actionCellRenderer",
-      cellRendererParams: {
-        handleDelete: handleDelete,
-        handleEdit: (contact) => setSelectedContact(contact),
-        mouduleName: "Contact",
-      },
-      pinned: "right",
-            width: 126,
-            filter: false,
-            sortable: false,
-            cellStyle: { textAlign: 'center' }
-    },
   ]);
 
   const gridOptions = {
@@ -129,7 +114,6 @@ const Contacts = () => {
           theme={myTheme}
           pagination={true}
           paginationPageSize={20}
-          components={{ actionCellRenderer: ActionCellRenderer }}
           overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
         />
       </div>

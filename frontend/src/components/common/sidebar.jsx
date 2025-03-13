@@ -22,7 +22,7 @@ const Sidebar = () => {
 
 
   return (
-    <div className='d-flex flex-column flex-shrink-0 bg-light' style={{ width: '4.5rem', height: '100vh' }}>
+    <div className='d-flex flex-column flex-shrink-0 bg-light' style={{ width: '4.5rem' }}>
       {/* Top Icon */}
       <a href="/" className="d-block p-3 link-dark text-decoration-none text-center" data-bs-placement="right" title="Icon-only">
         <i className="bi bi-cpu" style={{ fontSize: '1.5rem' }}></i>

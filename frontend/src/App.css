@@ -8,12 +8,16 @@ body {
 
 .App {
     display: flex; /* סידור האלמנטים בצד אחד של השני */
-    height: 100vh; /* גובה מלא של הדף */
+    min-height: 100vh; /* למשל להחליף ל-min-height */
+    overflow-y: auto;  /* לגלילה אנכית במידת הצורך */
+    margin: 0;
+    padding: 0;
+  
 }
   
 .sidebar {
     width: 4.5rem; /* רוחב קבוע */
-    background-color: #f8f9fa; /* רקע אופציונלי */
+    background-color: #3b8ada; /* רקע אופציונלי */
 }
   
 .content {

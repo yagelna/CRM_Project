@@ -37,6 +37,10 @@ const AddRfqModal = ({ id, mode, rfqData, handleUpdateRfqs }) => {
             setFormData(rfqData);
         }
     }, [mode, rfqData]);
+
+    useEffect(() => {
+        fetchCompanies('');
+      }, []);
     
     const fetchCompanies = (query = '') => {
         axiosInstance.get(`api/company-search/?q=${query}`)

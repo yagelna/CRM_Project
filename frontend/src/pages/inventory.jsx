@@ -4,6 +4,7 @@ import AddInventoryModal from '../components/inventory/AddInventoryModal';
 import UploadBulkModal from '../components/inventory/UploadBulkModal';
 import BulkEditModal from '../components/inventory/BulkEditModal';
 import ExportModal from '../components/inventory/ExportModal';
+import InventoryOffcanvas from '../components/inventory/InventoryOffcanvas';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
 import ActionCellRenderer from '../components/ActionCellRenderer';
@@ -30,17 +31,29 @@ const Inventory = () => {
 
     // delete selected rows 
     const handleDelete = async (ids) => {
-        if(window.confirm(`Are you sure you want to delete ${Array.isArray(ids) ? ids.length : 1} item(s)?`)){
-            const url = Array.isArray(ids) ? `api/inventory/bulk-delete/` : `api/inventory/${ids}/`;
-            const data = Array.isArray(ids) ? { ids } : null;
-            try {
-                const res = await axiosInstance.delete(url, { data });
-                console.log(res.data);
-                setInventory(prevInventory => prevInventory.filter(item => !ids.includes(item.id)));
-                fetchInventory();
-            } catch (error) {
-                console.error("Delete failed", error);
-            }
+        if (!ids) return;
+        
+        const isMultiple = Array.isArray(ids);
+        const confirmed = window.confirm(`Are you sure you want to delete ${isMultiple ? ids.length : 1} item(s)?`);
+        
+        if (!confirmed) return;
+    
+        const url = isMultiple ? `api/inventory/bulk-delete/` : `api/inventory/${ids}/`;
+        const data = isMultiple ? { ids } : null;
+    
+        try {
+            const res = await axiosInstance.delete(url, { data });
+            console.log(res.data);
+    
+            setInventory(prevInventory => 
+                isMultiple 
+                ? prevInventory.filter(item => !ids.includes(item.id))
+                : prevInventory.filter(item => item.id !== ids)
+            );
+    
+            fetchInventory(); 
+        } catch (error) {
+            console.error("Delete failed", error);
         }
     };
 
@@ -86,7 +99,20 @@ const Inventory = () => {
     };
     
     const [colDefs, setColDefs] = useState([
-        { field: "mpn", headerName: "MPN"},
+        { field: "mpn", headerName: "MPN",
+          cellRenderer: (params) => (
+            <a
+                href="#InventoryOffcanvas"
+                data-bs-toggle="offcanvas"
+                className="link-opacity-50-hover fw-medium"
+                onClick={() => { setSelectedItem(params.data);
+                    console.log(params.data);
+                 }}
+            >
+                {params.value}
+            </a>
+            ),
+            flex: 1},
         //{ field: "description", headerName: "Description" },
         { field: "manufacturer", headerName: "Manufacturer" },
         { field: "quantity", headerName: "Quantity"},
@@ -237,6 +263,7 @@ const Inventory = () => {
             <UploadBulkModal id="UploadBulkModal"/>
             <BulkEditModal id="BulkEditModal" selectedRows={selectedRows}/>
             <ExportModal id="ExportModal"/>
+            <InventoryOffcanvas id="InventoryOffcanvas" itemData={selectedItem} onDeleteRequest={handleDelete}/>
             
         </div>
     );
