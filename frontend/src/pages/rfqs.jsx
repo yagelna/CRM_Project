@@ -169,27 +169,27 @@ const Rfqs = () => {
         <div className='container mt-4'>
             <h1>Rfqs</h1>
             <div className="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <button 
-            type="button" 
-            className="btn btn-primary btn-sm me-2 " 
-            data-bs-toggle="modal" 
-            data-bs-target="#addRfqModal">
-            Add RFQ
-        </button>
-    </div>
+                <div>
+                    <button 
+                        type="button" 
+                        className="btn btn-primary btn-sm me-2 " 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#addRfqModal">
+                        Add RFQ
+                    </button>
+                </div>
 
-    <div className="d-flex align-items-center">
-            <input
-            type="text"
-            id="filter-text-box"
-            className="form-control"
-            placeholder="Search..."
-            onInput={onFilterTextBoxChanged}
-            style={{ width: '200px' }}
-        />
-    </div>
-</div>
+                <div className="d-flex align-items-center">
+                        <input
+                        type="text"
+                        id="filter-text-box"
+                        className="form-control"
+                        placeholder="Search..."
+                        onInput={onFilterTextBoxChanged}
+                        style={{ width: '200px' }}
+                    />
+                </div>
+            </div>
             <div className="ag-theme-alpine" style={{ height: 600, width: '100%' }}>
                   <AgGridReact
                     ref={gridRef}
