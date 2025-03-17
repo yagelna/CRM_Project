@@ -96,7 +96,7 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
         const { contact_object, ...formData } = rfqData;
         const { email } = contact_object; 
         formData.email = email;
-        if (    rfqData.status !== 'Quote Sent' && rfqData.status !== 'Reminder Sent' && template === 'quote-reminder') {
+        if (    rfqData.status !== 'Quote Sent' && rfqData.status !== 'Reminder Sent' && template === 'reminder') {
             window.alert('Cannot send reminder email for RFQs that have not sent quotes.');
             return;
         }
@@ -107,7 +107,7 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
                 formData,
                 template: template,
             });
-            const updatedStatus = template === 'tp-req-tab' ? 'T/P Request Sent' : template === 'quote-reminder' ? 'Reminder Sent' : '';
+            const updatedStatus = template === 'lowtp' ? 'T/P Request Sent' : template === 'reminder' ? 'Reminder Sent' : '';
             updateRfqStatus(updatedStatus);
             // setToast({ show: true, message: "Email sent successfully", success: true });
 
@@ -188,11 +188,11 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
                     <i className="bi bi-eye-slash ms-2"></i>
                 </button>
                 {/* T/P button */}
-                <button type="button" className="btn btn-success btn-sm mb-2 me-2" data-bs-dismiss="offcanvas" aria-label="Target Price" onClick={() => handleSendEmail('tp-req-tab')}>
+                <button type="button" className="btn btn-success btn-sm mb-2 me-2" data-bs-dismiss="offcanvas" aria-label="Target Price" onClick={() => handleSendEmail('lowtp')}>
                     T/P Request
                     <i className="bi bi-bullseye ms-2"></i>
                 </button>
-                <button type="button" className="btn btn-info btn-sm mb-2 me-2" data-bs-dismiss="offcanvas" aria-label="Quote Reminder" onClick={() => handleSendEmail('quote-reminder')}>
+                <button type="button" className="btn btn-info btn-sm mb-2 me-2" data-bs-dismiss="offcanvas" aria-label="Quote Reminder" onClick={() => handleSendEmail('reminder')}>
                     Quote Reminder
                     <i className="bi bi-alarm ms-2"></i>
                 </button>

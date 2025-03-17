@@ -112,7 +112,7 @@ class RFQViewSet(viewsets.ModelViewSet):
             rfq_data['id'] = rfq_instance.id
             logger.debug(f"Found similar RFQ with MPN: {mpn}. Sending auto-quote email to customer")
             try:
-                send_html_email(rfq_data, 'quote-tab', from_account='rfq')
+                send_html_email(rfq_data, 'quote', from_account='rfq')
                 rfq_instance.status = 'Quote Sent'
                 rfq_instance.save(update_fields=['status'])
             except Exception as e:
@@ -161,7 +161,16 @@ class SendEmailView(APIView):
         data = request.data
         formData = data.get("formData")
         template = data.get("template")
-        send_html_email(formData, template, from_account='rfq')
+
+        formData['my_company'] = settings.COMPANY_NAME
+        formData['current_time'] = now().strftime("%d-%m-%Y %H:%M")
+        formData['id'] = str(formData.get('id', '')).zfill(6)
+        if (template in ["quote", "reminder"]):
+            formData['total_price'] = float(formData['offered_price']) * int(formData['qty_offered'])
+
+        if send_html_email(formData, template, from_account='rfq') is None:
+            return Response({"error": "Failed to send email"}, status=status.HTTP_500_INTERNAL_SERVER)
+        
         # send the RFQ new status to the websocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)('rfq_updates', {
