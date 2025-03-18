@@ -111,12 +111,14 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="container py-4">
+    <div className="settings-container">
 
       {/* כותרת ראשית */}
-      <div className="mb-4">
-        <h1 className="fw-bold mb-1">Dashboard</h1>
-        <p className="text-muted">Overview of your RFQ management system</p>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 className="mb-1">Dashboard</h3>
+          <p className="text-muted">Overview of your RFQ management system</p>
+        </div>
         <Link to="/rfqs">
           <Button variant="primary">View All RFQs</Button>
         </Link>
@@ -129,7 +131,7 @@ const Dashboard = () => {
             title="Total RFQs"
             value={rfqs.length}
             trend={`${rfqs.filter(r => r.status === 'new').length} new`}
-            icon="📄"
+            icon={<i class="bi bi-file-text"></i>            }
             iconBg="bg-primary bg-opacity-10"
             color="text-primary"
           />
@@ -139,7 +141,7 @@ const Dashboard = () => {
             title="In Progress"
             value={rfqs.filter(r => r.status === 'in_progress').length}
             trend="Last 30 days"
-            icon="⏲"
+            icon={<i class="bi bi-clock-history"></i>}
             iconBg="bg-warning bg-opacity-10"
             color="text-warning"
           />
@@ -152,7 +154,7 @@ const Dashboard = () => {
               .filter(r => r.status === 'won')
               .reduce((sum, rfq) => sum + (rfq.total_value || 0), 0)
               .toLocaleString()}`}
-            icon="🏆"
+            icon={<i class="bi bi-trophy"></i>}
             iconBg="bg-success bg-opacity-10"
             color="text-success"
           />
@@ -166,7 +168,7 @@ const Dashboard = () => {
               ) * 100
             ).toFixed(1)}%`}
             trend="Avg. 4.5 hours"
-            icon="📈"
+            icon={<i class="bi bi-chat-left-text"></i>}
             iconBg="bg-secondary bg-opacity-10"
             color="text-secondary"
           />

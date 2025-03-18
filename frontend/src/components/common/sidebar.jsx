@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './sidebar.css';
-import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const Sidebar = () => {
   useEffect(() => {

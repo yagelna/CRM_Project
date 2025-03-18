@@ -2,3 +2,6 @@
   background-color: #f0f0f0;
   cursor: pointer;
 }
+.dropdown-menu {
+  z-index: 1050;
+}

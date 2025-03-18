@@ -80,6 +80,7 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
         }
         
     }, [rfqData]);
+    
 
     const updateRfqStatus = async (status) => {
         try {
@@ -165,7 +166,7 @@ const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest}) => {
 
 
     return (
-        <div className="offcanvas offcanvas-end" tabIndex="-1" id={id} aria-labelledby="offcanvasRightLabel">
+        <div className="offcanvas offcanvas-end" data-bs-backdrop="true" tabIndex="-1" id={id} aria-labelledby="offcanvasRightLabel">
             <div className="offcanvas-header">
                 <h5 className="offcanvas-title" id="offcanvasRightLabel">{Data.mpn}</h5>
                 <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>

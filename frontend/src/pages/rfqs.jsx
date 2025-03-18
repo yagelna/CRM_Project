@@ -21,9 +21,8 @@ const Rfqs = () => {
     const myTheme = themeQuartz
 	.withParams({
         browserColorScheme: "light",
-        headerBackgroundColor: "#CFDEEB",
-        headerFontSize: 14,
-        headerFontWeight: 600
+        headerBackgroundColor: "#f8f9fa",
+        headerTextColor:"#13416e"
     });
 
     // delete rfq by id
@@ -166,10 +165,13 @@ const Rfqs = () => {
       }, []);
 
     return (
-        <div className='container mt-4'>
-            <h1>Rfqs</h1>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <div>
+        <div className='settings-container'>
+            <div className="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 className="mb-1">Rfqs</h3>
+                <p className="text-muted">Manage your requests for quotes (RFQs) </p>
+            </div>
+            
                     <button 
                         type="button" 
                         className="btn btn-primary btn-sm me-2 " 
@@ -177,7 +179,8 @@ const Rfqs = () => {
                         data-bs-target="#addRfqModal">
                         Add RFQ
                     </button>
-                </div>
+                    </div>
+                    <div>
 
                 <div className="d-flex align-items-center">
                         <input
@@ -190,19 +193,23 @@ const Rfqs = () => {
                     />
                 </div>
             </div>
-            <div className="ag-theme-alpine" style={{ height: 600, width: '100%' }}>
-                  <AgGridReact
-                    ref={gridRef}
-                    columnDefs={colDefs}
-                    gridOptions={gridOptions}
-                    rowData={rfqs}
-                    theme={myTheme}
-                    defaultColDef={{filter: true}}
-                    pagination={true}
-                    paginationPageSize={20}
-                    components={{ actionCellRenderer: ActionCellRenderer, statusCellRenderer: StatusCellRenderer }}
-                    overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
-                  />
+            <div className="card border-0 shadow-sm mb-4 mt-2">
+                <div className="card-body p-2">
+                <div className="ag-theme-alpine" style={{ height: 650, width: '100%' }}>
+                    <AgGridReact
+                        ref={gridRef}
+                        columnDefs={colDefs}
+                        gridOptions={gridOptions}
+                        rowData={rfqs}
+                        theme={myTheme}
+                        defaultColDef={{filter: true}}
+                        pagination={true}
+                        paginationPageSize={20}
+                        components={{ actionCellRenderer: ActionCellRenderer, statusCellRenderer: StatusCellRenderer }}
+                        overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
+                    />
+                </div>
+                </div>
             </div>
 
             <AddRfqModal id="addRfqModal" mode="create" handleUpdateRfqs={handleUpdateRfqs}/>

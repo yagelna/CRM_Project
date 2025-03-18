@@ -1,7 +1,6 @@
 import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
 import Modal from '../common/modal';
-import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
  
 const EmailModal = ({ id, rfqData, autoFillData }) => {
     // State for recipient details

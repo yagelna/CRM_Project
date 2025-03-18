@@ -1,5 +1,4 @@
 body {
-    font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
     background-color: #dddddd;
@@ -114,4 +113,9 @@ body {
 
 .table-item {
     font-size: 0.7rem;
+}
+
+.popover {
+    max-width: 100% !important; /* משנה את רוחב ה-Popover */
+    width: auto; /* שומר על התאמה אוטומטית לתוכן */
 }

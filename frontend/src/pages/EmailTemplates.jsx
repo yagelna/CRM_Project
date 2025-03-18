@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import RichTextEditor from "../components/common/RichTextEditor";
 import axiosInstance from "../AxiosInstance";
 
+
 const defaultTemplates = [
     { name: "quote", label: "Quote Template", subject: "Quote For {mpn} [FlyChips]", content: "" },
     { name: "lowtp", label: "Target Price Request Email", subject: "Target Price Inquiry {mpn}", content: "" },
@@ -39,6 +40,13 @@ const EmailTemplates = () => {
     };
 
     useEffect(() => {
+        const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+        const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
+            html: true,
+            fallbackPlacements: [],
+            placement: "left"
+        }));
+        
         fetchTemplates();
     }, []);
 
@@ -54,7 +62,6 @@ const EmailTemplates = () => {
 
             setTemplates(updatedTemplates);
 
-            // אם אין תבנית נבחרת, בוחרים את הראשונה אחרי שהמידע נטען
             if (!selectedTemplate) {
                 setSelectedTemplate(updatedTemplates[0]);
                 setEmailSubject(updatedTemplates[0].subject);
@@ -99,7 +106,7 @@ const EmailTemplates = () => {
                 <div className="card flex-grow-1">
                     <div className="card-body">
                         <h4 className="card-title">Email Templates</h4>
-                        <div className="list-group">
+                        <div className="list-group mt-4">
                             {templates.map((template) => (
                                 <button 
                                     key={template.name} 
@@ -118,15 +125,58 @@ const EmailTemplates = () => {
             <div className="col-sm-9 d-flex">
                 <div className="card flex-grow-1">
                     <div className="card-body">
-                        <h4 className="card-title">Edit Template</h4>
-                        <div className="mb-3">
-                            <label className="form-label">Subject</label>
-                            <input 
-                                type="text" 
-                                className="form-control" 
+                        <div className="d-flex justify-content-between">
+                            <h4 className="card-title">Edit Template</h4>
+                            <button 
+                                type="button" 
+                                className="btn btn-outline-warning"
+                                data-bs-toggle="popover"
+                                data-bs-trigger="hover focus"
+                                data-bs-placement="left"
+                                title="How to Use Variables"
+                                data-bs-content={`
+                                    <strong>How to Use Variables:</strong><br>
+                                    Variables can be inserted into the template using one of the following methods:<br><br>
+
+                                    <strong>Using the Toolbar Button:</strong><br>
+                                    Click on the <img src="https://cdn-icons-png.flaticon.com/512/992/992651.png" width="16px"/>  button in the toolbar to insert a variable.<br><br>
+
+                                    <strong>Manually Typing:</strong><br>
+                                    You can also manually type variables inside double curly braces.<br>
+                                    Example: <code>{{customer_name}}</code> will be replaced with the customer's name.<br><br>
+
+                                    <strong> Available Variables:</strong><br>
+                                    <code>{{my_company}}</code> - Your company name<br>
+                                    <code>{{company_name}}</code> - Customer's company name<br>
+                                    <code>{{customer_name}}</code> - Customer's full name<br>
+                                    <code>{{email}}</code> - Customer email address<br>
+                                    <code>{{mpn}}</code> - Manufacturer Part Number (MPN)<br>
+                                    <code>{{manufacturer}}</code> - Manufacturer name<br>
+                                    <code>{{date_code}}</code> - Date code for the product<br>
+                                    <code>{{qty_offered}}</code> - Quantity offered in the quote<br>
+                                    <code>{{offered_price}}</code> - Unit price offered<br>
+                                    <code>{{total_price}}</code> - Total price of the offer (QTY x Unit Price)<br>
+                                    <code>{{current_time}}</code> - Current date and time<br>
+                                    <code>{{id}}</code> - RFQ ID Number<br><br>
+
+                                    <strong>Note:</strong><br>
+                                    Variables will only be replaced if they have a value in the system.<br>
+                                    If a variable has no data (e.g., <code>{{date_code}}</code> is empty), it will not appear in the final email.<br>
+                                `}
+                            >
+                                <i className="bi bi-bell-fill"></i>
+                            </button>
+                        </div>
+                        <div className="form-floating form-floating-sm mt-4 mb-3">
+                            <input
+                                type="text"
+                                className="form-control input-sz"
+                                id = "floatingInput"
+                                placeholder="Email Subject"
                                 value={emailSubject} 
                                 onChange={(e) => setEmailSubject(e.target.value)} 
                             />
+                            <label htmlFor="floatingInput">Email Subject</label>
                         </div>
                         
 
@@ -139,7 +189,7 @@ const EmailTemplates = () => {
                 </div>
             </div>
 
-            {/* תצוגה מקדימה */}
+            {/* Preview Card */}
             {preview && (
                 <div className="col-12 mt-4">
                     <div className="card">
