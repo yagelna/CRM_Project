@@ -20,9 +20,8 @@ const Inventory = () => {
     const myTheme = themeQuartz
     .withParams({
         browserColorScheme: "light",
-        headerBackgroundColor: "#CFDEEB",
-        headerFontSize: 14,
-        headerFontWeight: 600
+        headerBackgroundColor: "#f8f9fa",
+        headerTextColor:"#13416e"
     });
 
     const toggleInventoryView = () => {
@@ -192,21 +191,40 @@ const Inventory = () => {
     
 
     return (
-        <div className='container mt-4'>
-            <h1>Inventory</h1>
-            <div className="d-flex justify-content-between align-items-center mb-3">
+        <div className='module-container'>
+            <div className="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>Inventory</h2>
+                    <p className="text-muted">Manage your inventory items</p>
+                </div>
+                <div>
+                    <button className="btn btn-outline-secondary me-2" onClick={toggleInventoryView}>
+                        <i className="bi bi-folder-symlink"></i> {showArchive ? "Show Inventory" : "Show Archive"}
+                    </button>
+                    <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addInventoryModal"> 
+                        + Add Item 
+                    </button>
+                    <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#UploadBulkModal"> 
+                        Upload Bulk Inventory 
+                    </button>
+                    <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ExportModal">
+                        Export
+                    </button>
+                </div>
+            </div>
+            <div>
                 <div className="d-flex align-items-center">
                     <input
                         type="text"
                         id="filter-text-box"
-                        className="form-control form-control-sm me-2"
+                        className="form-control"
                         placeholder="Filter..."
                         onInput={onFilterTextBoxChanged}
                         style={{ width: "200px" }}
                     />
 
                     {selectedRows.length > 0 && (
-                        <div className="d-flex align-items-center">
+                        <div className="d-flex align-items-center ms-auto">
                             <span className="me-2 text-muted small">{selectedRows.length} of {inventory.length} selected</span>
                             <button className="btn btn-outline-danger btn-sm me-2" onClick={handleDeleteSelected}>
                                 <i className="bi bi-trash"></i> Delete
@@ -226,37 +244,26 @@ const Inventory = () => {
                             )}
                         </div>
                     )}
-                </div>
-                {/* צד ימין - כפתורים קבועים */}
-                <div>
-                    <button className="btn btn-outline-secondary btn-sm me-2" onClick={toggleInventoryView}>
-                        <i className="bi bi-folder-symlink"></i> {showArchive ? "Show Inventory" : "Show Archive"}
-                    </button>
-                    <button type="button" className="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addInventoryModal"> 
-                        Add Item 
-                    </button>
-                    <button type="button" className="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#UploadBulkModal"> 
-                        Upload Bulk Inventory 
-                    </button>
-                    <button type="button" className="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#ExportModal">
-                        Export
-                    </button>
-                </div>
+                </div>                
             </div>
-            <div className="ag-theme-alpine" style={{ height: 600, width: '100%' }}>
-                <AgGridReact
-                    ref={gridRef}
-                    columnDefs={colDefs}
-                    gridOptions={gridOptions}
-                    rowData={inventory}
-                    theme={myTheme}
-                    defaultColDef={{ flex: 1, filter: true}}
-                    pagination={true}
-                    paginationPageSize={20}
-                    components={{ actionCellRenderer: ActionCellRenderer }}
-                    overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
+            <div className="card border-0 shadow-sm mb-4 mt-2">
+                <div className="card-body p-2">
+                    <div className="ag-theme-alpine" style={{ height: 650, width: '100%' }}>
+                        <AgGridReact
+                            ref={gridRef}
+                            columnDefs={colDefs}
+                            gridOptions={gridOptions}
+                            rowData={inventory}
+                            theme={myTheme}
+                            defaultColDef={{ flex: 1, filter: true}}
+                            pagination={true}
+                            paginationPageSize={20}
+                            components={{ actionCellRenderer: ActionCellRenderer }}
+                            overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
 
-                />
+                        />
+                    </div>
+                </div>
             </div>
             <AddInventoryModal id="addInventoryModal" mode="create" handleUpdateInventory={handleUpdateInventory}/>
             <AddInventoryModal id="EditInventoryModal" mode="edit" itemData={selectedItem} handleUpdateInventory={handleUpdateInventory}/>

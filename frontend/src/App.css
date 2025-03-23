@@ -39,7 +39,7 @@ body {
     justify-content: center; /* מרכז את התוכן לאורך */
 }
 
-.settings-container {
+.module-container {
   width: 90%; /* משתרע על רוב רוחב הדף */
   max-width: 100%; /* רוחב מקסימלי לתוכן */
   margin: 0 auto; /* מרכז את התוכן */

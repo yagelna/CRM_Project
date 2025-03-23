@@ -10,7 +10,7 @@ const Settings = () => {
     const [activeTab, setActiveTab] = useState('account');
 
     return (
-        <div className="settings-container">
+        <div className="module-container">
             <h3>Settings</h3>
             <p>Manage your account and configure your RFQ Manager preferences.</p>
 

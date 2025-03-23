@@ -111,7 +111,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="settings-container">
+    <div className="module-container">
 
       {/* כותרת ראשית */}
       <div className="d-flex justify-content-between align-items-center mb-4">

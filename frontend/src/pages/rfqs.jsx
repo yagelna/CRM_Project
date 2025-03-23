@@ -78,22 +78,6 @@ const Rfqs = () => {
             cellRenderer: "statusCellRenderer",
             flex: 0.8,
         },
-        // {
-        //     field: "actions",
-        //     headerName: "Actions",
-        //     cellEditorPopup: "true",
-        //     cellRenderer: "actionCellRenderer",
-        //     cellRendererParams: {
-        //         handleDelete: handleDelete,
-        //         handleEdit: (rfq) => setSelectedRfq(rfq),
-        //         mouduleName: "Rfq",
-        //     },
-        //     pinned: "right",
-        //     width: 126,
-        //     filter: false,
-        //     sortable: false,
-        //     cellStyle: { textAlign: 'center' }
-        // },
     ]);
 
     const gridOptions = {
@@ -165,23 +149,21 @@ const Rfqs = () => {
       }, []);
 
     return (
-        <div className='settings-container'>
+        <div className='module-container'>
             <div className="d-flex justify-content-between align-items-center">
-            <div>
-                <h3 className="mb-1">Rfqs</h3>
-                <p className="text-muted">Manage your requests for quotes (RFQs) </p>
+                <div>
+                    <h2 className="mb-1">Rfqs</h2>
+                    <p className="text-muted">Manage your requests for quotes (RFQs) </p>
+                </div>
+                <button 
+                    type="button" 
+                    className="btn btn-primary btn me-2 " 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#addRfqModal">
+                    + Add RFQ
+                </button>
             </div>
-            
-                    <button 
-                        type="button" 
-                        className="btn btn-primary btn-sm me-2 " 
-                        data-bs-toggle="modal" 
-                        data-bs-target="#addRfqModal">
-                        Add RFQ
-                    </button>
-                    </div>
-                    <div>
-
+            <div>
                 <div className="d-flex align-items-center">
                         <input
                         type="text"

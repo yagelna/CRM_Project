@@ -13,11 +13,10 @@ const Contacts = () => {
   const gridRef = useRef();
   const myTheme = themeQuartz
   .withParams({
-        browserColorScheme: "light",
-        headerBackgroundColor: "#CFDEEB",
-        headerFontSize: 14,
-        headerFontWeight: 600
-    });
+    browserColorScheme: "light",
+    headerBackgroundColor: "#f8f9fa",
+    headerTextColor:"#13416e"
+});
 
   // delete contact by id
   const handleDelete = (id) => {
@@ -93,29 +92,41 @@ const Contacts = () => {
         }, []);
   
   return (
-    <div className='container mt-4'>
-      <h1>Contacts</h1>
-      <div className="mb-3">
-        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addContactModal"> Add Contact </button>
-        <span>Quick Filter:</span>
-        <input
-            type="text"
-            id="filter-text-box"
-            placeholder="Filter..."
-            onInput={onFilterTextBoxChanged}
-        />
+    <div className='module-container'>
+      <div className="d-flex justify-content-between align-items-center">
+        <div>
+          <h2>Contacts</h2>
+          <p className="text-muted">Manage your customer and supplier contacts</p>
+        </div>
+        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addContactModal"> + Add Contact </button>
       </div>
-      <div className="ag-theme-alpine" style={{ height: 600, width: '100%' }}>
-        <AgGridReact
-          ref={gridRef}
-          columnDefs={colDefs}
-          gridOptions={gridOptions}
-          rowData={contacts}
-          theme={myTheme}
-          pagination={true}
-          paginationPageSize={20}
-          overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
-        />
+      <div>
+        <div className="d-flex align-items-center">
+            <input
+              type="text"
+              id="filter-text-box"
+              className="form-control"
+              placeholder="Search..."
+              onInput={onFilterTextBoxChanged}
+              style={{ width: '200px' }}
+          />
+        </div>
+      </div>
+      <div className="card border-0 shadow-sm mb-4 mt-2">
+        <div className="card-body p-2">
+          <div className="ag-theme-alpine" style={{ height: 650, width: '100%' }}>
+            <AgGridReact
+              ref={gridRef}
+              columnDefs={colDefs}
+              gridOptions={gridOptions}
+              rowData={contacts}
+              theme={myTheme}
+              pagination={true}
+              paginationPageSize={20}
+              overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
+            />
+          </div>
+      </div>
       </div>
       <AddContactModal id="addContactModal" mode="create" handleUpdateContacts={handleUpdateContacts} />
       <AddContactModal id="EditContactModal" mode="edit" contactData={selectedContact} handleUpdateContacts={handleUpdateContacts}  />
