@@ -50,36 +50,76 @@ const Inventory = () => {
                 : prevInventory.filter(item => item.id !== ids)
             );
     
-            fetchInventory(); 
+            fetchInventory();
+            setSelectedRows([]);
         } catch (error) {
             console.error("Delete failed", error);
         }
     };
+
+    const handleArchive = async (ids) => {
+        console.log("ids: ", ids);
+        
+        if (!ids) {
+            console.error("No ids provided for archiving");
+            return;
+
+        }
+        const confirmed = window.confirm(`Are you sure you want to archive ${ids.length} item(s)?`);
+
+        if (!confirmed) return;
+
+        try {
+            const res = await axiosInstance.post('api/archive/archive/', { ids });
+            console.log(res.data);
+
+            setInventory(prevInventory => 
+                prevInventory.filter(item => !ids.includes(item.id))
+            );
+            fetchInventory(); 
+            setSelectedRows([]);
+        }
+        catch (error) {
+            console.error("Archive failed", error);
+        }
+    };
+
+
+
+    // const handleArchive = async () => {
+    //     if (selectedRows.length === 0) return;
+
+    //     if(window.confirm(`Are you sure you want to archive ${selectedRows.length} item(s)?`)){
+    //         const ids = selectedRows.map(row => row.id);
+    //         try {
+    //             const res = await axiosInstance.post('api/archive/archive/', { ids });
+    //             console.log(res.data);
+    //             setInventory(prevInventory => prevInventory.filter(item => !ids.includes(item.id)));
+    //             setSelectedRows([]);
+    //         } catch (error) {
+    //             console.error("Archive failed", error);
+    //         }
+    //     }
+    // };
 
     const handleDeleteSelected = () => {
         console.log("delete selected rows");
         if(selectedRows.length > 0){
             const ids = selectedRows.map(row => row.id);
             handleDelete(ids);
-            setSelectedRows([]);
+            
         }
     };
 
-    const handleArchive = async () => {
-        if (selectedRows.length === 0) return;
-
-        if(window.confirm(`Are you sure you want to archive ${selectedRows.length} item(s)?`)){
+    const handleArchiveSelected = () => {
+        console.log("archive selected rows");
+        if(selectedRows.length > 0){
             const ids = selectedRows.map(row => row.id);
-            try {
-                const res = await axiosInstance.post('api/archive/archive/', { ids });
-                console.log(res.data);
-                setInventory(prevInventory => prevInventory.filter(item => !ids.includes(item.id)));
-                setSelectedRows([]);
-            } catch (error) {
-                console.error("Archive failed", error);
-            }
+            handleArchive(ids);
         }
     };
+
+    
             
     const handleRestore = async () => {
         if (selectedRows.length === 0) return;
@@ -120,21 +160,21 @@ const Inventory = () => {
         { field: "location", headerName: "Location" }, 
         { field: "cost", headerName: "Cost" }, // purchase price
         { field: "price", headerName: "Price" }, // selling price
-        {
-            field: "actions",
-            headerName: "Actions",
-            cellRenderer: "actionCellRenderer",
-            cellRendererParams: {
-                handleDelete: handleDelete,
-                handleEdit: (inventoryItem) => setSelectedItem(inventoryItem),
-                mouduleName: "Inventory",
-            },
-            pinned: "right",
-            width: 126,
-            filter: false,
-            sortable: false,
-            cellStyle: { textAlign: 'center' }
-        },
+        // {
+        //     field: "actions",
+        //     headerName: "Actions",
+        //     cellRenderer: "actionCellRenderer",
+        //     cellRendererParams: {
+        //         handleDelete: handleDelete,
+        //         handleEdit: (inventoryItem) => setSelectedItem(inventoryItem),
+        //         mouduleName: "Inventory",
+        //     },
+        //     pinned: "right",
+        //     width: 126,
+        //     filter: false,
+        //     sortable: false,
+        //     cellStyle: { textAlign: 'center' }
+        // },
     ]);
 
     const onSelectionChanged = (event) =>{
@@ -238,7 +278,7 @@ const Inventory = () => {
                                     <i className="bi bi-arrow-counterclockwise"></i> Restore
                                 </button>
                             ) : (
-                                <button className="btn btn-outline-primary btn-sm ms-2" onClick={handleArchive}>
+                                <button className="btn btn-outline-primary btn-sm ms-2" onClick={handleArchiveSelected}>
                                     <i className="bi bi-archive"></i> Archive
                                 </button>
                             )}
@@ -270,7 +310,7 @@ const Inventory = () => {
             <UploadBulkModal id="UploadBulkModal"/>
             <BulkEditModal id="BulkEditModal" selectedRows={selectedRows}/>
             <ExportModal id="ExportModal"/>
-            <InventoryOffcanvas id="InventoryOffcanvas" itemData={selectedItem} onDeleteRequest={handleDelete}/>
+            <InventoryOffcanvas id="InventoryOffcanvas" itemData={selectedItem} onDeleteRequest={handleDelete} onArchiveRequest={handleArchive}/>
             
         </div>
     );

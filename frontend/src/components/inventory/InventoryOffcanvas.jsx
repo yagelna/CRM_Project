@@ -2,7 +2,7 @@ import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
 
 // Offcanvas: Displays an offcanvas modal with Item details and actions to edit or delete the contact.
-const InventoryOffcanvas = ({id, itemData, onDeleteRequest}) => {
+const InventoryOffcanvas = ({id, itemData, onDeleteRequest, onArchiveRequest}) => {
 
     const [Data, setData] = useState({
         mpn: '',
@@ -56,6 +56,14 @@ const InventoryOffcanvas = ({id, itemData, onDeleteRequest}) => {
         onDeleteRequest(itemData.id);
     };
 
+    const handleArchive = () => {
+        if (!itemData || !itemData.id) {
+            console.error('Item data is missing or invalid.');
+            return;
+        }
+        onArchiveRequest([itemData.id]);
+    };
+
     return (
         <div className="offcanvas offcanvas-end" tabIndex="-1" id={id} aria-labelledby="offcanvasRightLabel">
             <div className="offcanvas-header">
@@ -75,7 +83,7 @@ const InventoryOffcanvas = ({id, itemData, onDeleteRequest}) => {
                     <i className="bi bi-trash ms-2"></i>
                 </button>
                 {/* archive item button */}
-                <button type="button" className="btn btn-secondary btn-sm mb-2" data-bs-dismiss="offcanvas" aria-label="Archive" onClick={handleDelete}>    
+                <button type="button" className="btn btn-secondary btn-sm mb-2" data-bs-dismiss="offcanvas" aria-label="Archive" onClick={handleArchive}>    
                     Archive Inventory Item
                     <i className="bi bi-archive ms-2"></i>
                 </button>
