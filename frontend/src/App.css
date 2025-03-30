@@ -1,5 +1,4 @@
 body {
-    font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
     background-color: #dddddd;
@@ -7,35 +6,47 @@ body {
 
 
 .App {
-    display: flex; /* סידור האלמנטים בצד אחד של השני */
-    height: 100vh; /* גובה מלא של הדף */
+    display: flex;
+    min-height: 100vh;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+  
 }
   
 .sidebar {
-    width: 4.5rem; /* רוחב קבוע */
-    background-color: #f8f9fa; /* רקע אופציונלי */
+    width: 4.5rem;
+    background-color: #ffffff;
 }
   
 .content {
-    flex: 1; /* תופס את כל השטח שנותר */
-    padding: 1rem; /* הפחתת המרווח הפנימי */
-    background-color: #f0f0f0; /* רקע אפור */
+    flex: 1;
+    padding: 1rem;
+    background-color: #e5e7eb;
     display: flex;
-    flex-direction: column; /* מאפשר סידור אנכי */
-    align-items: center; /* מרכז את התוכן לרוחב */
+    flex-direction: column;
+    align-items: center;
     width: 100%;
 }
 
 .container {
-    width: 90%; /* משתרע על רוב רוחב הדף */
-    max-width: 90%; /* רוחב מקסימלי לתוכן */
-    margin: 0 auto; /* מרכז את התוכן */
-    padding: 1rem; /* מרווח פנימי קל */
-    background: white; /* רקע לבן */
-    border-radius: 8px; /* פינות מעוגלות */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* הצללה קלה */
-    align-items: center; /* מרכז את התוכן לרוחב */
-    justify-content: center; /* מרכז את התוכן לאורך */
+    max-width: 90%;
+    margin: 0 auto;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.module-container {
+  width: 90%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
 }
 
 .input-sz {
@@ -100,6 +111,18 @@ body {
   --bs-offcanvas-width: 45%;
 }
 
+@media (max-width: 768px) {
+    .offcanvas {
+        --bs-offcanvas-width: 100%;
+    }
+  
+}
+
 .table-item {
     font-size: 0.7rem;
+}
+
+.popover {
+    max-width: 100% !important;
+    width: auto;
 }

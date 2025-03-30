@@ -2,9 +2,6 @@
   background-color: #f0f0f0;
   cursor: pointer;
 }
-
-.wrapper {
-  display: flex;
-  height: 100vh;
-  background-color: #FBFBFB;
+.dropdown-menu {
+  z-index: 1050;
 }

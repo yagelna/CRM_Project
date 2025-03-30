@@ -7,8 +7,11 @@ import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-communi
 import ActionCellRenderer from '../components/ActionCellRenderer';
 import StatusCellRenderer from '../components/rfqs/StatusCellRenderer';
 import EmailModal from '../components/rfqs/EmailModal';
+import BulkEmailModal from '../components/rfqs/BulkEmailModal';
+import BulkEditModal from '../components/rfqs/BulkEditModal';
 import Offcanvas from '../components/rfqs/RfqOffcanvas';
 import { CONFIG } from '../config';
+import { showToast } from '../components/common/toast';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -16,27 +19,52 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 const Rfqs = () => {
     const [rfqs, setRfqs] = useState([]);
     const [selectedRfq, setSelectedRfq] = useState(null);
+    const [selectedRows, setSelectedRows] = useState([]);
     const [autoFillData, setAutoFillData] = useState(null);
     const gridRef = useRef();
     const myTheme = themeQuartz
 	.withParams({
         browserColorScheme: "light",
-        headerBackgroundColor: "#CFDEEB",
-        headerFontSize: 14,
-        headerFontWeight: 600
+        headerBackgroundColor: "#f8f9fa",
+        headerTextColor:"#13416e"
     });
 
     // delete rfq by id
-    const handleDelete = (id) => {
-        if (window.confirm(`Are you sure you want to delete RFQ with ID: ${id}?`)) {
-            axiosInstance.delete(`api/rfqs/${id}/`)    
-                .then((response) => {
-                    console.log('Rfq deleted successfully');
-                    setRfqs(rfqs.filter((rfq) => rfq.id !== id));
-                    // fetchRfqs();
-                    setSelectedRfq(null);
-                })
-                .catch((error) => console.error('Error deleting rfq: ' + error));
+    const handleDelete = async (ids) => {
+        if (!ids) return;
+        
+        const isMultiple = Array.isArray(ids);
+        const confirmed = window.confirm(`Are you sure you want to delete ${isMultiple ? ids.length : 1} item(s)?`);
+        if (!confirmed) return;
+
+        const url = isMultiple ? 'api/rfqs/bulk-delete/' : `api/rfqs/${ids}/`;
+        const data = isMultiple ? { ids } : null;
+
+        try {
+            await axiosInstance.delete(url, { data });
+            setRfqs((prevRfqs) => prevRfqs.filter((rfq) => isMultiple ? !ids.includes(rfq.id) : rfq.id !== ids));
+            setSelectedRfq(null);
+            fetchRfqs();
+            setSelectedRows([]);
+        } catch (error) {
+            console.error('Error deleting rfq: ' + error);   
+        }   
+
+        // axiosInstance.delete(`api/rfqs/${ids}/`)    
+        //     .then((response) => {
+        //         console.log('Rfq deleted successfully');
+        //         setRfqs((prevRfqs) => prevRfqs.filter((rfq) => isMultiple ? !ids.includes(rfq.id) : rfq.id !== ids));
+        //         // fetchRfqs();
+        //         setSelectedRfq(null);
+        //     })
+        //     .catch((error) => console.error('Error deleting rfq: ' + error));
+    };
+
+    const handleDeleteSelected = () => {
+        console.log("delete selected rows");
+        if(selectedRows.length > 0){
+            const ids = selectedRows.map(row => row.id);
+            handleDelete(ids);
         }
     };
 
@@ -64,7 +92,7 @@ const Rfqs = () => {
             width: 200,
         },
         {   field: "target_price", headerName: "TP", width: 80 },
-        {   field: "qty_requested", headerName: "QTY", width: 90 },
+        {   field: "qty_requested", headerName: "QTY", width: 80 },
         {   field: "manufacturer", headerName: "MFG", flex: 0.7 },
         {   field: "stock_source", headerName: "Stock Source", flex: 1 },
         {   field: "source", headerName: "RFQ Source", flex: 1 },
@@ -79,29 +107,25 @@ const Rfqs = () => {
             cellRenderer: "statusCellRenderer",
             flex: 0.8,
         },
-        // {
-        //     field: "actions",
-        //     headerName: "Actions",
-        //     cellEditorPopup: "true",
-        //     cellRenderer: "actionCellRenderer",
-        //     cellRendererParams: {
-        //         handleDelete: handleDelete,
-        //         handleEdit: (rfq) => setSelectedRfq(rfq),
-        //         mouduleName: "Rfq",
-        //     },
-        //     pinned: "right",
-        //     width: 126,
-        //     filter: false,
-        //     sortable: false,
-        //     cellStyle: { textAlign: 'center' }
-        // },
     ]);
 
-    const gridOptions = {
+    const onSelectionChanged = (event) =>{
+        const selectedData = event.api.getSelectedRows();
+        console.log("selection changed, " + selectedData.length + " rows selected");
+        setSelectedRows(selectedData);
+        console.log("selected rows: ", selectedRows);
+    };
+
+    const gridOptions = {   
         defaultColDef: {
             domLayout: 'normal',
         },
         enableCellTextSelection: true,
+        rowSelection: {
+            mode: 'multiRow',
+            selectAll: 'filtered',
+        },
+        onSelectionChanged,
     };
 
     // fetch rfqs from the backend function
@@ -112,6 +136,31 @@ const Rfqs = () => {
             })
             .catch((error) => console.error('Error fetching rfqs: ' + error));
     };
+
+    const handleMarkUnattractive = () => {
+        const ids = selectedRows.map(row => row.id);
+        const updates = { status: 'Unattractive' };
+
+        axiosInstance.patch('api/rfqs/bulk-edit/', { updates, ids })
+            .then((response) => {
+                showToast({
+                    type: 'info',
+                    title: 'RFQs Marked as Unattractive',
+                    message: `Marked ${response.data.updated_count || ids.length} RFQs.`
+                });
+                fetchRfqs();
+            })
+            .catch((error) => {
+                console.error('Error marking rfqs as unattractive: ' + error);
+                showToast({
+                    type: 'danger',
+                    title: 'Update Failed',
+                    message: error?.response?.data?.error || 'Something went wrong.'
+                });
+            });
+    };
+
+
 
     useEffect(() => {
         fetchRfqs();
@@ -166,50 +215,78 @@ const Rfqs = () => {
       }, []);
 
     return (
-        <div className='container mt-4'>
-            <h1>Rfqs</h1>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <button 
-            type="button" 
-            className="btn btn-primary btn-sm me-2 " 
-            data-bs-toggle="modal" 
-            data-bs-target="#addRfqModal">
-            Add RFQ
-        </button>
-    </div>
+        <div className='module-container'>
+            <div className="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 className="mb-1">Rfqs</h2>
+                    <p className="text-muted">Manage your requests for quotes (RFQs) </p>
+                </div>
+                <button 
+                    type="button" 
+                    className="btn btn-primary btn me-2 " 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#addRfqModal">
+                    + Add RFQ
+                </button>
+            </div>
+            <div>
+                <div className="d-flex justify-content-between align-items-center">
+                        <input
+                        type="text"
+                        id="filter-text-box"
+                        className="form-control"
+                        placeholder="Quick Filter..."
+                        onInput={onFilterTextBoxChanged}
+                        style={{ width: '200px' }}
+                    />
 
-    <div className="d-flex align-items-center">
-            <input
-            type="text"
-            id="filter-text-box"
-            className="form-control"
-            placeholder="Search..."
-            onInput={onFilterTextBoxChanged}
-            style={{ width: '200px' }}
-        />
-    </div>
-</div>
-            <div className="ag-theme-alpine" style={{ height: 600, width: '100%' }}>
-                  <AgGridReact
-                    ref={gridRef}
-                    columnDefs={colDefs}
-                    gridOptions={gridOptions}
-                    rowData={rfqs}
-                    theme={myTheme}
-                    defaultColDef={{filter: true}}
-                    pagination={true}
-                    paginationPageSize={20}
-                    components={{ actionCellRenderer: ActionCellRenderer, statusCellRenderer: StatusCellRenderer }}
-                    overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
-                  />
+                    {selectedRows.length > 0 && (
+                        <div className="btn-group">
+                            <button type="button" className="btn btn-sm btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            Bulk Actions
+                            </button>
+                            <ul className="dropdown-menu">
+                                <li><button className="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#BulkEmailModal"> 
+                                    <i className="bi bi-envelope"></i> Send Email</button></li>
+                                <li><button className="dropdown-item" type="button" onClick={handleMarkUnattractive}>
+                                <i className="bi bi-eye-slash"></i> Mark as Unattractive</button></li>
+                                <li><button className="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#BulkEditModal">
+                                    <i className="bi bi-pencil-square"></i> Edit</button></li>
+                                <li><hr className="dropdown-divider"></hr></li>
+                                <li><button className="dropdown-item text-danger" type="button" onClick={handleDeleteSelected}> <i className="bi bi-trash"></i> Delete</button></li>
+                            </ul>
+                        </div>
+                    )}
+
+                    
+                </div>
+            </div>
+            <div className="card border-0 shadow-sm mb-4 mt-2">
+                <div className="card-body p-2">
+                <div className="ag-theme-alpine" style={{ height: 650, width: '100%' }}>
+                    <AgGridReact
+                        ref={gridRef}
+                        columnDefs={colDefs}
+                        gridOptions={gridOptions}
+                        rowData={rfqs}
+                        theme={myTheme}
+                        defaultColDef={{filter: true}}
+                        pagination={true}
+                        paginationPageSize={20}
+                        components={{ actionCellRenderer: ActionCellRenderer, statusCellRenderer: StatusCellRenderer }}
+                        overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
+                    />
+                </div>
+                </div>
             </div>
 
             <AddRfqModal id="addRfqModal" mode="create" handleUpdateRfqs={handleUpdateRfqs}/>
             <AddRfqModal id="EditRfqModal" mode="edit" rfqData={selectedRfq} handleUpdateRfqs={handleUpdateRfqs}/>
             <EmailModal id="SendEmailModal" rfqData={selectedRfq} autoFillData={autoFillData} onHide={() => console.log('Email modal closed')}/>
+            <BulkEmailModal id="BulkEmailModal" rfqs={selectedRows}/>
+            <BulkEditModal id="BulkEditModal" selectedRows={selectedRows} size="modal-lg" onSuccess={() => fetchRfqs()}/>
             <UploadBulkModal id="UploadBulkModal"/>
-            <Offcanvas id="offcanvasRight" rfqData={selectedRfq} handleAutoFill={(data) => setAutoFillData(data)} onDeleteRequest={handleDelete}/>
+            <Offcanvas id="offcanvasRight" rfqData={selectedRfq} handleAutoFill={(data) => setAutoFillData(data)} onDeleteRequest={handleDelete} refreshRfqs={fetchRfqs}/>
         </div>
     );
 }

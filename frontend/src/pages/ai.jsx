@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axiosInstance from '../AxiosInstance';
-import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
+// import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import Modal from '../components/common/modal';
 
 const AI = () => {

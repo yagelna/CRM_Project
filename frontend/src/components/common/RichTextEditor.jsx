@@ -1,84 +1,95 @@
-import React, { useRef, useEffect } from "react";
-import ReactQuill, { Quill } from "react-quill";
-import "react-quill/dist/quill.snow.css";
-import "./RichTextEditor.css"; 
-
-// יצירת פורמט מותאם אישית ל-Placeholder
-const Embed = Quill.import("blots/embed");
-
-class PlaceholderBlot extends Embed {
-  static create(value) {
-    let node = super.create(value);
-    node.setAttribute("data-name", value);
-    node.innerText = `{{${value}}}`;
-    return node;
-  }
-
-  static value(node) {
-    return node.getAttribute("data-name");
-  }
-}
-
-PlaceholderBlot.blotName = "placeholder";
-PlaceholderBlot.tagName = "span";
-PlaceholderBlot.className = "ql-placeholder";
-
-Quill.register(PlaceholderBlot);
-
-// רשימת ה-Placeholders שאפשר לבחור
-const PLACEHOLDERS = ["mpn", "customer_name", "quote_price", "order_number"];
+import React, { useRef } from "react";
+import JoditEditor from "jodit-react";
 
 const RichTextEditor = ({ value, onChange }) => {
-  const quillRef = useRef(null);
+    const editor = useRef(null);
 
-  useEffect(() => {
-    if (quillRef.current) {
-      let toolbar = quillRef.current.getEditor().getModule("toolbar");
-      toolbar.addHandler("placeholder", insertPlaceholderFromToolbar);
-    }
-  }, []);
+    const variables = [
+        "my_company", "company_name", "customer_name", "mpn", "email",
+        "current_time", "manufacturer", "date_code", "qty_offered",
+        "offered_price", "total_price", "id"
+    ];
 
-  // הוספת ה-placeholder לתוך Quill במיקום הסמן
-  const insertPlaceholder = (placeholder) => {
-    const editor = quillRef.current?.getEditor();
-    if (!editor) return;
-    const range = editor.getSelection();
-    if (range) {
-      editor.insertEmbed(range.index, "placeholder", placeholder);
-      editor.setSelection(range.index + 1);
-    }
-  };
+    // הוספת משתנה עם Badge **רק בעורך**
+    const insertVariable = (editorInstance, variableKey) => {
+        if (editorInstance) {
+            const variableText = `{{${variableKey}}}`;
+            editorInstance.s.insertHTML(
+                `<span class="variable-badge" data-variable="${variableKey}">${variableKey}</span>&nbsp;`
+            );
+        }
+    };
 
-  // כאשר בוחרים ערך מה-dropdown ב-toolbar
-  const insertPlaceholderFromToolbar = (value) => {
-    if (value) insertPlaceholder(value);
-  };
+    // **בעת שמירה** – מסיר את ה-Badge ושומר כטקסט רגיל {{variable}}
+    const preProcessContent = (content) => {
+        return content.replace(/<span class="variable-badge" data-variable="([^"]+)">.*?<\/span>/g, "{{$1}}");
+    };
 
-  const modules = {
-    toolbar: {
-      container: [
-        [{ font: [] }],
-        [{ size: ["small", false, "large", "huge"] }],
-        ["bold", "italic", "underline", "strike"],
-        [{ color: [] }, { background: [] }],
-        [{ align: [] }],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["link", "image"],
-        [{ placeholder: PLACEHOLDERS }], // 🔥 הוספת כפתור הבחירה של הטוקנים
-        ["clean"],
-      ],
-    },
-  };
+    // **בעת טעינת תוכן מה-DB** – מחזיר את ה-`{{variable}}` כ-Badge **רק בעורך**
+    const postProcessContent = (content) => {
+        return content.replace(/{{(.*?)}}/g, '<span class="variable-badge" data-variable="$1">$1</span>');
+    };
 
-  return (
-    <ReactQuill
-      ref={quillRef}
-      value={value}
-      onChange={onChange}
-      modules={modules}
-      theme="snow"
-    />
-  );
+    const config = {
+        readonly: false,
+        height: 400,
+        toolbarAdaptive: false,
+        showXPathInStatusbar: false,
+        buttons: "bold,italic,underline,strikethrough,|,ul,ol,|,outdent,indent,|,font,fontsize,brush,paragraph,|,align,undo,redo,|,hr,fullsize,source",
+        extraButtons: [
+            {
+                name: "insertVariable",
+                iconURL: "https://cdn-icons-png.flaticon.com/512/992/992651.png", // אייקון כפתור
+                tooltip: "Insert Variable",
+                text: " INSERT VARIABLE",
+                popup: (editorInstance, current, self, close) => {
+                    let html = "<div style='padding:10px;'><strong>Select Variable:</strong><br>";
+                    variables.forEach(key => {
+                        html += `<button class="variable-btn" data-key="${key}" 
+                                    style="margin:5px; padding:5px 10px; border:1px solid #ccc; background:#f8f9fa; cursor:pointer;">
+                                    ${key}
+                                 </button><br>`;
+                    });
+                    html += "</div>";
+
+                    const popup = editorInstance.create.fromHTML(html);
+                    popup.querySelectorAll(".variable-btn").forEach(button => {
+                        button.addEventListener("click", () => {
+                            insertVariable(editorInstance, button.getAttribute("data-key"));
+                            close();
+                        });
+                    });
+
+                    return popup;
+                },
+            },
+        ],
+    };
+
+    return (
+        <>
+            <style>
+                {`
+                    .variable-badge {
+                        display: inline-block;
+                        background: #007bff;
+                        color: white;
+                        padding: 2px 6px;
+                        border-radius: 5px;
+                        font-weight: bold;
+                        font-size: 12px;
+                        margin: 2px;
+                    }
+                `}
+            </style>
+            <JoditEditor
+                ref={editor}
+                value={postProcessContent(value)} // מחזיר Badges בעת טעינה
+                config={config}
+                onBlur={(newContent) => onChange(preProcessContent(newContent))} // מחזיר משתנים לפורמט טקסט בעת שמירה
+            />
+        </>
+    );
 };
 
 export default RichTextEditor;

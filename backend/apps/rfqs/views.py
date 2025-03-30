@@ -5,7 +5,7 @@ from rest_framework import viewsets, status
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
+from rest_framework.decorators import action, api_view
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from utils.email_utils import send_html_email
@@ -31,6 +31,32 @@ def search_rfqs(request, mpn):
 class RFQViewSet(viewsets.ModelViewSet):
     queryset = RFQ.objects.all()
     serializer_class = RFQSerializer
+
+    @action(detail=False, methods=['delete'], url_path='bulk-delete')
+    def bulk_delete(self, request):
+        ids = request.data.get('ids')
+        if not ids:
+            return Response({"error": "No RFQ IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
+        if not isinstance(ids, list):
+            return Response({"error": "ids must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+        RFQ.objects.filter(id__in=ids).delete()
+        return Response({"success": "RFQs deleted successfully"})
+
+    @action(detail=False, methods=['post'], url_path='disable-auto-quotes')
+    def disable_auto_quotes(self, request):
+        mpn = request.data.get('mpn')
+        if not mpn:
+            return Response({'error': 'MPN is required'}, status=400)
+        
+        updated_count = RFQ.objects.filter(
+            mpn=mpn,
+            auto_quote_deadline__gte=now()
+        ).update(auto_quote_deadline=None)
+        
+        return Response({'message': f'Disabled auto-quotes for {updated_count} RFQs.'})
+    
+    
+    
 
     def create(self, request, *args, **kwargs):
         contact = None
@@ -110,9 +136,12 @@ class RFQViewSet(viewsets.ModelViewSet):
         # send the RFQ to the customer if the there is similar RFQ
         if similar_rfq:
             rfq_data['id'] = rfq_instance.id
+            rfq_data['total_price'] = float(rfq_data['offered_price']) * int(rfq_data['qty_offered'])
+            rfq_data['my_company'] = settings.COMPANY_NAME
+            rfq_data['current_time'] = now().strftime("%d-%m-%Y %H:%M")
             logger.debug(f"Found similar RFQ with MPN: {mpn}. Sending auto-quote email to customer")
             try:
-                send_html_email(rfq_data, 'quote-tab', from_account='rfq')
+                send_html_email(rfq_data, 'quote', from_account='rfq')
                 rfq_instance.status = 'Quote Sent'
                 rfq_instance.save(update_fields=['status'])
             except Exception as e:
@@ -135,10 +164,9 @@ class RFQViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         auto_quote_validity = request.data.get('auto_quote_validity')
         print(auto_quote_validity)
-        if auto_quote_validity is not None:
-            print("Setting auto quote deadline")
-            instance.set_auto_quote_deadline(auto_quote_validity)
-            instance.save()
+        print("Setting auto quote deadline")
+        instance.set_auto_quote_deadline(auto_quote_validity)
+        instance.save()
         self.perform_update(serializer)
 
         # send the RFQ new status to the websocket
@@ -156,12 +184,107 @@ class RFQViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK) 
     
+    @action(detail=False, methods=['post'], url_path='bulk-email')
+    def bulk_email(self, request):
+        rfq_ids = request.data.get('rfq_ids')
+        if not rfq_ids:
+            return Response({"error": "No RFQ IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        template = request.data.get('template')
+        if not template:
+            return Response({"error": "No email template provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        rfqs = RFQ.objects.filter(id__in=rfq_ids)
+        success_count = 0
+        failed_ids = []
+        template_status = {
+            "quote": "Quote Sent",
+            "reminder": "Reminder Sent",
+            "lowtp": "T/P Request Sent",
+            "nostock": "No Stock Alert Sent",
+            "noexport": "No Export Alert Sent",
+            "mov": "MOV Requirement Sent"
+        }
+        for rfq in rfqs:
+            try:
+                formData = {
+                    'id': str(rfq.id).zfill(6),
+                    'mpn': rfq.mpn,
+                    'qty_offered': rfq.qty_offered,
+                    'offered_price': rfq.offered_price,
+                    'date_code': rfq.date_code,
+                    'manufacturer': rfq.manufacturer,
+                    'customer_name': rfq.customer.name if rfq.customer else None,
+                    'company_name': rfq.company.name if rfq.company else None,
+                    'email': rfq.customer.email if rfq.customer else None,
+                    'my_company': settings.COMPANY_NAME,
+                    'current_time': now().strftime("%d-%m-%Y %H:%M")
+                }
+
+                if (template=="reminder"):
+                    formData['total_price'] = float(formData['offered_price']) * int(formData['qty_offered'])
+
+                result = send_html_email(formData, template, from_account='rfq')
+                if result is None:
+                    raise Exception("Failed to send email")
+                rfq.status = template_status[template]
+                rfq.save(update_fields=['status'])
+                success_count += 1
+            except Exception as e:
+                logger.error(f"Failed to send email for RFQ {rfq.id}: {e}")
+                failed_ids.append(rfq.id)
+
+        # send the RFQ new status to the websocket
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)('rfq_updates', {
+            'type': 'send_rfq_update',
+            'message': {
+                "failed_ids": failed_ids,
+                "success_count": success_count,
+                "total_count": len(rfq_ids),
+            }
+        })
+
+        return Response({
+            "success_count": success_count,
+            "failed_ids": failed_ids,
+            "total_count": len(rfq_ids)
+        }, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['patch'], url_path='bulk-edit')
+    def bulk_edit(self,request):
+        ids = request.data.get('ids')
+        updates = request.data.get('updates')
+        if not ids:
+            return Response({"error": "No RFQ IDs provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not updates:
+            return Response({"error": "No update fields provided."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            updated_count = RFQ.objects.filter(id__in=ids).update(**updates)
+            return Response({
+                "success": f"Updated {updated_count} RFQ(s) successfully.",
+                "updated_count": updated_count
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    
 class SendEmailView(APIView):
     def post(self, request):
         data = request.data
         formData = data.get("formData")
         template = data.get("template")
-        send_html_email(formData, template, from_account='rfq')
+
+        formData['my_company'] = settings.COMPANY_NAME
+        formData['current_time'] = now().strftime("%d-%m-%Y %H:%M")
+        formData['id'] = str(formData.get('id', '')).zfill(6)
+        if (template in ["quote", "reminder"]):
+            formData['total_price'] = float(formData['offered_price']) * int(formData['qty_offered'])
+
+        if send_html_email(formData, template, from_account='rfq') is None:
+            return Response({"error": "Failed to send email"}, status=status.HTTP_500_INTERNAL_SERVER)
+        
         # send the RFQ new status to the websocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)('rfq_updates', {
@@ -170,3 +293,4 @@ class SendEmailView(APIView):
         })
 
         return Response({"success": "Email sent successfully"})
+    

@@ -1,7 +1,6 @@
 import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
 import Modal from '../common/modal';
-import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
  
 const EmailModal = ({ id, rfqData, autoFillData }) => {
     // State for recipient details
@@ -19,7 +18,7 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
             auto_quote_validity: 7,
         });
 
-    const [activeTab, setActiveTab] = useState('quote-tab');
+    const [activeTab, setActiveTab] = useState('quote');
     const [toast, setToast] = useState({ show: false, message: "", success: false });
     const [loading, setLoading] = useState(false);
     
@@ -57,7 +56,10 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
 
     const updateRfq = async (status) => {
         try {
-            const { company_name, email, customer_name, mpn, ...updatedData } = formData; 
+            const { company_name, email, customer_name, mpn, ...updatedData } = formData;
+            if (activeTab !== 'quote') {
+                delete updatedData.auto_quote_validity;
+            }
             console.log('updatedData:', updatedData);
             const res = await axiosInstance.patch(`api/rfqs/${rfqData.id}/`, {
                 ...updatedData,
@@ -70,7 +72,7 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
     }
 
     const handleSendEmail = async () => {
-        if (activeTab === 'quote-tab') {
+        if (activeTab === 'quote') {
             //list of missing fields
             const missingFields = [];
             if (!formData.manufacturer) missingFields.push('Manufacturer');
@@ -86,6 +88,7 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
         setLoading(true);
         
         try {
+            console.log("Sending emaail with data:", formData, activeTab);
             const res = await axiosInstance.post('api/send-email/', {
                 formData,
                 template: activeTab,
@@ -93,10 +96,10 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
             console.log("Email sent successfully:", res);
             setToast({ show: true, message: "Email sent successfully", success: true });
             const updatedStatus =
-                activeTab === 'quote-tab' ? 'Quote Sent' : 
-                activeTab === 'tp-req-tab' ? 'T/P Req Sent' : 
-                activeTab === 'no-stock-tab' ? 'No Stock Alert Sent' : 
-                activeTab === 'mov-requirement-tab' ? 'MOV Requirement Sent' : 
+                activeTab === 'quote' ? 'Quote Sent' : 
+                activeTab === 'lowtp' ? 'T/P Req Sent' : 
+                activeTab === 'nostock' ? 'No Stock Alert Sent' : 
+                activeTab === 'mov' ? 'MOV Requirement Sent' : 
                 'No Export Alert Sent';
             updateRfq(updatedStatus);
 
@@ -155,26 +158,26 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
 
                 {/* Email Template Tabs */}
                 <div className="list-group list-group-horizontal" id="list-tab" role="tablist">
-                    <a className="list-group-item list-group-item-action active" data-bs-toggle="list" href="#quote-tab" role="tab" onClick={() => setActiveTab('quote-tab')}>
+                    <a className="list-group-item list-group-item-action active" data-bs-toggle="list" href="#quote" role="tab" onClick={() => setActiveTab('quote')}>
                         Quote
                     </a>
-                    <a className="list-group-item list-group-item-action" data-bs-toggle="list" href="#tp-req-tab" role="tab" onClick={() => setActiveTab('tp-req-tab')}>
+                    <a className="list-group-item list-group-item-action" data-bs-toggle="list" href="#lowtp" role="tab" onClick={() => setActiveTab('lowtp')}>
                         T/P Request
                     </a>
-                    <a className="list-group-item list-group-item-action" data-bs-toggle="list" href="#no-stock-tab" role="tab" onClick={() => setActiveTab('no-stock-tab')}>
+                    <a className="list-group-item list-group-item-action" data-bs-toggle="list" href="#nostock" role="tab" onClick={() => setActiveTab('nostock')}>
                         No Stock
                     </a>
-                    <a className="list-group-item list-group-item-action" data-bs-toggle="list" href="#mov-requirement-tab" role="tab" onClick={() => setActiveTab('mov-requirement-tab')}>
+                    <a className="list-group-item list-group-item-action" data-bs-toggle="list" href="#mov" role="tab" onClick={() => setActiveTab('mov')}>
                         MOV Requirement
                     </a>
-                    <a className="list-group-item list-group-item-action" data-bs-toggle="list" href="#no-export-tab" role="tab" onClick={() => setActiveTab('no-export-tab')}>
+                    <a className="list-group-item list-group-item-action" data-bs-toggle="list" href="#noexport" role="tab" onClick={() => setActiveTab('noexport')}>
                         No Export
                     </a>
                 </div>
 
                 {/* Tab Content */}
                 <div className="tab-content mt-3">
-                    <div className="tab-pane fade show active" id="quote-tab" role="tabpanel">
+                    <div className="tab-pane fade show active" id="quote" role="tabpanel">
                         <p>Here you can draft and send a Quote email.</p>
                         <div className="row g-2 mt-2">
                             <div className="form-floating form-floating-sm mb-3 col-sm">
@@ -266,16 +269,16 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                             </div>
                         </div>
                     </div>
-                    <div className="tab-pane fade" id="tp-req-tab" role="tabpanel">
+                    <div className="tab-pane fade" id="lowtp" role="tabpanel">
                         <p>Here you can draft and send a T/P Request email.</p>
                     </div>
-                    <div className="tab-pane fade" id="no-stock-tab" role="tabpanel">
+                    <div className="tab-pane fade" id="nostock" role="tabpanel">
                         <p>Here you can notify the customer that the item is out of stock.</p>
                     </div>
-                    <div className="tab-pane fade" id="mov-requirement-tab" role="tabpanel">
+                    <div className="tab-pane fade" id="mov" role="tabpanel">
                         <p>Here you can communicate the MOV requirement to the customer.</p>
                     </div>
-                    <div className="tab-pane fade" id="no-export-tab" role="tabpanel">
+                    <div className="tab-pane fade" id="noexport" role="tabpanel">
                         <p>Here you can notify the customer about export restrictions.</p>
                     </div>
                 </div>

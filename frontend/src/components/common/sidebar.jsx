@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './sidebar.css';
-import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const Sidebar = () => {
   useEffect(() => {
@@ -22,7 +21,7 @@ const Sidebar = () => {
 
 
   return (
-    <div className='d-flex flex-column flex-shrink-0 bg-light' style={{ width: '4.5rem', height: '100vh' }}>
+    <aside className='d-flex flex-column flex-shrink-0 sidebar' style={{ width: '4.5rem' }}>
       {/* Top Icon */}
       <a href="/" className="d-block p-3 link-dark text-decoration-none text-center" data-bs-placement="right" title="Icon-only">
         <i className="bi bi-cpu" style={{ fontSize: '1.5rem' }}></i>
@@ -74,7 +73,7 @@ const Sidebar = () => {
           <li><Link className="dropdown-item" to="#">Sign out</Link></li>
         </ul>
       </div>
-    </div>
+    </aside>
   );
 };
 

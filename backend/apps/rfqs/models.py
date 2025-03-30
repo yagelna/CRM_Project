@@ -10,7 +10,7 @@ from datetime import timedelta
 
 class RFQ(models.Model):
     mpn = models.CharField(max_length=255)  # manufacturer part number
-    target_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    target_price = models.DecimalField(max_digits=10, decimal_places=5, blank=True, null=True)
     manufacturer = models.CharField(max_length=255, blank=True, null=True)
     customer = models.ForeignKey(Contact, on_delete=models.SET_NULL, blank=True, null=True)
     company = models.ForeignKey(Company, on_delete=models.SET_NULL, blank=True, null=True)
