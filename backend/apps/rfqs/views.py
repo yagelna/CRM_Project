@@ -41,6 +41,19 @@ class RFQViewSet(viewsets.ModelViewSet):
             return Response({"error": "ids must be a list"}, status=status.HTTP_400_BAD_REQUEST)
         RFQ.objects.filter(id__in=ids).delete()
         return Response({"success": "RFQs deleted successfully"})
+
+    @action(detail=False, methods=['post'], url_path='disable-auto-quotes')
+    def disable_auto_quotes(self, request):
+        mpn = request.data.get('mpn')
+        if not mpn:
+            return Response({'error': 'MPN is required'}, status=400)
+        
+        updated_count = RFQ.objects.filter(
+            mpn=mpn,
+            auto_quote_deadline__gte=now()
+        ).update(auto_quote_deadline=None)
+        
+        return Response({'message': f'Disabled auto-quotes for {updated_count} RFQs.'})
     
     
     
@@ -123,6 +136,9 @@ class RFQViewSet(viewsets.ModelViewSet):
         # send the RFQ to the customer if the there is similar RFQ
         if similar_rfq:
             rfq_data['id'] = rfq_instance.id
+            rfq_data['total_price'] = float(rfq_data['offered_price']) * int(rfq_data['qty_offered'])
+            rfq_data['my_company'] = settings.COMPANY_NAME
+            rfq_data['current_time'] = now().strftime("%d-%m-%Y %H:%M")
             logger.debug(f"Found similar RFQ with MPN: {mpn}. Sending auto-quote email to customer")
             try:
                 send_html_email(rfq_data, 'quote', from_account='rfq')
@@ -148,10 +164,9 @@ class RFQViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         auto_quote_validity = request.data.get('auto_quote_validity')
         print(auto_quote_validity)
-        if auto_quote_validity is not None:
-            print("Setting auto quote deadline")
-            instance.set_auto_quote_deadline(auto_quote_validity)
-            instance.save()
+        print("Setting auto quote deadline")
+        instance.set_auto_quote_deadline(auto_quote_validity)
+        instance.save()
         self.perform_update(serializer)
 
         # send the RFQ new status to the websocket

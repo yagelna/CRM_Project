@@ -286,7 +286,7 @@ const Rfqs = () => {
             <BulkEmailModal id="BulkEmailModal" rfqs={selectedRows}/>
             <BulkEditModal id="BulkEditModal" selectedRows={selectedRows} size="modal-lg" onSuccess={() => fetchRfqs()}/>
             <UploadBulkModal id="UploadBulkModal"/>
-            <Offcanvas id="offcanvasRight" rfqData={selectedRfq} handleAutoFill={(data) => setAutoFillData(data)} onDeleteRequest={handleDelete}/>
+            <Offcanvas id="offcanvasRight" rfqData={selectedRfq} handleAutoFill={(data) => setAutoFillData(data)} onDeleteRequest={handleDelete} refreshRfqs={fetchRfqs}/>
         </div>
     );
 }

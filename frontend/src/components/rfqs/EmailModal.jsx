@@ -56,7 +56,10 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
 
     const updateRfq = async (status) => {
         try {
-            const { company_name, email, customer_name, mpn, ...updatedData } = formData; 
+            const { company_name, email, customer_name, mpn, ...updatedData } = formData;
+            if (activeTab !== 'quote') {
+                delete updatedData.auto_quote_validity;
+            }
             console.log('updatedData:', updatedData);
             const res = await axiosInstance.patch(`api/rfqs/${rfqData.id}/`, {
                 ...updatedData,
