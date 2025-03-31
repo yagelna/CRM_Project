@@ -294,7 +294,7 @@ def export_inventory(request):
                 "email": settings.NC_INVENTORY_UPDATE_EMAIL,
                 "account": settings.NC_ACCOUNT,
             },
-            template="nc-update",
+            template="ncupdate",
             from_account="inventory",
             attachments=[
                 (file_name, io.BytesIO(file_content), "text/csv" if file_name.endswith(".csv") else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -308,7 +308,7 @@ def export_inventory(request):
             data={
                 "email": settings.ICS_INVENTORY_UPDATE_EMAIL,
             },
-            template="ics-update",
+            template="icsupdate",
             from_account="inventory",
             attachments = [
                 (file_name, io.BytesIO(file_content), "text/csv" if file_name.endswith(".csv") else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
