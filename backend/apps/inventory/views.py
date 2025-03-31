@@ -292,7 +292,7 @@ def export_inventory(request):
         send_html_email(
             data={
                 "email": settings.NC_INVENTORY_UPDATE_EMAIL,
-                "account": settings.NC_ACCOUNT,
+                "my_company": settings.COMPANY_NAME,
             },
             template="ncupdate",
             from_account="inventory",
@@ -307,6 +307,7 @@ def export_inventory(request):
         send_html_email(
             data={
                 "email": settings.ICS_INVENTORY_UPDATE_EMAIL,
+                "my_company": settings.COMPANY_NAME,
             },
             template="icsupdate",
             from_account="inventory",
