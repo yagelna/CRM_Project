@@ -19,7 +19,7 @@ def get_env_variable(var_name, default=None):
     return os.environ.get(var_name) or config(var_name, default=default)
 
 def get_list_env_variable(var_name, default=""):
-    """ממיר משתנה סביבה ממחרוזת לרשימה"""
+    """ Convert a comma-separated string to a list """
     value = os.environ.get(var_name) or config(var_name, default=default)
     return value.split(',') if value else []
 
@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'apps.usersettings',
     'apps.ai_analysis',
     'apps.email_templates',
+    'apps.email_connections',
     'rest_framework',
     'channels',
     'django_extensions',
@@ -214,7 +215,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'debug.log',  # קובץ היעד
+            'filename': BASE_DIR / 'debug.log',
             'formatter': 'verbose',
         },
     },
@@ -224,7 +225,7 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
-        'myapp': {  # שם מותאם אישית, יכול להיות כל דבר
+        'myapp': {
             'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': False,
