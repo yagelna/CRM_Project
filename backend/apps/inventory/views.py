@@ -354,7 +354,7 @@ class BulkUploadView(APIView):
                 for index, row in chunk.iterrows():
                     try:
                         #validate required fields
-                        if not row['mpn'] or not row['quantity'] or not row['supplier']:
+                        if pd.isna(row['mpn']) or pd.isna(row['quantity']) or pd.isna(row['supplier']):
                             raise ValueError("MPN, quantity, and supplier are required fields")
                         try:
                             quantity = int(row['quantity'])
@@ -397,8 +397,8 @@ class BulkUploadView(APIView):
             logger.debug(f"Failed details: {failed_rows_details}")
 
             return Response({
-                "success": f"Successfully uploaded {successful_rows} items",
-                "failed": f"{failed_rows} rows failed to upload",
+                "success_count": successful_rows,
+                "failed_count": failed_rows,
                 "failed_details": failed_rows_details
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
