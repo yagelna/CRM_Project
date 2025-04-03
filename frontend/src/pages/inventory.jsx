@@ -13,6 +13,8 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const Inventory = () => {
     const [inventory, setInventory] = useState([]);
+    const [inventoryData, setInventoryData] = useState(null);
+    const [archiveData, setArchiveData] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedRows, setSelectedRows] = useState([]);
     const [showArchive, setShowArchive] = useState(false); // false = inventory, true = archive
@@ -25,7 +27,11 @@ const Inventory = () => {
     });
 
     const toggleInventoryView = () => {
-        setShowArchive(!showArchive);
+        setShowArchive(prev => {
+            const newValue = !prev;
+            setSelectedRows([]); // clear selected rows when toggling
+            return newValue;
+        });
     };
 
     // delete selected rows 
@@ -50,7 +56,12 @@ const Inventory = () => {
                 : prevInventory.filter(item => item.id !== ids)
             );
     
-            fetchInventory();
+            if (showArchive) {
+                setArchiveData(null);
+            } else {
+                setInventoryData(null);
+            }
+            fetchInventory(true);   // force fetch
             setSelectedRows([]);
         } catch (error) {
             console.error("Delete failed", error);
@@ -76,7 +87,8 @@ const Inventory = () => {
             setInventory(prevInventory => 
                 prevInventory.filter(item => !ids.includes(item.id))
             );
-            fetchInventory(); 
+            setInventoryData(null);
+            fetchInventory(true);
             setSelectedRows([]);
         }
         catch (error) {
@@ -107,7 +119,6 @@ const Inventory = () => {
         if(selectedRows.length > 0){
             const ids = selectedRows.map(row => row.id);
             handleDelete(ids);
-            
         }
     };
 
@@ -118,9 +129,7 @@ const Inventory = () => {
             handleArchive(ids);
         }
     };
-
     
-            
     const handleRestore = async () => {
         if (selectedRows.length === 0) return;
 
@@ -131,6 +140,9 @@ const Inventory = () => {
                 console.log(res.data);
                 setInventory(prevInventory => prevInventory.filter(item => !ids.includes(item.id)));
                 setSelectedRows([]);
+                setArchiveData(null);
+                setInventoryData(null);
+                fetchInventory(true);
             } catch (error) {
                 console.error("Restore failed", error);
             }
@@ -198,27 +210,61 @@ const Inventory = () => {
 
 
     // fetch inventory from the backend
-    const fetchInventory = () => {
+    const fetchInventory = useCallback((forceRefresh = false) => {
+        if (!forceRefresh) {
+            if (showArchive && archiveData) {
+                console.log("using cached archive data");
+                setInventory(archiveData);
+                return;
+            } else if (!showArchive && inventoryData) {
+                console.log("using cached inventory data");
+                setInventory(inventoryData);
+                return;
+            }
+        }
+        console.log("fetching from backend");
+        gridRef.current?.api?.showLoadingOverlay();
         const endpoint = showArchive ? 'api/archive/' : 'api/inventory/';
         axiosInstance.get(endpoint)
             .then((response) => {
                 setInventory(response.data);
+                if (showArchive) {
+                    setArchiveData(response.data);
+                } else {
+                    setInventoryData(response.data);
+                }
             })
-            .catch((error) => console.error('Error fetching inventory: ' + error));
-    };
+            .catch((error) => console.error('Error fetching inventory: ' + error))
+            .finally(() => gridRef.current?.api?.hideOverlay());
 
-    useEffect(() => { 
+    }, [showArchive, inventoryData, archiveData]);
+
+    useEffect(() => {
         fetchInventory();
-    }, [showArchive]);
+    }, [fetchInventory]);
 
     //update inventory state after adding or editing an inventory
-    const handleUpdateInventory = (updatedInventoryItem, mode) => { 
+    const handleUpdateInventory = (updatedInventoryItem, mode) => {
         if (mode === 'create') {
-            setInventory((prevInventory) => [...prevInventory, updatedInventoryItem]);
+            setInventory(prev => [...prev, updatedInventoryItem]);
+            if (showArchive) {
+                setArchiveData(prev => [...(prev || []), updatedInventoryItem]);
+            } else {
+                setInventoryData(prev => [...(prev || []), updatedInventoryItem]);
+            }
         } else if (mode === 'edit') {
-            setInventory((prevInventory) =>
-                prevInventory.map((inventory) => (inventory.id === updatedInventoryItem.id ? updatedInventoryItem : inventory))
+            setInventory(prev =>
+                prev.map(item => item.id === updatedInventoryItem.id ? updatedInventoryItem : item)
             );
+            if (showArchive) {
+                setArchiveData(prev =>
+                    prev.map(item => item.id === updatedInventoryItem.id ? updatedInventoryItem : item)
+                );
+            } else {
+                setInventoryData(prev =>
+                    prev.map(item => item.id === updatedInventoryItem.id ? updatedInventoryItem : item)
+                );
+            }
         }
     };
 
@@ -300,6 +346,7 @@ const Inventory = () => {
                             paginationPageSize={20}
                             components={{ actionCellRenderer: ActionCellRenderer }}
                             overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
+                            overlayLoadingTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Updating Data...</div>'}
 
                         />
                     </div>
@@ -307,7 +354,7 @@ const Inventory = () => {
             </div>
             <AddInventoryModal id="addInventoryModal" mode="create" handleUpdateInventory={handleUpdateInventory}/>
             <AddInventoryModal id="EditInventoryModal" mode="edit" itemData={selectedItem} handleUpdateInventory={handleUpdateInventory}/>
-            <UploadBulkModal id="UploadBulkModal"/>
+            <UploadBulkModal id="UploadBulkModal" fetchInventory={fetchInventory}/>
             <BulkEditModal id="BulkEditModal" selectedRows={selectedRows}/>
             <ExportModal id="ExportModal"/>
             <InventoryOffcanvas id="InventoryOffcanvas" itemData={selectedItem} onDeleteRequest={handleDelete} onArchiveRequest={handleArchive}/>
