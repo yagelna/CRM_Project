@@ -25,8 +25,8 @@ const Rfqs = () => {
     const myTheme = themeQuartz
 	.withParams({
         browserColorScheme: "light",
-        headerBackgroundColor: "#f8f9fa",
-        headerTextColor:"#13416e"
+        headerBackgroundColor: "#5A34F1",
+        headerTextColor:"#ffffff",
     });
 
     // delete rfq by id

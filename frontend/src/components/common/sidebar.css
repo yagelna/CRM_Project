@@ -5,3 +5,19 @@
 .dropdown-menu {
   z-index: 1050;
 }
+
+.sidebar-icon {
+  font-size: 1.2rem;
+  color: #5A34F1; 
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover .sidebar-icon,
+.nav-link.active .sidebar-icon {
+  color: #FF6C2F;
+}
+
+.nav-link.active {
+  background-color: transparent !important;
+  color: inherit;
+}
