@@ -10,7 +10,7 @@ const RichTextEditor = ({ value, onChange }) => {
         "offered_price", "total_price", "id"
     ];
 
-    // הוספת משתנה עם Badge **רק בעורך**
+    // insert variable as a badge in the editor
     const insertVariable = (editorInstance, variableKey) => {
         if (editorInstance) {
             const variableText = `{{${variableKey}}}`;
@@ -20,12 +20,12 @@ const RichTextEditor = ({ value, onChange }) => {
         }
     };
 
-    // **בעת שמירה** – מסיר את ה-Badge ושומר כטקסט רגיל {{variable}}
+    // when saving the content, convert the badges back to `{{variable}}` format
     const preProcessContent = (content) => {
         return content.replace(/<span class="variable-badge" data-variable="([^"]+)">.*?<\/span>/g, "{{$1}}");
     };
 
-    // **בעת טעינת תוכן מה-DB** – מחזיר את ה-`{{variable}}` כ-Badge **רק בעורך**
+    // when loading the content, convert `{{variable}}` to badges
     const postProcessContent = (content) => {
         return content.replace(/{{(.*?)}}/g, '<span class="variable-badge" data-variable="$1">$1</span>');
     };
@@ -39,7 +39,7 @@ const RichTextEditor = ({ value, onChange }) => {
         extraButtons: [
             {
                 name: "insertVariable",
-                iconURL: "https://cdn-icons-png.flaticon.com/512/992/992651.png", // אייקון כפתור
+                iconURL: "https://cdn-icons-png.flaticon.com/512/992/992651.png",
                 tooltip: "Insert Variable",
                 text: " INSERT VARIABLE",
                 popup: (editorInstance, current, self, close) => {
@@ -84,9 +84,9 @@ const RichTextEditor = ({ value, onChange }) => {
             </style>
             <JoditEditor
                 ref={editor}
-                value={postProcessContent(value)} // מחזיר Badges בעת טעינה
+                value={postProcessContent(value)} // convert `{{variable}}` to badges
                 config={config}
-                onBlur={(newContent) => onChange(preProcessContent(newContent))} // מחזיר משתנים לפורמט טקסט בעת שמירה
+                onBlur={(newContent) => onChange(preProcessContent(newContent))} // convert badges back to `{{variable}}`
             />
         </>
     );

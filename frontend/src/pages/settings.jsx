@@ -1,8 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import AccountSettings from "./AccountSettings";
-import ExportSettings from "./ExportSettings";
-import EmailTemplates from "./EmailTemplates";
+import AccountSettings from "../components/settings/AccountSettings";
+import ExportSettings from "../components/settings/ExportSettings";
+import EmailTemplates from "../components/settings/EmailTemplates";
+import Connections from "../components/settings/connections";
 import { useState, useEffect } from "react";
 
 const Settings = () => {
@@ -40,6 +41,14 @@ const Settings = () => {
                         Email Templates
                     </button>
                 </li>
+                <li className="nav-item">
+                    <button 
+                        className={`nav-link ${activeTab === "connections" ? "active" : ""}`}
+                        onClick={() => setActiveTab("connections")}
+                    >
+                        Connections & Integrations
+                    </button>
+                </li>
             </ul>
 
             {/* Tab Content */}
@@ -47,6 +56,7 @@ const Settings = () => {
                 {activeTab === "account" && <AccountSettings />}
                 {activeTab === "export" && <ExportSettings />}
                 {activeTab === "templates" && <EmailTemplates />}
+                {activeTab === "connections" && <Connections />}
             </div>
         </div>
     );

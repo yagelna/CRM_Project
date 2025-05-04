@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axiosInstance from "../AxiosInstance";
+import axiosInstance from "../../AxiosInstance";
 
 const AccountSettings = () => {
     const [formData, setFormData] = useState({
