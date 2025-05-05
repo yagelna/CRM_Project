@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'apps.ai_analysis',
     'apps.email_templates',
     'apps.email_connections',
+    'apps.system_settings',
     'rest_framework',
     'channels',
     'django_extensions',

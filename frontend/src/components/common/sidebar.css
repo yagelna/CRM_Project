@@ -21,3 +21,24 @@
   background-color: transparent !important;
   color: inherit;
 }
+
+.sidebar {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #ffffff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+}
+
+.sidebar .nav-link {
+  color: #5A34F1;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+  color: #FF6C2F;
+}
