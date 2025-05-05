@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'apps.ai_analysis',
     'apps.email_templates',
     'apps.email_connections',
+    'apps.system_settings',
     'rest_framework',
     'channels',
     'django_extensions',
@@ -268,3 +269,6 @@ STOCK_SUPPLIER = get_env_variable('STOCK_SUPPLIER', default='Fly Chips')
 COMPANY_NAME = get_env_variable('COMPANY_NAME', default='Fly Chips')
 OPENAI_KEY = get_env_variable('OPENAI_KEY')
 ASSISTANT_ID = get_env_variable('ASSISTANT_ID')
+GOOGLE_OAUTH_CLIENT_ID = get_env_variable('GOOGLE_OAUTH_CLIENT_ID')
+GOOGLE_OAUTH_CLIENT_SECRET = get_env_variable('GOOGLE_OAUTH_CLIENT_SECRET')
+GOOGLE_OAUTH_REDIRECT_URI = get_env_variable('GOOGLE_OAUTH_REDIRECT_URI')

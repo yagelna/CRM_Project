@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+import Logo from '../../assets/Icon-01.png';
 import './sidebar.css';
 
 const Sidebar = () => {
@@ -23,42 +25,48 @@ const Sidebar = () => {
   return (
     <aside className='d-flex flex-column flex-shrink-0 sidebar' style={{ width: '4.5rem' }}>
       {/* Top Icon */}
-      <a href="/" className="d-block p-3 link-dark text-decoration-none text-center" data-bs-placement="right" title="Icon-only">
-        <i className="bi bi-cpu" style={{ fontSize: '1.5rem' }}></i>
-        <span className="visually-hidden">Icon-only</span>
+      <a href="/" className="d-block p-3 text-decoration-none text-center">
+        <img src={Logo} alt="DotzHub" style={{ width: '38px', height: 'auto' }} />
       </a>
       
       {/* Navigation Links */}
       <ul className="nav nav-pills nav-flush flex-column mb-auto text-center">
         <li className="nav-item">
-          <Link to="/dashboard" className="nav-link py-3 border-bottom" title="Dashboard" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-speedometer2" style={{ fontSize: '1.2rem' }}></i>
-          </Link>
+        <NavLink 
+          to="/dashboard"
+          className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`}
+          title="Dashboard"
+          data-bs-toggle="tooltip"
+          data-bs-placement="right"
+        >
+          <i className="bi bi-speedometer2 sidebar-icon"></i>
+        </NavLink>
+
         </li>
         <li className="nav-item">
-          <Link to="/rfqs" className="nav-link py-3 border-bottom" title="RFQs" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-file-earmark-text" style={{ fontSize: '1.2rem' }}></i>
-          </Link>
+          <NavLink to="/rfqs" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="RFQs" data-bs-toggle="tooltip" data-bs-placement="right">
+            <i className="bi bi-file-earmark-text sidebar-icon"></i>
+          </NavLink>
         </li>
         <li className="nav-item">
-          <Link to="/contacts" className="nav-link py-3 border-bottom" title="Contacts" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-person" style={{ fontSize: '1.2rem' }}></i>
-          </Link>
+          <NavLink to="/contacts" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="Contacts" data-bs-toggle="tooltip" data-bs-placement="right">
+            <i className="bi bi-person sidebar-icon"></i>
+          </NavLink>
         </li>
         <li className="nav-item">
-          <Link to="/companies" className="nav-link py-3 border-bottom" title="Companies" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-building" style={{ fontSize: '1.2rem' }}></i>
-          </Link>
+          <NavLink to="/companies" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="Companies" data-bs-toggle="tooltip" data-bs-placement="right">
+            <i className="bi bi-building sidebar-icon"></i>
+          </NavLink>
         </li>
         <li className="nav-item">
-          <Link to="/inventory" className="nav-link py-3 border-bottom" title="Inventory" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-archive" style={{ fontSize: '1.2rem' }}></i>
-          </Link>
+          <NavLink to="/inventory" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="Inventory" data-bs-toggle="tooltip" data-bs-placement="right">
+            <i className="bi bi-archive sidebar-icon"></i>
+          </NavLink>
         </li>
         <li className="nav-item">
-          <Link to="/ai" className="nav-link py-3 border-bottom" title="AI" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-lightbulb" style={{ fontSize: '1.2rem' }}></i>
-          </Link>
+          <NavLink to="/ai" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="AI" data-bs-toggle="tooltip" data-bs-placement="right">
+            <i className="bi bi-lightbulb sidebar-icon"></i>
+          </NavLink>
         </li>
       </ul>
       

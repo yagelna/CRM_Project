@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import RichTextEditor from "../components/common/RichTextEditor";
-import axiosInstance from "../AxiosInstance";
+import RichTextEditor from "./RichTextEditor";
+import axiosInstance from "../../AxiosInstance";
 
 
 const defaultTemplates = [
