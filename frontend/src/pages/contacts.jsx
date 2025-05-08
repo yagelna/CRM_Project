@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axiosInstance from '../AxiosInstance';
 import AddContactModal from '../components/contacts/AddContactModal';
+import ExportModal from '../components/contacts/ExportModal';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
 import ContactOffcanvas from '../components/contacts/ContactOffcanvas';
@@ -10,6 +11,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 const Contacts = () => {   
   const [contacts, setContacts] = useState([]); 
   const [selectedContact, setSelectedContact] = useState(null);
+  const [selectedRows, setSelectedRows] = useState([]);
   const gridRef = useRef();
   const myTheme = themeQuartz
   .withParams({
@@ -30,6 +32,24 @@ const Contacts = () => {
         .catch((error) => console.error('Error deleting contact: ' + error));
     }
   };  
+
+  const handleDeleteSelected = () => {
+    console.log("delete selected rows");
+    if (selectedRows.length === 0) {
+      console.log("No rows selected for deletion");
+      return;
+    }
+    if (window.confirm(`Are you sure you want to delete ${selectedRows.length} selected contacts?`)) {
+      const idsToDelete = selectedRows.map((contact) => contact.id);
+      axiosInstance.delete('api/contacts/bulk-delete/', { data: { ids: idsToDelete } })
+        .then((response) => {
+          console.log('Contacts deleted successfully');
+          setContacts(contacts.filter((contact) => !idsToDelete.includes(contact.id)));
+          setSelectedRows([]);
+        })
+        .catch((error) => console.error('Error deleting contacts: ' + error));
+    }
+  }
 
   // Column Definitions: Defines & controls grid columns.
   const [colDefs, setColDefs] = useState([
@@ -52,12 +72,24 @@ const Contacts = () => {
     { field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc', flex: 1 },
   ]);
 
+  const onSelectionChanged = (event) =>{
+    const selectedData = event.api.getSelectedRows();
+    console.log("selection changed, " + selectedData.length + " rows selected");
+    setSelectedRows(selectedData);
+    console.log("selected rows: ", selectedRows);
+};
+
   const gridOptions = {
     defaultColDef: {
       domLayout: 'normal',
     },
     enableCellTextSelection: true,
-  };
+    rowSelection: {
+      mode: 'multiRow',
+      selectAll: 'filtered',
+  },
+  onSelectionChanged,
+};
 
   // fetch contacts from the backend
   const fetchContacts = () => {
@@ -98,7 +130,15 @@ const Contacts = () => {
           <h2>Contacts</h2>
           <p className="text-muted">Manage your customer and supplier contacts</p>
         </div>
-        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addContactModal"> + Add Contact </button>
+        <div>
+          <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addContactModal">
+            + Add Contact
+          </button>
+          <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ExportContacts">
+            Export
+          </button>
+        </div>
+        
       </div>
       <div>
         <div className="d-flex align-items-center">
@@ -110,6 +150,16 @@ const Contacts = () => {
               onInput={onFilterTextBoxChanged}
               style={{ width: '200px' }}
           />
+          {selectedRows.length > 0 && (
+            <div className="d-flex align-items-center ms-auto">
+                <span className="me-2 text-muted small">{selectedRows.length} of {contacts.length} selected</span>
+                <button className="btn btn-outline-danger btn-sm me-2" onClick={handleDeleteSelected}>
+                    <i className="bi bi-trash"></i> 
+                    Delete
+                </button>
+    
+            </div>
+        )}
         </div>
       </div>
       <div className="card border-0 shadow-sm mb-4 mt-2">
@@ -128,6 +178,21 @@ const Contacts = () => {
           </div>
       </div>
       </div>
+      <ExportModal 
+        id="ExportContacts"
+        selectedRows={selectedRows}
+        totalCount={contacts.length}
+        entityLabel='Contacts'
+        allFields= {[
+          { label: 'Name', value: 'name' },
+          { label: 'Email', value: 'email' },
+          { label: 'Phone', value: 'phone' },
+          { label: 'Company Name', value: 'company__name' },
+          { label: 'Updated At', value: 'updated_at' },
+          { label: 'Created At', value: 'created_at' },
+        ]}
+        exportEndpoint='api/contacts/export/'
+      />
       <AddContactModal id="addContactModal" mode="create" handleUpdateContacts={handleUpdateContacts} />
       <AddContactModal id="EditContactModal" mode="edit" contactData={selectedContact} handleUpdateContacts={handleUpdateContacts}  />
       <ContactOffcanvas id="contactOffcanvas" contactData={selectedContact} onDeleteRequest={handleDelete} />
