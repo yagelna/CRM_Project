@@ -116,3 +116,7 @@ body {
     max-width: 100% !important;
     width: auto;
 }
+
+#fieldsDropdown::after {
+  display: none !important;
+}
