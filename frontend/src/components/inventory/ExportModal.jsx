@@ -19,13 +19,13 @@ const ExportModal = ({ id }) => {
     const [saveSettings, setSaveSettings] = useState(false);
     const [autoUpdate, setAutoUpdate] = useState(false);
 
-    // Fetch user settings
-    const fetchUserSettings = () => {
+    // Fetch System settings
+    const fetchSystemSettings = () => {
         axiosInstance
-            .get("api/usersettings/my_settings/")
+            .get("api/system-settings/")
             .then((response) => {
                 const settings = response.data;
-                console.log("User settings:", settings);
+                console.log("System settings:", settings);
                 setNetComponentsEnabled(settings.export_netcomponents);
                 setIcSourceEnabled(settings.export_icsource);
                 setInventoryEnabled(settings.export_inventory);
@@ -45,7 +45,7 @@ const ExportModal = ({ id }) => {
                     .reduce((acc, curr) => acc + curr.total_parts, 0);
                 setSelectedSuppliersCount(selectedPartsCount);
             })
-            .catch((error) => console.error("Error fetching user settings: " + error));
+            .catch((error) => console.error("Error fetching System settings: " + error));
     };
 
     // Fetch suppliers list
@@ -110,7 +110,7 @@ const ExportModal = ({ id }) => {
 
         if (saveSettings) {
             axiosInstance
-                .patch("api/usersettings/update_settings/", {
+                .put("api/system-settings/", {
                     export_netcomponents: netComponentsEnabled,
                     netcomponents_max_stock: parseInt(netComponentsRows.stock) || 0,
                     netcomponents_max_available: parseInt(netComponentsRows.available) || 0,
@@ -122,8 +122,8 @@ const ExportModal = ({ id }) => {
                     selected_suppliers: selectedSuppliers,
                     auto_update: autoUpdate,
                 })
-                .then((response) => console.log("User settings updated:", response))
-                .catch((error) => console.error("Error updating user settings:", error));
+                .then((response) => console.log("System settings updated:", response))
+                .catch((error) => console.error("Error updating System settings:", error));
         }
 
         axiosInstance
@@ -155,7 +155,7 @@ const ExportModal = ({ id }) => {
 
     useEffect(() => {
         if (suppliers.length > 0) {
-            fetchUserSettings();
+            fetchSystemSettings();
         }
     }, [suppliers]);
 
