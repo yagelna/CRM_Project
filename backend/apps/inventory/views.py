@@ -1,7 +1,7 @@
 import math
 from rest_framework import viewsets
 from .models import InventoryItem
-from ..usersettings.models import UserSettings
+from apps.system_settings.models import SystemSettings
 from .serializers import InventoryItemSerializer
 import pandas as pd
 from rest_framework import status
@@ -154,26 +154,26 @@ def export_inventory(request):
     # Get the export settings from the latest UserSettings object in the database if source is "make".
     # Otherwise, use the data from the request body. (source is "web")
     if (source == "make"):
-        user_settings = UserSettings.objects.filter(auto_update=True).order_by("-updated_at").first()
-        if not user_settings:
-            return Response({"error": "No user settings found"}, status=400)
+        system_settings = SystemSettings.get_solo()
+        if not system_settings:
+            return Response({"error": "No settings found"}, status=400)
         data = {
             "actions": {
-                "sendToNC": user_settings.export_netcomponents,
-                "sendToICS": user_settings.export_icsource,
+                "sendToNC": system_settings.export_netcomponents,
+                "sendToICS": system_settings.export_icsource,
                 "download": False,
             },
-            "selectedSuppliers": user_settings.selected_suppliers,
-            "fileFormat": user_settings.export_file_format,
+            "selectedSuppliers": system_settings.selected_suppliers,
+            "fileFormat": system_settings.export_file_format,
             "netCOMPONENTS": {
-                "enabled": user_settings.export_netcomponents,
-                "max_stock_rows": user_settings.netcomponents_max_stock,
-                "max_available_rows": user_settings.netcomponents_max_available,
+                "enabled": system_settings.export_netcomponents,
+                "max_stock_rows": system_settings.netcomponents_max_stock,
+                "max_available_rows": system_settings.netcomponents_max_available,
             },
             "icSource": {
-                "enabled": user_settings.export_icsource,
-                "max_stock_rows": user_settings.icsource_max_stock,
-                "max_available_rows": user_settings.icsource_max_available,
+                "enabled": system_settings.export_icsource,
+                "max_stock_rows": system_settings.icsource_max_stock,
+                "max_available_rows": system_settings.icsource_max_available,
             },
             "inventory": {
                 "enabled": False,

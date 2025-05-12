@@ -9,7 +9,19 @@ class SystemSettings(models.Model):
         blank=True,
         related_name='used_for_inventory_updates'
     )
+    export_netcomponents = models.BooleanField(default=False)
+    export_icsource = models.BooleanField(default=False)
+    export_inventory = models.BooleanField(default=False)
+    netcomponents_max_stock = models.IntegerField(default=0, blank=True, null=True)
+    netcomponents_max_available = models.IntegerField(default=0, blank=True, null=True)
+    icsource_max_stock = models.IntegerField(default=0, blank=True, null=True)
+    icsource_max_available = models.IntegerField(default=0, blank=True, null=True)
+    export_file_format = models.CharField(max_length=10, default='csv', choices=[ ('csv', 'CSV'), ('xlsx', 'Excel') ])
+    selected_suppliers = models.JSONField(default=list)
+    last_export_date = models.DateTimeField(null=True, blank=True)
+    auto_update = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return "System Settings"
