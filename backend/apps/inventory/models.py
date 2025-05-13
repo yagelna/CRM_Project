@@ -13,6 +13,8 @@ class InventoryItem(models.Model):
     date_code = models.CharField(max_length=255, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=4, blank=True, null=True) # selling price
     cost = models.DecimalField(max_digits=10, decimal_places=4, blank=True, null=True) # purchase price
+    break_qty_a = models.IntegerField(blank=True, null=True, help_text="Break quantity A")
+    price_a = models.DecimalField(max_digits=10, decimal_places=4, blank=True, null=True, help_text="Price break A")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     url = models.URLField(blank=True, null=True)
