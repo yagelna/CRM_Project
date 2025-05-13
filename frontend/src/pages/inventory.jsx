@@ -172,6 +172,8 @@ const Inventory = () => {
         { field: "location", headerName: "Location" }, 
         { field: "cost", headerName: "Cost" }, // purchase price
         { field: "price", headerName: "Price" }, // selling price
+        { field: "break_qty_a", headerName: "Break Qty A" },
+        { field: "price_a", headerName: "Price A" },
         // {
         //     field: "actions",
         //     headerName: "Actions",

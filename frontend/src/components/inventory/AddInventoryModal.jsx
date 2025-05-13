@@ -12,7 +12,10 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
         supplier: CONFIG.DEFAULT_SUPPLIER,
         location: '',
         price: '',
+        cost: '',
         url: null,
+        break_qty_a: '',
+        price_a: '',
     });
 
     const [customSupplier, setCustomSupplier] = useState('');
@@ -36,6 +39,8 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
             supplier: formData.supplier === 'Other' ? customSupplier : formData.supplier,
             date_code: formData.date_code === 'nan' ? null : formData.date_code,
             url: formData.url === 'nan' ? null : formData.url,
+            break_qty_a: formData.break_qty_a === '' ? null : parseInt(formData.break_qty_a),
+            price_a: formData.price_a === '' ? null : parseFloat(formData.price_a),
         };
         if (mode === 'create') {
             axiosInstance.post('api/inventory/', dataToSubmit)
@@ -50,6 +55,10 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                         supplier: CONFIG.DEFAULT_SUPPLIER,
                         location: '',
                         price: '',
+                        cost: '',
+                        url: null,
+                        break_qty_a: '',
+                        price_a: '',
                     });
                     setCustomSupplier('');
                 })
@@ -149,6 +158,16 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                 </div>
                 <div className="mb-3">
                     <input
+                        type='number'
+                        step="0.01"
+                        className="form-control"
+                        placeholder="Cost"
+                        value={formData.cost}
+                        onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
+                    />
+                </div>
+                <div className="mb-3">
+                    <input
                         type="number"
                         step="0.01"
                         className="form-control"
@@ -156,6 +175,27 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                         value={formData.price}
                         onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     />
+                </div>
+                <div className="row mb-3">
+                    <div className="col">
+                        <input
+                            type="number"
+                            className="form-control"
+                            placeholder="Break Qty A"
+                            value={formData.break_qty_a}
+                            onChange={(e) => setFormData({ ...formData, break_qty_a: e.target.value })}
+                        />
+                    </div>
+                    <div className="col">
+                        <input
+                            type="number"
+                            step="0.0001"
+                            className="form-control"
+                            placeholder="Price A"
+                            value={formData.price_a}
+                            onChange={(e) => setFormData({ ...formData, price_a: e.target.value })}
+                        />
+                    </div>
                 </div>
                 <div className="modal-footer">
                     <button type="submit" className="btn btn-success" data-bs-dismiss="modal">{mode === 'create' ? 'Create' : 'Update'}</button>

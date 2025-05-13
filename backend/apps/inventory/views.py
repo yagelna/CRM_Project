@@ -21,6 +21,7 @@ import zipfile
 import pandas as pd
 import io
 import time
+from decimal import Decimal
 
 logger = logging.getLogger('myapp')
 
@@ -210,6 +211,12 @@ def export_inventory(request):
         
         # Convert QuerySet to DataFrame with specific fields
         df = pd.DataFrame.from_records(queryset.values(*fields))
+
+        if df.empty:
+            print(f"No data found for {filename}")
+            return
+
+        # Rename columns to match the specified column names
         df.columns = column_names
         
         output_buffer = io.BytesIO()
@@ -236,8 +243,8 @@ def export_inventory(request):
         available_limit = max_rows["net_components_available"]
         total_limit = stock_limit + available_limit
 
-        fields = ["mpn", "description", "manufacturer", "quantity", "url"]
-        column_names = ["P/N", "DESCRIPTION", "MFG", "QTY", "Shopping Cart URL"]
+        fields = ["mpn", "description", "manufacturer", "quantity", "url", "break_qty_a", "price_a"]
+        column_names = ["P/N", "DESCRIPTION", "MFG", "QTY", "Shopping Cart URL", "BreakQtyA", "PriceA"]
 
         stock_data = InventoryItem.objects.filter(supplier__in=suppliers).order_by(*[Case(When(supplier=supplier, then=idx), default=999) for idx, supplier in enumerate(suppliers)])[:stock_limit]
         available_data = InventoryItem.objects.filter(supplier__in=suppliers).order_by(*[Case(When(supplier=supplier, then=idx), default=999) for idx, supplier in enumerate(suppliers)])[stock_limit:total_limit]
@@ -360,33 +367,85 @@ class BulkUploadView(APIView):
                         except ValueError:
                             raise ValueError(f"Invalid quantity value: {row['quantity']}")
                         
-                        price = row.get('price', None)
-                        if price is not None and isinstance(price, float) and math.isnan(price):
-                            price = None
+                        # price      = self.clean_value(row, 'price')
+                        # cost       = self.clean_value(row, 'cost')
+                        # break_qty_a= self.clean_value(row, 'BreakQtyA', to_int=True)
+                        # price_a    = self.clean_value(row, 'PriceA')
 
-                        cost = row.get('cost', None)
-                        if cost is not None and isinstance(cost, float) and math.isnan(cost):
-                            cost = None
+                        field_map = {
+                            'manufacturer': {'column': 'manufacturer'},
+                            'location':     {'column': 'location'},
+                            'supplier':     {'column': 'supplier'},  # already validated
+                            'description':  {'column': 'description'},
+                            'date_code':    {'column': 'dc'},
+                            'price':        {'column': 'price', 'type': 'decimal'},
+                            'cost':         {'column': 'cost',  'type': 'decimal'},
+                            'break_qty_a':  {'column': 'break_qty_a', 'type': 'int'},
+                            'price_a':      {'column': 'price_a', 'type': 'decimal'},
+                            'url':          {'column': 'url'},
+                        }
+
+                        # Clean and convert values
+                        cleaned_fields = {}
+                        for field_name, meta in field_map.items():
+                            col = meta['column']
+                            val = self.clean_value(row, col, meta.get('type'))
+                            cleaned_fields[field_name] = val
 
                         item = InventoryItem(
-                            mpn = row['mpn'],
-                            quantity = quantity,
-                            manufacturer = self.convert_nan_to_none(row.get('manufacturer', None)),
-                            location = self.convert_nan_to_none(row.get('location', None)),
-                            supplier = row.get('supplier', None),
-                            description = self.convert_nan_to_none(row.get('description', None)),
-                            date_code = self.convert_nan_to_none(row.get('dc', None)),
-                            price = price,
-                            cost = cost,
-                            url = self.convert_nan_to_none(row.get('url', None))
+                            mpn=row['mpn'],
+                            quantity=quantity,
+                            **cleaned_fields
                         )
                         print(f"Adding item {item.mpn}")
-                        inventory_items.append(item)
+                        inventory_items.append(item)    
                         successful_rows += 1
+
                     except Exception as e:
                         print(f"Error processing row {index}: {str(e)}")
                         failed_rows += 1
                         failed_rows_details.append({"row": index, "error": str(e)})
+
+                        
+                        # price = row.get('price', None)
+                        # if price is not None and isinstance(price, float) and math.isnan(price):
+                        #     price = None
+
+                        # cost = row.get('cost', None)
+                        # if cost is not None and isinstance(cost, float) and math.isnan(cost):
+                        #     cost = None
+
+                        # break_qty_a = row.get('BreakQtyA', None)
+                        # if break_qty_a is not None and isinstance(break_qty_a, float) and math.isnan(break_qty_a):
+                        #     break_qty_a = None
+
+                        # price_a = row.get('PriceA', None)
+                        # if price_a is not None and isinstance(price_a, float) and math.isnan(price_a):
+                        #     price_a = None
+
+                        # Create InventoryItem instance
+
+                        # item = InventoryItem(
+                        #     mpn = row['mpn'],
+                        #     quantity = quantity,
+                        #     manufacturer = self.convert_nan_to_none(row.get('manufacturer', None)),
+                        #     location = self.convert_nan_to_none(row.get('location', None)),
+                        #     supplier = row.get('supplier', None),
+                        #     description = self.convert_nan_to_none(row.get('description', None)),
+                        #     date_code = self.convert_nan_to_none(row.get('dc', None)),
+                        #     price = price,
+                        #     cost = cost,
+                        #     break_qty_a = break_qty_a,
+                        #     price_a = price_a,
+                        #     url = self.convert_nan_to_none(row.get('url', None))
+                        # )
+                        # print(f"Adding item {item.mpn}")
+                        # inventory_items.append(item)
+                        # successful_rows += 1
+                    # except Exception as e:
+                    #     print(f"Error processing row {index}: {str(e)}")
+                    #     failed_rows += 1
+                    #     failed_rows_details.append({"row": index, "error": str(e)})
                 
                 InventoryItem.objects.bulk_create(inventory_items)
                 print(f"Added {len(inventory_items)} items")
@@ -404,7 +463,17 @@ class BulkUploadView(APIView):
             print(f"Error uploading file: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-    def convert_nan_to_none(self, value):
-        if pd.isna(value):
+    # def convert_nan_to_none(self, value):
+    #     if pd.isna(value):
+    #         return None
+    #     return value
+    
+    def clean_value(self, row, col_name, val_type=None):
+        val = row.get(col_name, None)
+        if pd.isna(val):
             return None
-        return value
+        if val_type == 'int':
+            return int(val)
+        if val_type == 'decimal':
+            return Decimal(str(val))
+        return val
