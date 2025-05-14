@@ -12,6 +12,7 @@ from utils.email_utils import send_html_email
 import logging
 from django.utils.timezone import now, timedelta
 from django.conf import settings
+from decimal import Decimal, ROUND_HALF_UP
 logger = logging.getLogger('myapp')
 
 @api_view(['GET'])
@@ -136,7 +137,11 @@ class RFQViewSet(viewsets.ModelViewSet):
         # send the RFQ to the customer if the there is similar RFQ
         if similar_rfq:
             rfq_data['id'] = rfq_instance.id
-            rfq_data['total_price'] = float(rfq_data['offered_price']) * int(rfq_data['qty_offered'])
+            price = Decimal(str(rfq_data['offered_price']))
+            qty = Decimal(str(rfq_data['qty_offered']))
+            rfq_data['total_price'] = (price * qty).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            # rfq_data['total_price'] = Decimal(rfq_data['offered_price']) * int(rfq_data['qty_offered'])
+            print(f'Sending email with total price: {rfq_data["total_price"]}')
             rfq_data['my_company'] = settings.COMPANY_NAME
             rfq_data['current_time'] = now().strftime("%d-%m-%Y %H:%M")
             logger.debug(f"Found similar RFQ with MPN: {mpn}. Sending auto-quote email to customer")
@@ -222,7 +227,10 @@ class RFQViewSet(viewsets.ModelViewSet):
                 }
 
                 if (template=="reminder"):
-                    formData['total_price'] = float(formData['offered_price']) * int(formData['qty_offered'])
+                    price = Decimal(str(formData['offered_price']))
+                    qty = Decimal(str(formData['qty_offered']))
+                    formData['total_price'] = (price * qty).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                    # formData['total_price'] = float(formData['offered_price']) * int(formData['qty_offered'])
 
                 result = send_html_email(formData, template, from_account='rfq')
                 if result is None:
@@ -280,8 +288,11 @@ class SendEmailView(APIView):
         formData['current_time'] = now().strftime("%d-%m-%Y %H:%M")
         formData['id'] = str(formData.get('id', '')).zfill(6)
         if (template in ["quote", "reminder"]):
-            formData['total_price'] = float(formData['offered_price']) * int(formData['qty_offered'])
-
+            price = Decimal(str(formData['offered_price']))
+            qty = Decimal(str(formData['qty_offered']))
+            formData['total_price'] = (price * qty).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            # formData['total_price'] = Decimal(formData['offered_price']) * int(formData['qty_offered'])
+        print(f'Sending email with total price: {formData["total_price"]}')
         if send_html_email(formData, template, from_account='rfq') is None:
             return Response({"error": "Failed to send email"}, status=status.HTTP_500_INTERNAL_SERVER)
         
