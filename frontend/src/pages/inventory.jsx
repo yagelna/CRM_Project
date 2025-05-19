@@ -6,7 +6,7 @@ import BulkEditModal from '../components/inventory/BulkEditModal';
 import ExportModal from '../components/inventory/ExportModal';
 import InventoryOffcanvas from '../components/inventory/InventoryOffcanvas';
 import { AgGridReact } from 'ag-grid-react';
-import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community'; 
+import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community';
 import ActionCellRenderer from '../components/ActionCellRenderer';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -20,11 +20,11 @@ const Inventory = () => {
     const [showArchive, setShowArchive] = useState(false); // false = inventory, true = archive
     const gridRef = useRef();
     const myTheme = themeQuartz
-    .withParams({
-        browserColorScheme: "light",
-        headerBackgroundColor: "#5A34F1",
-        headerTextColor:"#ffffff",
-    });
+        .withParams({
+            browserColorScheme: "light",
+            headerBackgroundColor: "#5A34F1",
+            headerTextColor: "#ffffff",
+        });
 
     const toggleInventoryView = () => {
         setShowArchive(prev => {
@@ -37,25 +37,25 @@ const Inventory = () => {
     // delete selected rows 
     const handleDelete = async (ids) => {
         if (!ids) return;
-        
+
         const isMultiple = Array.isArray(ids);
         const confirmed = window.confirm(`Are you sure you want to delete ${isMultiple ? ids.length : 1} item(s)?`);
-        
+
         if (!confirmed) return;
-    
+
         const url = isMultiple ? `api/inventory/bulk-delete/` : `api/inventory/${ids}/`;
         const data = isMultiple ? { ids } : null;
-    
+
         try {
             const res = await axiosInstance.delete(url, { data });
             console.log(res.data);
-    
-            setInventory(prevInventory => 
-                isMultiple 
-                ? prevInventory.filter(item => !ids.includes(item.id))
-                : prevInventory.filter(item => item.id !== ids)
+
+            setInventory(prevInventory =>
+                isMultiple
+                    ? prevInventory.filter(item => !ids.includes(item.id))
+                    : prevInventory.filter(item => item.id !== ids)
             );
-    
+
             if (showArchive) {
                 setArchiveData(null);
             } else {
@@ -70,7 +70,7 @@ const Inventory = () => {
 
     const handleArchive = async (ids) => {
         console.log("ids: ", ids);
-        
+
         if (!ids) {
             console.error("No ids provided for archiving");
             return;
@@ -84,7 +84,7 @@ const Inventory = () => {
             const res = await axiosInstance.post('api/archive/archive/', { ids });
             console.log(res.data);
 
-            setInventory(prevInventory => 
+            setInventory(prevInventory =>
                 prevInventory.filter(item => !ids.includes(item.id))
             );
             setInventoryData(null);
@@ -116,7 +116,7 @@ const Inventory = () => {
 
     const handleDeleteSelected = () => {
         console.log("delete selected rows");
-        if(selectedRows.length > 0){
+        if (selectedRows.length > 0) {
             const ids = selectedRows.map(row => row.id);
             handleDelete(ids);
         }
@@ -124,16 +124,16 @@ const Inventory = () => {
 
     const handleArchiveSelected = () => {
         console.log("archive selected rows");
-        if(selectedRows.length > 0){
+        if (selectedRows.length > 0) {
             const ids = selectedRows.map(row => row.id);
             handleArchive(ids);
         }
     };
-    
+
     const handleRestore = async () => {
         if (selectedRows.length === 0) return;
 
-        if(window.confirm(`Are you sure you want to restore ${selectedRows.length} item(s)?`)){
+        if (window.confirm(`Are you sure you want to restore ${selectedRows.length} item(s)?`)) {
             const ids = selectedRows.map(row => row.id);
             try {
                 const res = await axiosInstance.post('api/archive/restore/', { ids });
@@ -148,28 +148,31 @@ const Inventory = () => {
             }
         }
     };
-    
+
     const [colDefs, setColDefs] = useState([
-        { field: "mpn", headerName: "MPN",
-          cellRenderer: (params) => (
-            <a
-                href="#InventoryOffcanvas"
-                data-bs-toggle="offcanvas"
-                className="link-opacity-50-hover fw-medium"
-                onClick={() => { setSelectedItem(params.data);
-                    console.log(params.data);
-                 }}
-            >
-                {params.value}
-            </a>
+        {
+            field: "mpn", headerName: "MPN",
+            cellRenderer: (params) => (
+                <a
+                    href="#InventoryOffcanvas"
+                    data-bs-toggle="offcanvas"
+                    className="link-opacity-50-hover fw-medium"
+                    onClick={() => {
+                        setSelectedItem(params.data);
+                        console.log(params.data);
+                    }}
+                >
+                    {params.value}
+                </a>
             ),
-            flex: 1},
+            flex: 1
+        },
         //{ field: "description", headerName: "Description" },
         { field: "manufacturer", headerName: "Manufacturer" },
-        { field: "quantity", headerName: "Quantity"},
+        { field: "quantity", headerName: "Quantity" },
         { field: "date_code", headerName: "Date Code" },
         { field: "supplier", headerName: "Supplier" },
-        { field: "location", headerName: "Location" }, 
+        { field: "location", headerName: "Location" },
         { field: "cost", headerName: "Cost" }, // purchase price
         { field: "price", headerName: "Price" }, // selling price
         { field: "break_qty_a", headerName: "Break Qty A" },
@@ -191,7 +194,7 @@ const Inventory = () => {
         // },
     ]);
 
-    const onSelectionChanged = (event) =>{
+    const onSelectionChanged = (event) => {
         const selectedData = event.api.getSelectedRows();
         console.log("selection changed, " + selectedData.length + " rows selected");
         setSelectedRows(selectedData);
@@ -200,7 +203,7 @@ const Inventory = () => {
 
     const gridOptions = {
         defaultColDef: {
-            domLayout: 'normal', 
+            domLayout: 'normal',
         },
         enableCellTextSelection: true,
         rowSelection: {
@@ -274,9 +277,9 @@ const Inventory = () => {
         gridRef.current.api.setGridOption(
             "quickFilterText",
             document.getElementById("filter-text-box").value,
-          );
-        }, []);
-    
+        );
+    }, []);
+
 
     return (
         <div className='module-container'>
@@ -289,11 +292,11 @@ const Inventory = () => {
                     <button className="btn btn-outline-secondary me-2" onClick={toggleInventoryView}>
                         <i className="bi bi-folder-symlink"></i> {showArchive ? "Show Inventory" : "Show Archive"}
                     </button>
-                    <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addInventoryModal"> 
-                        + Add Item 
+                    <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addInventoryModal">
+                        + Add Item
                     </button>
-                    <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#UploadBulkModal"> 
-                        Upload Bulk Inventory 
+                    <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#UploadBulkModal">
+                        Upload Bulk Inventory
                     </button>
                     <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ExportModal">
                         Export
@@ -332,7 +335,7 @@ const Inventory = () => {
                             )}
                         </div>
                     )}
-                </div>                
+                </div>
             </div>
             <div className="card border-0 shadow-sm mb-4 mt-2">
                 <div className="card-body p-2">
@@ -343,7 +346,7 @@ const Inventory = () => {
                             gridOptions={gridOptions}
                             rowData={inventory}
                             theme={myTheme}
-                            defaultColDef={{ flex: 1, filter: true}}
+                            defaultColDef={{ flex: 1, filter: true }}
                             pagination={true}
                             paginationPageSize={20}
                             components={{ actionCellRenderer: ActionCellRenderer }}
@@ -354,13 +357,13 @@ const Inventory = () => {
                     </div>
                 </div>
             </div>
-            <AddInventoryModal id="addInventoryModal" mode="create" handleUpdateInventory={handleUpdateInventory}/>
-            <AddInventoryModal id="EditInventoryModal" mode="edit" itemData={selectedItem} handleUpdateInventory={handleUpdateInventory}/>
-            <UploadBulkModal id="UploadBulkModal" fetchInventory={fetchInventory}/>
-            <BulkEditModal id="BulkEditModal" selectedRows={selectedRows}/>
-            <ExportModal id="ExportModal"/>
-            <InventoryOffcanvas id="InventoryOffcanvas" itemData={selectedItem} onDeleteRequest={handleDelete} onArchiveRequest={handleArchive}/>
-            
+            <AddInventoryModal id="addInventoryModal" mode="create" handleUpdateInventory={handleUpdateInventory} />
+            <AddInventoryModal id="EditInventoryModal" mode="edit" itemData={selectedItem} handleUpdateInventory={handleUpdateInventory} />
+            <UploadBulkModal id="UploadBulkModal" fetchInventory={fetchInventory} />
+            <BulkEditModal id="BulkEditModal" selectedRows={selectedRows} />
+            <ExportModal id="ExportModal" />
+            <InventoryOffcanvas id="InventoryOffcanvas" itemData={selectedItem} onDeleteRequest={handleDelete} onArchiveRequest={handleArchive} />
+
         </div>
     );
 }

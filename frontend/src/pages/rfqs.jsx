@@ -218,7 +218,7 @@ const Rfqs = () => {
         <div className='module-container'>
             <div className="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 className="mb-1">Rfqs</h2>
+                    <h2 className="mb-2">Rfqs</h2>
                     <p className="text-muted">Manage your requests for quotes (RFQs) </p>
                 </div>
                 <button 

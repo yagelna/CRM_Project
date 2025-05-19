@@ -30,3 +30,7 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    def get_full_name(self):
+        full_name = f"{self.first_name or ''} {self.last_name or ''}".strip()
+        return full_name if full_name else self.email  # Fallback

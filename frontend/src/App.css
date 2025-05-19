@@ -101,6 +101,10 @@ body {
   --bs-offcanvas-width: 45%;
 }
 
+.crm-offcanvas {
+  --bs-offcanvas-width: 65%;
+}
+
 @media (max-width: 768px) {
     .offcanvas {
         --bs-offcanvas-width: 100%;
@@ -119,4 +123,19 @@ body {
 
 #fieldsDropdown::after {
   display: none !important;
+}
+
+.my-logo-fade {
+  animation: fadeScale 1.5s ease-in-out infinite;
+}
+
+@keyframes fadeScale {
+  0% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.2; transform: scale(1); }
+}
+
+.loading-text-purple {
+  color: #5A34F1;
+  font-weight: 600;
 }

@@ -64,6 +64,11 @@ const Sidebar = () => {
           </NavLink>
         </li>
         <li className="nav-item">
+          <NavLink to="/crm" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="CRM" data-bs-toggle="tooltip" data-bs-placement="right">
+            <i className="bi bi-people sidebar-icon"></i>
+          </NavLink>
+        </li>
+        <li className="nav-item">
           <NavLink to="/ai" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="AI" data-bs-toggle="tooltip" data-bs-placement="right">
             <i className="bi bi-lightbulb sidebar-icon"></i>
           </NavLink>
