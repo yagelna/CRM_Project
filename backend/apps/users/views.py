@@ -3,18 +3,22 @@ from rest_framework import viewsets, permissions
 from .models import *
 from .serializers import *
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from django.contrib.auth import get_user_model, authenticate
 from knox.models import AuthToken
+
 
 
 User = get_user_model()
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = ShortUserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return self.queryset.filter(id=self.request.user.id)
+    @action(detail=False, methods=['get'], url_path='me')
+    def get_me(self, request):
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
     
     def update(self, request, *args, **kwargs):
         instance = self.get_object()

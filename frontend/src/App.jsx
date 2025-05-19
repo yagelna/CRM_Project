@@ -12,6 +12,7 @@ import Login from './pages/login';
 import Register from './pages/register';
 import AI from './pages/ai';
 import Settings from './pages/settings';
+import CRMAccounts from './pages/CRM';
 
 import ProtectedRoute from './components/ProtectedRoutes'; 
 
@@ -35,6 +36,7 @@ function App() {
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/companies" element={<Companies />} />
             <Route path="/inventory" element={<Inventory />} />
+            <Route path="/crm" element={<CRMAccounts />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/ai" element={<AI />} />

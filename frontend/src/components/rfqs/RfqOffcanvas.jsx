@@ -1,5 +1,7 @@
     import React, { useState, useEffect} from 'react'; 
     import axiosInstance from '../../AxiosInstance';
+    import { showToast } from '../common/toast';
+
 
     // Offcanvas: Displays an offcanvas modal with RFQ details, history of the mpn from other rfqs and the availability of the part in the inventory.
     const Offcanvas = ({id, rfqData, handleAutoFill, onDeleteRequest, refreshRfqs}) => {
@@ -115,11 +117,19 @@
                 });
                 const updatedStatus = template === 'lowtp' ? 'T/P Request Sent' : template === 'reminder' ? 'Reminder Sent' : '';
                 updateRfqStatus(updatedStatus);
-                // setToast({ show: true, message: "Email sent successfully", success: true });
+                showToast({
+                    type: 'success',
+                    title: 'Success',
+                    message: `Email sent successfully!`,
+                });
 
             } catch (error) {
                 console.error("Error sending email:", error);
-                // setToast({ show: true, message: "Failed to send email", success: false });
+                showToast({
+                    type: 'danger',
+                    title: 'Failed to Send',
+                    message: 'No emails were sent.',
+                });
             }
         }
 

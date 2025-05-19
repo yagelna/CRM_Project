@@ -292,7 +292,6 @@ class SendEmailView(APIView):
             qty = Decimal(str(formData['qty_offered']))
             formData['total_price'] = (price * qty).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
             # formData['total_price'] = Decimal(formData['offered_price']) * int(formData['qty_offered'])
-        print(f'Sending email with total price: {formData["total_price"]}')
         if send_html_email(formData, template, from_account='rfq') is None:
             return Response({"error": "Failed to send email"}, status=status.HTTP_500_INTERNAL_SERVER)
         
