@@ -1,6 +1,7 @@
 import React, { useState, useEffect} from 'react';
 import axiosInstance from '../../AxiosInstance';
 import Modal from '../common/modal';
+import { showToast } from '../common/toast';
  
 const EmailModal = ({ id, rfqData, autoFillData }) => {
     // State for recipient details
@@ -94,7 +95,12 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
                 template: activeTab,
             });
             console.log("Email sent successfully:", res);
-            setToast({ show: true, message: "Email sent successfully", success: true });
+            showToast({
+                type: 'success',
+                title: 'Email Sent',
+                message: 'Email sent successfully!',
+                icon: '📧'
+            });
             const updatedStatus =
                 activeTab === 'quote' ? 'Quote Sent' : 
                 activeTab === 'lowtp' ? 'T/P Req Sent' : 
@@ -113,7 +119,12 @@ const EmailModal = ({ id, rfqData, autoFillData }) => {
 
         } catch (error) {
             console.error("Error sending email:", error);
-            setToast({ show: true, message: "Failed to send email", success: false });
+            showToast({
+                type: 'danger',
+                title: 'Email Failed',
+                message: 'Failed to send email. Please try again.',
+                icon: '❌'
+            });
         } finally {
             setLoading(false);
         }
