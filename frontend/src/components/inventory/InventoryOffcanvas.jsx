@@ -30,6 +30,7 @@ const InventoryOffcanvas = ({id, itemData, onDeleteRequest, onArchiveRequest}) =
                 location: itemData.location,
                 date_code: itemData.date_code,
                 supplier: itemData.supplier,
+                notes: itemData.notes,
             });
 
             const accordionElements = document.querySelectorAll('.accordion-collapse'); 
@@ -98,7 +99,7 @@ const InventoryOffcanvas = ({id, itemData, onDeleteRequest, onArchiveRequest}) =
                         <div className="accordion-collapse collapse show" id="ItemtDetails" data-bs-parent="#itemAccordion">
                             <div className="accordion-body">
                                 <div className="row">
-                                    <div className="col-6">
+                                    <div className>
                                         <p><strong>MPN:</strong> {itemData?.mpn}</p>
                                         <p><strong>Manufacturer:</strong> {itemData?.manufacturer}</p>
                                         <p><strong>Description:</strong> {itemData?.description}</p>
@@ -108,6 +109,8 @@ const InventoryOffcanvas = ({id, itemData, onDeleteRequest, onArchiveRequest}) =
                                         <p><strong>Location:</strong> {itemData?.location}</p>
                                         <p><strong>Date Code:</strong> {itemData?.date_code}</p>
                                         <p><strong>Supplier:</strong> {itemData?.supplier}</p>
+                                        <p><strong>Notes:</strong> {itemData?.notes}</p>
+
                                     </div>
                                 </div>
                             </div>

@@ -384,6 +384,7 @@ class BulkUploadView(APIView):
                             'break_qty_a':  {'column': 'break_qty_a', 'type': 'int'},
                             'price_a':      {'column': 'price_a', 'type': 'decimal'},
                             'url':          {'column': 'url'},
+                            'notes':        {'column': 'notes'},
                         }
 
                         # Clean and convert values
