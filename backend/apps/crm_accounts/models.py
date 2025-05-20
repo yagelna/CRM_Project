@@ -35,13 +35,24 @@ class CRMInteraction(models.Model):
         ('meeting', 'Meeting'),
         ('note', 'Note'),
     ])
+    title = models.CharField(max_length=255, blank=True, null=True)
     summary = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
 
 class CRMTask(models.Model):
     account = models.ForeignKey(CRMAccount, related_name='tasks', on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    priority = models.CharField(
+        max_length=20,
+        choices=[
+            ('low', 'Low'),
+            ('medium', 'Medium'),
+            ('high', 'High')
+        ],
+        default='medium'
+    )
     due_date = models.DateTimeField()
     is_completed = models.BooleanField(default=False)
     added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
