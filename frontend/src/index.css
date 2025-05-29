@@ -11,5 +11,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --dotzHubMainColor: #5A34F1;
+  --dotzHubSecondColor: #FF6C2F;
 }
 

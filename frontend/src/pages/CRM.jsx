@@ -8,6 +8,8 @@ import AddCRMAccountModal from '../components/crm/AddCRMAccountModal';
 import CRMOffcanvas from '../components/crm/CRMOffcanvas';
 import { showToast } from '../components/common/toast';
 import KanbanBoard from '../components/crm/KanbanBoard';
+import KanbanBoard2 from '../components/crm/KanbanBoard2';
+
 
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -141,6 +143,10 @@ const CRMAccounts = () => {
           <Button variant={viewMode === 'kanban' ? 'primary' : 'outline-primary'} onClick={() => setViewMode('kanban')}>
             📦 Kanban
           </Button>
+          <Button variant={viewMode === 'kanban2' ? 'primary' : 'outline-primary'} onClick={() => setViewMode('kanban2')}>
+            📦 Kanban2
+          </Button>
+
         </div>
       </div>
 
@@ -180,6 +186,8 @@ const CRMAccounts = () => {
             </div>
           </div>
         </div>
+      ) : viewMode === 'kanban2' ? (
+        <KanbanBoard2 accounts={accounts} onStatusChange={handleStatusChange} />
       ) : (
         <KanbanBoard accounts={accounts} onStatusChange={handleStatusChange} />
       )}

@@ -140,3 +140,92 @@ body {
   font-weight: 600;
 }
 
+.custom-btn {
+  background-color: var(--dotzHubMainColor);
+  border-color: var(--dotzHubSecondColor);  
+}
+
+.custom-btn:hover {
+  box-shadow: 0 0 0 4px var(--dotzHubSecondColor); /* approx ring-rose-500 */
+}
+/* Scrollbar styles */
+
+/* vertical scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* horizontal scrollbar */
+::-webkit-scrollbar:horizontal {
+  height: 10px;
+}
+
+/* scrollbar thumb (the draggable part) */
+::-webkit-scrollbar-thumb {
+  background-color: var(--dotzHubMainColor) !important;
+  border-radius: 8px;
+}
+
+/* scrollbar track (the background part) */
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.kanban-add-task-btn {
+  display: inline-block;
+  background: transparent;
+  border: none;
+  font-weight: bold;
+  color: #5A34F1;
+  transition: all 0.2s ease;
+  transform: translateY(0); /* מצב התחלתי */
+}
+
+.kanban-add-task-btn:hover {
+  color: #FF6C2F;
+  transform: translateY(-2px); /* תזוזה קלה למעלה */
+}
+
+.kanban-add-account-btn {
+  display: inline-block;
+  background: transparent;
+  border: none;
+  font-weight: bold;
+  color: #5A34F1;
+  transition: all 0.2s ease;
+  transform: translateY(0); /* מצב התחלתי */
+}
+
+.kanban-add-account-btn:hover {
+  color: #FF6C2F;
+  transform: translateY(-2px); /* תזוזה קלה למעלה */
+}
+
+.text-purple {
+  color: #5A34F1 !important;
+}
+
+.kanban-card {
+  background-color: #f8f9fa; /* bg-light */
+  color: #5A34F1; /* טקסט סגול */
+  /* border: 2px solid transparent; */
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  position: relative;
+}
+
+.kanban-card:hover {
+  border-color: #FF6C2F; /* הכתום של DotzHub */
+}
+
+.delete-icon-wrapper {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.kanban-card:hover .delete-icon-wrapper {
+  opacity: 0.5;
+}
+
+.kanban-card:hover .delete-icon-wrapper:hover {
+  opacity: 1;
+}
