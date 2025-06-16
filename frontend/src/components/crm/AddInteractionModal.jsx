@@ -4,7 +4,8 @@ import { showToast } from '../common/toast';
 import Modal from '../common/modal';
 
 const AddInteractionModal = ({ id, accountId, onInteractionAdded }) => {
-  const [form, setForm] = useState({ type: 'note', summary: '' });
+  const [useNow, setUseNow] = useState(true);
+  const [form, setForm] = useState({ type: 'note', summary: '', timestamp: '', title: '' });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -15,15 +16,21 @@ const AddInteractionModal = ({ id, accountId, onInteractionAdded }) => {
     e.preventDefault();
     if (!accountId || !form.summary.trim()) return;
     setLoading(true);
+    const payload = {
+      account: accountId,
+      type: form.type,
+      title: form.title,
+      summary: form.summary.trim(),
+    };
+
+    if (!useNow && form.timestamp) {
+      payload.timestamp = form.timestamp;
+    }
     try {
-      const response = await axiosInstance.post('/api/crm/interactions/', {
-        account: accountId,
-        type: form.type,
-        title: form.title,
-        summary: form.summary.trim()
-      });
+      const response = await axiosInstance.post('/api/crm/interactions/', payload);
+
       onInteractionAdded?.(response.data);
-      setForm({ type: 'note', summary: '' , title: '' });
+      setForm({ type: 'note', summary: '', title: '', timestamp: '' });
       document.getElementById(id + '_close')?.click();
       showToast?.({
         type: 'success',
@@ -69,6 +76,31 @@ const AddInteractionModal = ({ id, accountId, onInteractionAdded }) => {
               onChange={handleChange}
             />
           </div>
+          <div className="form-check mb-2">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id="useNowCheck"
+              checked={useNow}
+              onChange={(e) => setUseNow(e.target.checked)}
+            />
+            <label className="form-check-label" htmlFor="useNowCheck">
+              Use current time
+            </label>
+          </div>
+
+          {!useNow && (
+            <div className="mb-3">
+              <label className="form-label">Date & Time</label>
+              <input
+                type="datetime-local"
+                name="timestamp"
+                className="form-control"
+                value={form.timestamp}
+                onChange={handleChange}
+              />
+            </div>
+          )}
           <div className="mb-3">
             <label className="form-label">Summary</label>
             <textarea

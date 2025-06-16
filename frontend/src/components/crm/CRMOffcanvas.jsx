@@ -39,11 +39,32 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
                 status: account.status || '',
                 notes: account.notes || '',
                 created_at: account.created_at || '',
+                last_interaction: account.last_interaction || '',
             });
             setInteractions(account.interactions || []);
             setTasks(account.tasks || []);
         }
     }, [account]);
+
+    const refreshAccount = async () => {
+        try {
+            const response = await axiosInstance.get(`/api/crm/accounts/${account.id}/`);
+            const updatedAccount = response.data;
+            setAccountData({
+                name: updatedAccount.name || '',
+                email: updatedAccount.email || '',
+                phone: updatedAccount.phone || '',
+                company: updatedAccount.company_details?.name || '',
+                assigned_to: updatedAccount.assigned_to_name || '',
+                status: updatedAccount.status || '',
+                notes: updatedAccount.notes || '',
+                created_at: updatedAccount.created_at || '',
+                last_interaction: updatedAccount.last_interaction || '',
+            });
+        } catch (error) {
+            console.error('Failed to refresh account:', error);
+        }
+    };
 
     const handleSubmitInteraction = async () => {
         if (!account?.id) return;
@@ -63,6 +84,7 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
         }
     };
 
+
     const handleDeleteInteraction = async (id) => {
         if (!window.confirm('Are you sure you want to delete this interaction?')) return;
         try {
@@ -71,6 +93,7 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
         } catch (error) {
             console.error('Failed to delete interaction:', error);
         }
+        refreshAccount();
     };
 
     const handleDelete = () => {
@@ -79,27 +102,27 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
     };
 
     const toggleTaskCompleted = async (taskId, currentStatus) => {
-  try {
-    await axiosInstance.patch(`/api/crm/tasks/${taskId}/`, {
-      is_completed: !currentStatus
-    });
-    setTasks(prev =>
-      prev.map(task => task.id === taskId ? { ...task, is_completed: !currentStatus } : task)
-    );
-  } catch (error) {
-    console.error('Failed to update task status:', error);
-  }
-};
+        try {
+            await axiosInstance.patch(`/api/crm/tasks/${taskId}/`, {
+                is_completed: !currentStatus
+            });
+            setTasks(prev =>
+                prev.map(task => task.id === taskId ? { ...task, is_completed: !currentStatus } : task)
+            );
+        } catch (error) {
+            console.error('Failed to update task status:', error);
+        }
+    };
 
-const handleDeleteTask = async (taskId) => {
-  if (!window.confirm('Are you sure you want to delete this task?')) return;
-  try {
-    await axiosInstance.delete(`/api/crm/tasks/${taskId}/`);
-    setTasks(prev => prev.filter(task => task.id !== taskId));
-  } catch (error) {
-    console.error('Failed to delete task:', error);
-  }
-};
+    const handleDeleteTask = async (taskId) => {
+        if (!window.confirm('Are you sure you want to delete this task?')) return;
+        try {
+            await axiosInstance.delete(`/api/crm/tasks/${taskId}/`);
+            setTasks(prev => prev.filter(task => task.id !== taskId));
+        } catch (error) {
+            console.error('Failed to delete task:', error);
+        }
+    };
 
     return (
         <>
@@ -168,7 +191,7 @@ const handleDeleteTask = async (taskId) => {
                                     <p><strong>Interactions:</strong> <span className="badge bg-secondary">{interactions.length}</span></p>
                                     <p><strong>Open Tasks:</strong> <span className="badge bg-warning text-dark">{tasks.filter(t => !t.is_completed).length}</span></p>
                                     <p><strong>Notes:</strong> {accountData.notes ? accountData.notes : <span className="text-muted">None</span>}</p>
-                                    <p><strong>Last Interaction:</strong> {interactions.length > 0 ? new Date(interactions[0].timestamp).toLocaleString('en-GB', {
+                                    <p><strong>Last Interaction:</strong> {accountData.last_interaction ? new Date(accountData.last_interaction).toLocaleString('en-GB', {
                                         day: '2-digit',
                                         month: '2-digit',
                                         year: 'numeric',
@@ -277,7 +300,7 @@ const handleDeleteTask = async (taskId) => {
                                         <div className="list-group">
                                             {tasks.map((task, idx) => (
                                                 <div key={idx} className={`list-group-item list-group-item-action mb-2 border rounded ${task.is_completed ? 'bg-light' : ''}`}
->
+                                                >
                                                     <div className="d-flex justify-content-between align-items-center">
                                                         <h6 className="mb-1 d-flex align-items-center">
                                                             <i className={`bi ${task.is_completed ? 'bi-check-circle-fill text-success' : 'bi-circle text-warning'} me-2`} />
@@ -342,8 +365,10 @@ const handleDeleteTask = async (taskId) => {
             <AddInteractionModal
                 id="addInteractionModal"
                 accountId={account?.id}
-                onInteractionAdded={(newInteraction) =>
-                    setInteractions(prev => [newInteraction, ...prev])
+                onInteractionAdded={(newInteraction) => {
+                    setInteractions(prev => [newInteraction, ...prev]);
+                    refreshAccount();
+                }
                 }
             />
             <EditInteractionModal
@@ -354,6 +379,7 @@ const handleDeleteTask = async (taskId) => {
                         prev.map(i => i.id === updatedInteraction.id ? updatedInteraction : i)
                     );
                     setInteractionBeingEdited(null);
+                    refreshAccount();
                 }}
             />
             <AddTaskModal

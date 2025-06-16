@@ -217,15 +217,16 @@ body {
   border-color: #FF6C2F; /* הכתום של DotzHub */
 }
 
-.delete-icon-wrapper {
+.card-action {
   opacity: 0;
   transition: opacity 0.2s ease;
+  display: inline-block;
 }
 
-.kanban-card:hover .delete-icon-wrapper {
+.kanban-card:hover .card-action {
   opacity: 0.5;
 }
 
-.kanban-card:hover .delete-icon-wrapper:hover {
+.kanban-card:hover .card-action:hover {
   opacity: 1;
 }

@@ -32,3 +32,44 @@ class CRMAccountSerializer(serializers.ModelSerializer):
     def get_interactions(self, obj):
         qs = obj.interactions.order_by('-timestamp')
         return CRMInteractionSerializer(qs, many=True).data
+    
+class EmailPrecheckSerializer(serializers.Serializer):
+    message_id = serializers.CharField()
+    thread_id = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    from_email = serializers.EmailField()
+    to_emails = serializers.CharField()
+    cc_emails = serializers.CharField(allow_blank=True, required=False)
+    watched_email = serializers.EmailField()
+
+    def validate(self, data):
+        data['to_emails'] = [e.strip().lower() for e in data['to_emails'].split(',') if e.strip()]
+        data['cc_emails'] = [e.strip().lower() for e in data['cc_emails'].split(',') if e.strip()]
+
+        # direction logic
+        if data['from_email'] == data['watched_email']:
+            data['direction'] = 'outgoing'
+        elif data['watched_email'] in data['to_emails'] or data['watched_email'] in data['cc_emails']:
+            data['direction'] = 'incoming'
+        else:
+            raise serializers.ValidationError("Email does not match the watched email or recipients.")
+        
+        return data
+
+class AutomatedInteractionSerializer(serializers.Serializer):
+    account_id = serializers.IntegerField()
+    interaction_id = serializers.IntegerField(required=False)
+    message_id = serializers.CharField()
+    thread_id = serializers.CharField(allow_blank=True, allow_null=True, required=False)
+    direction = serializers.ChoiceField(choices=['incoming', 'outgoing', 'mixed'])
+    from_email = serializers.EmailField()
+    to_emails = serializers.CharField(allow_blank=True, required=False)
+    cc_emails = serializers.CharField(allow_blank=True, required=False)
+    subject = serializers.CharField(allow_blank=True, required=False)
+    summary = serializers.CharField()
+    timestamp = serializers.DateTimeField()
+
+    def validate(self, data):
+        # Ensure to_emails and cc_emails are lists of emails
+        data['to_emails'] = [e.strip().lower() for e in data['to_emails'].split(',') if e.strip()]
+        data['cc_emails'] = [e.strip().lower() for e in data['cc_emails'].split(',') if e.strip()]
+        return data
