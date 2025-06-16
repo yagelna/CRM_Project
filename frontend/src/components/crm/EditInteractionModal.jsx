@@ -7,7 +7,8 @@ const EditInteractionModal = ({ id, interaction, onSave }) => {
   const [form, setForm] = useState({
     type: 'note',
     title: '',
-    summary: ''
+    summary: '',
+    timestamp: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -17,7 +18,8 @@ const EditInteractionModal = ({ id, interaction, onSave }) => {
       setForm({
         type: interaction.type || 'note',
         title: interaction.title || '',
-        summary: interaction.summary || ''
+        summary: interaction.summary || '',
+        timestamp: formatToLocalDatetime(interaction.timestamp) || '',
       });
     }
   }, [interaction]);
@@ -42,6 +44,13 @@ const EditInteractionModal = ({ id, interaction, onSave }) => {
     setLoading(false);
   };
 
+  const formatToLocalDatetime = (timestamp) => {
+    const date = new Date(timestamp);
+    const offset = date.getTimezoneOffset(); // בדקות
+    const local = new Date(date.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
+  };
+
   return (
     <Modal id={id} title="Edit Interaction">
       <form onSubmit={handleSubmit}>
@@ -58,6 +67,16 @@ const EditInteractionModal = ({ id, interaction, onSave }) => {
           <div className="mb-3">
             <label className="form-label">Title</label>
             <input name="title" className="form-control" value={form.title} onChange={handleChange} />
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Date & Time</label>
+            <input
+              type="datetime-local"
+              name="timestamp"
+              className="form-control"
+              value={form.timestamp}
+              onChange={handleChange}
+            />
           </div>
           <div className="mb-3">
             <label className="form-label">Summary</label>

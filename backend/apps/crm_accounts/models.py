@@ -29,16 +29,31 @@ class CRMAccount(models.Model):
 
 class CRMInteraction(models.Model):
     account = models.ForeignKey(CRMAccount, related_name='interactions', on_delete=models.CASCADE)
+
     type = models.CharField(max_length=20, choices=[
         ('email', 'Email'),
         ('call', 'Call'),
         ('meeting', 'Meeting'),
         ('note', 'Note'),
     ])
+
+    direction = models.CharField(max_length=10, choices=[
+        ('incoming', 'Incoming'),
+        ('outgoing', 'Outgoing'),
+        ('mixed', 'Mixed')
+    ], null=True, blank=True)
+    is_auto_generated = models.BooleanField(default=False)
+
+    message_id = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    thread_id = models.CharField(max_length=255, blank=True, null=True)
+
     title = models.CharField(max_length=255, blank=True, null=True)
     summary = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(null=True, blank=True)
     added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
 
 class CRMTask(models.Model):
     account = models.ForeignKey(CRMAccount, related_name='tasks', on_delete=models.CASCADE)

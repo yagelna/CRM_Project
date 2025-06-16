@@ -8,7 +8,6 @@ import AddCRMAccountModal from '../components/crm/AddCRMAccountModal';
 import CRMOffcanvas from '../components/crm/CRMOffcanvas';
 import { showToast } from '../components/common/toast';
 import KanbanBoard from '../components/crm/KanbanBoard';
-import KanbanBoard2 from '../components/crm/KanbanBoard2';
 
 
 
@@ -55,6 +54,7 @@ const CRMAccounts = () => {
         showToast?.({ type: 'success', title: 'Account Deleted' });
         setSelectedAccount(null);
         fetchAccounts(); // Refresh the accounts list
+        setAccounts((prev) => prev.filter(acc => acc.id !== id));
       })
       .catch((err) => {
         console.error('Delete error:', err);
@@ -74,6 +74,21 @@ const CRMAccounts = () => {
   } catch (error) {
     console.error('Failed to update account status:', error);
     showToast?.({ type: 'danger', title: 'Update Failed', message: 'Could not update status.' });
+  }
+};
+
+const handleViewAccount = async (accountId) => {
+  try {
+    const response = await axiosInstance.get(`/api/crm/accounts/${accountId}/`);
+    setSelectedAccount(response.data);
+
+    const el = document.getElementById("crmAccountOffcanvas");
+    if (el) {
+      const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(el);
+      bsOffcanvas.show();
+    }
+  } catch (error) {
+    console.error("Failed to load account for view:", error);
   }
 };
 
@@ -143,9 +158,6 @@ const CRMAccounts = () => {
           <Button variant={viewMode === 'kanban' ? 'primary' : 'outline-primary'} onClick={() => setViewMode('kanban')}>
             📦 Kanban
           </Button>
-          <Button variant={viewMode === 'kanban2' ? 'primary' : 'outline-primary'} onClick={() => setViewMode('kanban2')}>
-            📦 Kanban2
-          </Button>
 
         </div>
       </div>
@@ -186,10 +198,8 @@ const CRMAccounts = () => {
             </div>
           </div>
         </div>
-      ) : viewMode === 'kanban2' ? (
-        <KanbanBoard2 accounts={accounts} onStatusChange={handleStatusChange} />
       ) : (
-        <KanbanBoard accounts={accounts} onStatusChange={handleStatusChange} />
+        <KanbanBoard accounts={accounts} onStatusChange={handleStatusChange} onDeleteAccount={handleDeleteAccount} onViewAccount={handleViewAccount} />
       )}
       <AddCRMAccountModal id="addCRMAccountModal" onSuccess={fetchAccounts} />
       <CRMOffcanvas
