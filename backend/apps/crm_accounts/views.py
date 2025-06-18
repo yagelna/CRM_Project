@@ -8,6 +8,22 @@ from django.db.models import Q
 from .models import CRMAccount, CRMInteraction, CRMTask
 from .serializers import CRMAccountSerializer, CRMInteractionSerializer, CRMTaskSerializer, EmailPrecheckSerializer, AutomatedInteractionSerializer
 from django.utils import timezone
+from apps.system_settings.models import SystemSettings
+from utils.email_utils import send_system_email
+
+def update_account_status(account, reference_date):
+    if account.status == 'archived':
+        return
+    settings_obj = SystemSettings.get_solo()
+    delta_days = (timezone.now() - reference_date).days
+    if delta_days > settings_obj.inactive_threshold_days:
+        new_status = 'inactive'
+    elif delta_days > settings_obj.slow_threshold_days:
+        new_status = 'slow'
+    else:
+        new_status = 'active'
+    if account.status != new_status:
+        account.status = new_status
 
 class CRMAccountViewSet(viewsets.ModelViewSet):
     queryset = CRMAccount.objects.all().order_by('-created_at')
@@ -33,24 +49,23 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
         else:
             timestamp = timezone.now()
 
-        print(f"raw_timestamp: {raw_timestamp}, parsed timestamp: {timestamp}")
-
         interaction = serializer.save(
             added_by=self.request.user,
             timestamp=timestamp
         )
+        
+        # update the account's last interaction based on the interaction timestamp and status if needed
         account = interaction.account
         account.refresh_from_db()
         latest = account.last_interaction
         print(f"Latest interaction timestamp: {latest} and current interaction timestamp: {interaction.timestamp}")
-        if not latest or account.last_interaction < interaction.timestamp:
-            print(f"Updating last interaction timestamp for account {account.id} from {account.last_interaction} to {interaction.timestamp}")
-            account.last_interaction = interaction.timestamp
-            account.save()
-        elif latest and account.last_interaction >= interaction.timestamp:
-            print(f"No update needed for last interaction timestamp for account {account.id}, current: {account.last_interaction}, new: {interaction.timestamp}")
-        else:
-            print(f"Unexpected case for account {account.id}, last interaction: {account.last_interaction}, new interaction timestamp: {interaction.timestamp}")
+        if not latest or latest < timestamp:
+            account.last_interaction = timestamp
+        update_account_status(account, timestamp)
+
+        account.save()
+
+
         
     def perform_update(self, serializer):
         interaction = serializer.save()
@@ -58,7 +73,9 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
         latest = account.interactions.order_by('-timestamp').first()
         if latest and account.last_interaction != latest.timestamp:
             account.last_interaction = latest.timestamp
-            account.save()
+            update_account_status(account, interaction.timestamp)
+        account.save()
+            
     
     def perform_destroy(self, instance):
         account = instance.account
@@ -73,7 +90,8 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
             if account.last_interaction:
                 account.last_interaction = None
                 account.save()
-
+                
+        
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def precheck(self, request):
         serializer = EmailPrecheckSerializer(data=request.data)
@@ -179,6 +197,66 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
             "interaction_id": interaction.id,
             "account_id": account.id
         }, status=status.HTTP_201_CREATED)
+        
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='refresh-status')
+    def refresh_statuses(self, request):
+        print("Refreshing CRM account statuses...")
+        settings_obj = SystemSettings.get_solo()
+        now_ts = timezone.now()
+        updated = []
+        new_accounts_no_interaction = []
+        
+        print(f"Current time: {now_ts}, Inactive threshold: {settings_obj.inactive_threshold_days} days, Slow threshold: {settings_obj.slow_threshold_days} days")
+        for account in CRMAccount.objects.exclude(status='archived'):
+            last_interaction = account.last_interaction
+            if not last_interaction and account.status == 'new':
+                new_accounts_no_interaction.append(account)
+                continue
+            if not last_interaction:
+                continue
+            
+            delta_days  = (now_ts - last_interaction).days
+            prev_status = account.status
+            
+            if delta_days > settings_obj.inactive_threshold_days:
+                new_status = 'inactive'
+            elif delta_days > settings_obj.slow_threshold_days:
+                new_status = 'slow'
+            else:
+                continue
+            
+            if prev_status != new_status:
+                account.status = new_status
+                account.save()
+                updated.append({
+                    "name": account.name,
+                    "email": account.email,
+                    "from_status": prev_status,
+                    "to_status": new_status,
+                    "last_interaction": last_interaction.strftime('%Y-%m-%d')
+                })
+            
+            account.save()
+            
+        # send email notification if there are changes
+        if updated or new_accounts_no_interaction:
+            send_system_email(
+                to_email="yagel@flychips.com",
+                subject="DotzHub CRM Status Update - {}".format(datetime.now().strftime("%Y-%m-%d")),
+                template_path="../templates/emails/crm_status_report.html",
+                context={
+                    "updated_accounts": updated,
+                    "new_accounts_no_interaction": new_accounts_no_interaction,
+                    "year": datetime.now().year,
+                }
+            )
+            
+        return Response({
+            "updated": len(updated),
+            "message": "CRM accounts statuses updated successfully.",
+            "sent_email": bool(updated)
+        }, status=status.HTTP_200_OK)
+    
 
 
                 

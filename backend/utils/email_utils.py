@@ -56,3 +56,33 @@ def send_html_email(data, template, from_account="default", attachments=None):
 
     email.send()    
     return 1
+
+# TO DO: create "system" email account in settings.py and use it for system emails - from_account="system"
+# TO DO: 
+def send_system_email(to_email, subject, template_path, context={}, from_account="inventory", attachments=None):
+    email_config = settings.EMAIL_ACCOUNTS.get(from_account, settings.EMAIL_ACCOUNTS["default"])
+    connection = get_connection(
+        host=email_config["EMAIL_HOST"],
+        port=email_config["EMAIL_PORT"],
+        username=email_config["EMAIL_HOST_USER"],
+        password=email_config["EMAIL_HOST_PASSWORD"],
+        use_tls=email_config["EMAIL_USE_TLS"],
+    )
+
+    html_body = render_to_string(template_path, context)
+
+    email = EmailMessage(
+        subject=subject,
+        body=html_body,
+        from_email=email_config["EMAIL_HOST_USER"],
+        to=[to_email],
+        connection=connection
+    )
+    email.content_subtype = "html"
+
+    if attachments:
+        for file_name, file_content, content_type in attachments:
+            email.attach(file_name, file_content.read(), content_type)
+
+    email.send()
+    return True

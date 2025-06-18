@@ -22,6 +22,8 @@ class SystemSettings(models.Model):
     auto_update = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    inactive_threshold_days = models.IntegerField(default=180)
+    slow_threshold_days = models.IntegerField(default=30)
 
     def __str__(self):
         return "System Settings"
