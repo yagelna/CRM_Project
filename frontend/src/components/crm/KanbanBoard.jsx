@@ -7,14 +7,24 @@ import { createPortal } from "react-dom";
 
 function KanbanBoard({ accounts, onAddAccount, onDeleteAccount, onStatusChange, onViewAccount }) {
   const statuses = ['new', 'active', 'slow', 'inactive', 'archived'];
+    const tooltipMap = {
+    new: "New customers with no prior interaction",
+    active: "Customers currently engaged in active communication",
+    slow: "Customers with no interaction for up to 3 months",
+    inactive: "Customers with no interaction for over 6 months",
+    archived: "Archived customers kept for future reference"
+  };
 
   const columns = useMemo(() => {
     return statuses.map((status) => ({
       id: status,
       title: status.charAt(0).toUpperCase() + status.slice(1),
+      tooltip: tooltipMap[status],
       cards: accounts.filter((acc) => acc.status === status),
     }));
   }, [accounts]);
+
+
 
   const [activeColumn, setActiveColumn] = useState(null);
   const [overColumnId, setOverColumnId] = useState(null);
@@ -101,6 +111,7 @@ function KanbanBoard({ accounts, onAddAccount, onDeleteAccount, onStatusChange, 
               key={col.id}
               id={col.id}
               column={col}
+              tooltip={col.tooltip}
               overColumnId={overColumnId}
               draggedCardId={draggedCardId}
               onDeleteAccount={onDeleteAccount}
