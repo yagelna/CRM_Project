@@ -12,7 +12,7 @@ const columnStyle = {
 };
 
 
-const KanbanColumn = ({ id, column, onAddAccount, onDeleteAccount, overColumnId, draggedCardId, onViewAccount }) => {
+const KanbanColumn = ({ id, column, tooltip, onAddAccount, onDeleteAccount, overColumnId, draggedCardId, onViewAccount }) => {
 
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
     id,
@@ -27,7 +27,7 @@ const KanbanColumn = ({ id, column, onAddAccount, onDeleteAccount, overColumnId,
 
   const isOver = overColumnId === column.id;
   const showPreviewCard = isOver && draggedCardId && !column.cards.some(card => card.id === draggedCardId);
- useEffect(() => {
+  useEffect(() => {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     [...tooltipTriggerList].forEach(tooltipEl => {
       new bootstrap.Tooltip(tooltipEl);
@@ -67,19 +67,14 @@ const KanbanColumn = ({ id, column, onAddAccount, onDeleteAccount, overColumnId,
             <span className="badge bg-secondary me-2">{column.cards.length}</span>
             {column.title}
           </span>
-          <button 
-                                type="button" 
-                                className="btn btn-sm"
-                                data-bs-toggle="tooltip"
-                                title="Test BUTTON"
-                                data-bs-content={`
-                                    <strong>TEST:</strong><br>
-                                    This is a test button.<br>
-                                    <br>
-                                `}
-                            >
-                                <i className="bi bi-bell-fill text-warning"></i>
-                            </button>
+          <button
+            type="button"
+            className="btn btn-sm"
+            data-bs-toggle="tooltip"
+            title={tooltip}
+          >
+            <i className="bi bi-bell-fill text-warning"></i>
+          </button>
         </div>
       </div>
 
