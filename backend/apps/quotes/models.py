@@ -35,7 +35,7 @@ class QuoteItem(models.Model):
     qty_offered = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=4)
     date_code = models.CharField(max_length=50, blank=True)
-    lead_time = models.CharField(max_length=100, blank=True)
+    lead_time = models.DateField(blank=True, null=True)
     stock_source = models.CharField(max_length=255, blank=True)
     remarks = models.TextField(blank=True)
 
