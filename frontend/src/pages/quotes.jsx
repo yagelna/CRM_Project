@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axiosInstance from '../AxiosInstance';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community';
-import StatusCellRenderer from '../components/crm/StatusCellRenderer';
-import ItemsCellRenderer from '../components/crm/ItemsCellRenderer';
+import StatusCellRenderer from '../components/quotes/StatusCellRenderer';
+import ItemsCellRenderer from '../components/quotes/ItemsCellRenderer';
+import QuoteModal from '../components/quotes/QuoteModal';
 
 import Logo from '../assets/Icon-01.png';
 
@@ -63,7 +64,7 @@ const Quotes = () => {
             field: 'sent_at',
             headerName: 'Sent At',
             flex: 1,
-            valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '--',
+            valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : 'Haven\'t sent yet',
         },
     ];
 
@@ -143,6 +144,7 @@ const Quotes = () => {
 
             {/* Offcanvas (details modal) */}
             {/* <QuoteOffcanvas id="quoteOffcanvas" quote={selectedQuote} refresh={fetchQuotes} /> */}
+            <QuoteModal id="AddQuoteModal" mode='create' quote={selectedQuote} handleUpdateQuotes={fetchQuotes} />
         </div>
     );
 };
