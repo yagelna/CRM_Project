@@ -64,8 +64,6 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
         update_account_status(account, timestamp)
 
         account.save()
-
-
         
     def perform_update(self, serializer):
         interaction = serializer.save()
@@ -74,8 +72,7 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
         if latest and account.last_interaction != latest.timestamp:
             account.last_interaction = latest.timestamp
             update_account_status(account, interaction.timestamp)
-        account.save()
-            
+        account.save()     
     
     def perform_destroy(self, instance):
         account = instance.account
@@ -91,6 +88,13 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
                 account.last_interaction = None
                 account.save()
                 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        crm_account_id = self.request.query_params.get('crm_account')
+        if crm_account_id:
+            queryset = queryset.filter(account_id=crm_account_id)
+        return queryset
+
         
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
     def precheck(self, request):
