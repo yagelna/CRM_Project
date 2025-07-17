@@ -27,7 +27,13 @@ class QuoteItemSerializer(serializers.ModelSerializer):
 class QuoteSerializer(serializers.ModelSerializer):
     items = QuoteItemSerializer(many=True)
     crm_account_name = serializers.CharField(source='crm_account.name', read_only=True)
+    crm_account_email = serializers.EmailField(source='crm_account.email', read_only=True)
     company_name = serializers.CharField(source='crm_account.company.name', read_only=True)
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
+    interaction_title = serializers.CharField(source='interaction.title', read_only=True, default='')
+    interaction_type = serializers.CharField(source='interaction.type', read_only=True, default='')
+    interaction_summary = serializers.CharField(source='interaction.summary', read_only=True, default='')
+
 
     class Meta:
         model = Quote
@@ -35,12 +41,18 @@ class QuoteSerializer(serializers.ModelSerializer):
             'id',
             'crm_account',
             'crm_account_name',
+            'crm_account_email',
             'company_name',
             'interaction',
+            'interaction_title',
+            'interaction_type',
+            'interaction_summary',
             'status',
             'sent_at',
             'created_by',
+            'created_by_username',
             'created_at',
+            'updated_at',
             'items',
         ]
         read_only_fields = ['created_by', 'created_at']

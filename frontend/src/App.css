@@ -101,7 +101,7 @@ body {
   --bs-offcanvas-width: 45%;
 }
 
-.crm-offcanvas {
+.lg-offcanvas {
   --bs-offcanvas-width: 65%;
 }
 
@@ -229,4 +229,8 @@ body {
 
 .kanban-card:hover .card-action:hover {
   opacity: 1;
+}
+
+.preserve-newlines {
+  white-space: pre-wrap;
 }

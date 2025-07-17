@@ -126,7 +126,7 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
 
     return (
         <>
-            <div className="offcanvas offcanvas-end crm-offcanvas" tabIndex="-1" id={id} aria-labelledby={`${id}Label`}>
+            <div className="offcanvas offcanvas-end lg-offcanvas" tabIndex="-1" id={id} aria-labelledby={`${id}Label`}>
                 <div className="offcanvas-header d-block">
                     <div className="d-flex justify-content-between align-items-start">
                         <div>

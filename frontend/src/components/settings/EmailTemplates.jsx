@@ -5,6 +5,7 @@ import axiosInstance from "../../AxiosInstance";
 
 const defaultTemplates = [
     { name: "quote", label: "Quote Template", subject: "Quote For {mpn} [FlyChips]", content: "" },
+    { name: "quote_multiple_items", label: "Multiple Items Quote", subject: "Quote For {mpn} [FlyChips]", content: "" },
     { name: "lowtp", label: "Target Price Request Email", subject: "Target Price Inquiry {mpn}", content: "" },
     { name: "nostock", label: "No Stock Alert", subject: "Availability Update for {mpn} - Out of Stock", content: "" },
     { name: "reminder", label: "Quote Reminder", subject: "Reminder: Quote For {mpn} [FlyChips]", content: "" },

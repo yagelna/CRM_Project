@@ -5,6 +5,7 @@ import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-communi
 import StatusCellRenderer from '../components/quotes/StatusCellRenderer';
 import ItemsCellRenderer from '../components/quotes/ItemsCellRenderer';
 import QuoteModal from '../components/quotes/QuoteModal';
+import QuoteOffcanvas from '../components/quotes/QuoteOffcanvas';
 
 import Logo from '../assets/Icon-01.png';
 
@@ -29,7 +30,21 @@ const Quotes = () => {
             headerName: 'ID',
             width: 80,
             valueFormatter: params => '#' + params.value.toString().padStart(5, '0'),
-            filter: false
+            filter: false,
+            cellRenderer: (params) => (
+                <a
+                href='#quoteOffcanvas'
+                data-bs-toggle='offcanvas'
+                          className="link-opacity-50-hover fw-medium"
+                onClick={() => {
+                    setSelectedQuote(params.data);
+                }
+                }
+                >
+                    #{params.value.toString().padStart(5, '0')}
+                </a>
+            )
+
         },
         {
             field: 'crm_account_name',
@@ -67,6 +82,16 @@ const Quotes = () => {
             valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : 'Haven\'t sent yet',
         },
     ];
+
+
+    const refetchSelectedQuote = async (quoteId) => {
+        try {
+            const res = await axiosInstance.get(`api/crm/quotes/${quoteId}/`);
+            setSelectedQuote(res.data); // רענון הנתון שמוזן ל־Offcanvas
+        } catch (error) {
+            console.error('Failed to fetch updated quote:', error);
+        }
+    };
 
     const fetchQuotes = () => {
         axiosInstance.get('api/crm/quotes/')
@@ -143,8 +168,9 @@ const Quotes = () => {
             </div>
 
             {/* Offcanvas (details modal) */}
-            {/* <QuoteOffcanvas id="quoteOffcanvas" quote={selectedQuote} refresh={fetchQuotes} /> */}
-            <QuoteModal id="AddQuoteModal" mode='create' quote={selectedQuote} handleUpdateQuotes={fetchQuotes} />
+            <QuoteModal id="AddQuoteModal" mode='create' handleUpdateQuotes={fetchQuotes} />
+            <QuoteModal id="EditQuoteModal" mode='edit' quoteData={selectedQuote} handleUpdateQuotes={fetchQuotes} refetchQuote={refetchSelectedQuote} />
+            <QuoteOffcanvas id="quoteOffcanvas" quote={selectedQuote} onClose={() => setSelectedQuote(null)} refresh={fetchQuotes} />
         </div>
     );
 };

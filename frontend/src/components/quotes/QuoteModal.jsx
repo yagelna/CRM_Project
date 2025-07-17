@@ -14,7 +14,7 @@ const defaultItem = {
   remarks: '',
 };
 
-const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes }) => {
+const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes, refetchQuote }) => {
   const [CRMAccounts, setCRMAccounts] = useState([]);
   const [interactions, setInteractions] = useState([]);
   const [formData, setFormData] = useState({
@@ -39,6 +39,7 @@ const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes 
         sent_at: quoteData.sent_at,
       });
       setItems(quoteData.items || [{ ...defaultItem }]);
+      fetchInteractions(quoteData.crm_account);
     } else {
       resetForm();
     }
@@ -121,10 +122,13 @@ const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes 
         await axiosInstance.post('api/crm/quotes/', payload);
         showToast({ type: 'success', title: 'Created', message: 'Quote created successfully' });
       } else {
-        await axiosInstance.put(`api/crm/quotes/${id}/`, payload);
+        await axiosInstance.put(`api/crm/quotes/${quoteData.id}/`, payload);
         showToast({ type: 'success', title: 'Updated', message: 'Quote updated successfully' });
       }
       handleUpdateQuotes();
+      if (quoteData?.id && refetchQuote) {
+        refetchQuote(quoteData.id);
+      }
     } catch (error) {
       showToast({ type: 'error', title: 'Error', message: 'Failed to save quote' });
     } finally {
@@ -259,7 +263,7 @@ const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes 
 
         {/* Buttons */}
         <div className="d-flex justify-content-end gap-2">
-          <button type="submit" className="btn btn-primary" disabled={isSaving}>
+          <button type="submit" className="btn btn-primary" data-bs-dismiss="modal" disabled={isSaving}>
             {isSaving ? 'Saving...' : 'Save'}
           </button>
           <button type="button" className="btn btn-outline-success" onClick={(e) => handleSubmit(e, true)} disabled={isSaving}>
