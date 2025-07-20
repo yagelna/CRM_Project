@@ -21,7 +21,6 @@ const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes,
     crm_account: '',
     interaction: '',
     status: 'draft',
-    sent_at: null,
   });
 
   const [items, setItems] = useState([{ ...defaultItem }]);
@@ -36,7 +35,6 @@ const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes,
         crm_account: quoteData.crm_account,
         interaction: quoteData.interaction,
         status: quoteData.status,
-        sent_at: quoteData.sent_at,
       });
       setItems(quoteData.items || [{ ...defaultItem }]);
       fetchInteractions(quoteData.crm_account);
@@ -46,7 +44,7 @@ const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes,
   }, [mode, quoteData]);
 
   const resetForm = () => {
-    setFormData({ crm_account: '', interaction: '', status: 'draft', sent_at: null });
+    setFormData({ crm_account: '', interaction: '', status: 'draft' });
     setItems([{ ...defaultItem }]);
     setInteractions([]);
   };
@@ -102,39 +100,76 @@ const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes,
     );
   };
 
-  const handleSubmit = async (e, sendEmail = false) => {
-    e.preventDefault();
-    setSubmitAttempted(true);
-    if (!validateItems()) {
-      showToast({ type: 'warning', title: 'Missing Data', message: 'Please complete all required fields in each item.' });
-      return;
+const handleSubmit = async (e, sendEmail = false) => {
+  e.preventDefault();
+  setSubmitAttempted(true);
+
+  if (!validateItems()) {
+    showToast({
+      type: 'warning',
+      title: 'Missing Data',
+      message: 'Please complete all required fields in each item.'
+    });
+    return;
+  }
+
+  setIsSaving(true);
+  try {
+    const payload = {
+      ...formData,
+      items,
+      // ...(sendEmail && { status: 'sent', sent_at: new Date().toISOString() }),
+    };
+
+    let response;
+    if (mode === 'create') {
+      response = await axiosInstance.post('api/crm/quotes/', payload);
+    } else {
+      response = await axiosInstance.put(`api/crm/quotes/${quoteData.id}/`, payload);
     }
 
-    setIsSaving(true);
-    try {
-      const payload = {
-        ...formData,
-        items,
-        ...(sendEmail && { status: 'sent', sent_at: new Date().toISOString() }),
-      };
+    const savedQuoteId = mode === 'create' ? response.data.id : quoteData.id;
 
-      if (mode === 'create') {
-        await axiosInstance.post('api/crm/quotes/', payload);
-        showToast({ type: 'success', title: 'Created', message: 'Quote created successfully' });
-      } else {
-        await axiosInstance.put(`api/crm/quotes/${quoteData.id}/`, payload);
-        showToast({ type: 'success', title: 'Updated', message: 'Quote updated successfully' });
+    // Try to send email if needed
+    if (sendEmail && savedQuoteId) {
+      try {
+        await axiosInstance.post(`api/crm/quotes/${savedQuoteId}/send/`);
+        showToast({
+          type: 'success',
+          title: 'Success',
+          message: 'Quote saved and email sent successfully'
+        });
+      } catch (sendErr) {
+        showToast({
+          type: 'warning',
+          title: 'Partial Success',
+          message: 'Quote saved, but failed to send email'
+        });
       }
-      handleUpdateQuotes();
-      if (quoteData?.id && refetchQuote) {
-        refetchQuote(quoteData.id);
-      }
-    } catch (error) {
-      showToast({ type: 'error', title: 'Error', message: 'Failed to save quote' });
-    } finally {
-      setIsSaving(false);
+    } else {
+      showToast({
+        type: 'success',
+        title: mode === 'create' ? 'Created' : 'Updated',
+        message: 'Quote saved successfully'
+      });
     }
-  };
+
+    handleUpdateQuotes();
+    if (savedQuoteId && refetchQuote) {
+      refetchQuote(savedQuoteId);
+    }
+
+
+  } catch (error) {
+    showToast({
+      type: 'error',
+      title: 'Error',
+      message: 'Failed to save quote'
+    });
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   return (
     <Modal id={id} title={mode === 'create' ? 'Create Quote' : 'Edit Quote'} size="modal-xl">
@@ -266,7 +301,7 @@ const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes,
           <button type="submit" className="btn btn-primary" data-bs-dismiss="modal" disabled={isSaving}>
             {isSaving ? 'Saving...' : 'Save'}
           </button>
-          <button type="button" className="btn btn-outline-success" onClick={(e) => handleSubmit(e, true)} disabled={isSaving}>
+          <button type="button" className="btn btn-outline-success" data-bs-dismiss="modal" onClick={(e) => handleSubmit(e, true)} disabled={isSaving}>
             {isSaving ? 'Sending...' : 'Save & Send'}
           </button>
         </div>

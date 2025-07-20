@@ -4,6 +4,7 @@ from .serializers import QuoteSerializer
 from utils.email_utils import send_html_email
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.utils import timezone
 
 class QuoteViewSet(viewsets.ModelViewSet):
     queryset = Quote.objects.all().order_by('-created_at')
@@ -22,9 +23,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
         
         # HTML table generation for quote items
         items = quote.items.all()
-        print(f"Preparing to send quote with {len(items)} items")
         items_table = build_items_table(items)
-        print(f"Items table: {items_table}")
 
         data = {
             'quote_id': quote.id,
@@ -41,22 +40,32 @@ class QuoteViewSet(viewsets.ModelViewSet):
         )
 
         if result:
+            # Update quote status and sent_at timestamp
+            quote.status = 'sent'
+            quote.sent_at = timezone.now()
+            quote.save()
             return Response({"status": "Email sent successfully"}, status=200)
         else:
             return Response({"error": "Failed to send email"}, status=500)
         
 def build_items_table(items):
-    print("Building items table")
     rows = ""
+    total_price = 0.0
     for idx, item in enumerate(items, start=1):
         rows += f"""
         <tr>
             <td>{idx}</td>
             <td>{item.mpn}</td>
+            <td>{item.manufacturer}</td>
             <td>{item.qty_offered}</td>
-            <td>${item.unit_price:.2f}</td>
+            <td>{item.unit_price:.2f}$</td>
+            <td>{item.date_code}</td>
+            <td>{item.lead_time}</td>
+            <td>{item.remarks}</td>
+            <td>{item.total_price:.2f}</td>
         </tr>
         """
+        total_price += float(item.total_price)
 
     return f"""
     <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
@@ -64,12 +73,20 @@ def build_items_table(items):
             <tr>
                 <th>#</th>
                 <th>MPN</th>
+                <th>MFG</th>
                 <th>Qty</th>
                 <th>Unit Price</th>
+                <th>Date Code</th>
+                <th>Lead Time</th>
+                <th>Remarks</th>
+                <th>Total Price</th>
             </tr>
         </thead>
         <tbody>
             {rows}
+            <tr>
+                <td colspan="8" style="text-align: right;"><strong>Total:</strong></td>
+                <td><strong>${total_price:.2f}</strong></td>
         </tbody>
     </table>
     """
