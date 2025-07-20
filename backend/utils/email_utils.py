@@ -40,6 +40,7 @@ def send_html_email(data, template, from_account="default", attachments=None):
         return None
     print(f'Email template: {email_subject}')
     email_subject = Template(email_subject).render(Context(data))
+    email_body = email_body.replace("{{items_table}}", "{{items_table|safe}}")
     email_body = Template(email_body).render(Context(data))
 
     email = EmailMessage(

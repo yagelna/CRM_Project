@@ -223,7 +223,7 @@ const Rfqs = () => {
                 </div>
                 <button 
                     type="button" 
-                    className="btn btn-primary btn me-2 " 
+                    className="btn btn-primary me-2 " 
                     data-bs-toggle="modal" 
                     data-bs-target="#addRfqModal">
                     + Add RFQ

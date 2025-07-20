@@ -73,6 +73,12 @@ const Sidebar = () => {
             <i className="bi bi-lightbulb sidebar-icon"></i>
           </NavLink>
         </li>
+        <li className="nav-item">
+          <NavLink to="/crm/quotes" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="Quotes" data-bs-toggle="tooltip" data-bs-placement="right">
+            <i className="bi bi-receipt sidebar-icon"></i>
+
+          </NavLink>
+        </li>
       </ul>
       
       {/* User Dropdown */}

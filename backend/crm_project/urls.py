@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/', include('apps.archive.urls')),
     path('api/', include('apps.ai_analysis.urls')),
     path('api/crm/', include('apps.crm_accounts.urls')),
+    path('api/crm/', include('apps.quotes.urls')),
     path('api/email-connections/', include('apps.email_connections.urls')),
     path('api/send-email/', SendEmailView.as_view(), name='send-email'),
     path('api/auth/', include('knox.urls')),

@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'apps.email_connections',
     'apps.system_settings',
     'apps.crm_accounts',
+    'apps.quotes',
     'rest_framework',
     'channels',
     'django_extensions',
