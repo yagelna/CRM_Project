@@ -229,11 +229,8 @@ body {
 
 .kanban-card:hover .card-action:hover {
   opacity: 1;
-<<<<<<< HEAD
-=======
 }
 
 .preserve-newlines {
   white-space: pre-wrap;
->>>>>>> dev
 }
