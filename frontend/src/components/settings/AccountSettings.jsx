@@ -19,9 +19,9 @@ const AccountSettings = () => {
     const [isEditingPassword, setIsEditingPassword] = useState(false); // מצב עריכה לסיסמה
 
     useEffect(() => {
-        axiosInstance.get("api/user/")
+        axiosInstance.get("api/user/me/")
             .then((response) => {
-                const data = response.data[0];
+                const data = response.data;
                 setFormData({
                     email: data.email,
                     first_name: data.first_name,
