@@ -4,6 +4,10 @@ body {
     background-color: #dddddd;
 }
 
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
 
 .App {
   display: flex;
@@ -13,10 +17,15 @@ body {
 }
 
 .content {
-  margin-left: 4.5rem; /* כדי שהתוכן לא יתנגש עם ה-sidebar */
+  margin-left: 4.5rem;
   flex-grow: 1;
   padding: 1rem;
   background-color: #e5e7eb;
+  overflow-x: auto;
+}
+
+.content.full-width {
+  margin-left: 0;
 }
 
 .container {
@@ -214,7 +223,7 @@ body {
 }
 
 .kanban-card:hover {
-  border-color: #FF6C2F; /* הכתום של DotzHub */
+  border-color: #FF6C2F;
 }
 
 .card-action {

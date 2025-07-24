@@ -24,7 +24,7 @@ function App() {
   return (
     <div className="App">
       {!noSidebar && <Sidebar />}
-      <div className="content">
+      <div className={`content ${noSidebar ? 'full-width' : ''}`}>
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
