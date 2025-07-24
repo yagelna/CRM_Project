@@ -11,6 +11,7 @@ from django.utils import timezone
 from apps.system_settings.models import SystemSettings
 from utils.email_utils import send_system_email
 
+
 def update_account_status(account, reference_date):
     if account.status == 'archived':
         return
@@ -260,6 +261,52 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
             "message": "CRM accounts statuses updated successfully.",
             "sent_email": bool(updated)
         }, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='send-test-email')
+    def send_test_email(self, request):
+        import base64
+        import requests
+
+        message_id = "CAJPdHdrkhxa0N6FkJ=zMRxhCS+5CfNM2+V3CMRowkMJx+5JoSQ@mail.gmail.com"
+        thread_id = "198327655501bd42"
+        to_email = "yagelnahshon@gmail.com"
+        # access_token = ".........."
+        subject_text = "Re: שלום"
+        subject_encoded = base64.b64encode(subject_text.encode("utf-8")).decode("utf-8")
+        subject_header = f"=?UTF-8?B?{subject_encoded}?="
+
+        email_raw = f"""To: {to_email}
+Subject: {subject_header}
+In-Reply-To: <{message_id}>
+References: <{message_id}>
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+<p>This is a <b>test reply</b> using Gmail API!</p>
+"""
+
+        raw_base64 = base64.urlsafe_b64encode(email_raw.encode("utf-8")).decode("utf-8")
+
+        url = "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "raw": raw_base64,
+            "threadId": thread_id
+        }
+
+        response = requests.post(url, headers=headers, json=payload)
+
+        if response.status_code == 200:
+            return Response({"status": "Email sent successfully"})
+        else:
+            return Response({
+                "error": "Failed to send email",
+                "details": response.json()
+            }, status=status.HTTP_400_BAD_REQUEST)
     
 
 
