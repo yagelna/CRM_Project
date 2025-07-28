@@ -31,7 +31,6 @@ const Rfqs = () => {
     });
 
     const mobileColDefs = [
-  
   {
     field: "mpn",
     headerName: "MPN",

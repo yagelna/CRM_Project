@@ -9,7 +9,14 @@ from .models import CRMAccount, CRMInteraction, CRMTask
 from .serializers import CRMAccountSerializer, CRMInteractionSerializer, CRMTaskSerializer, EmailPrecheckSerializer, AutomatedInteractionSerializer
 from django.utils import timezone
 from apps.system_settings.models import SystemSettings
+from apps.usersettings.models import UserSettings
+from apps.email_connections.models import EmailConnection
+from apps.email_connections.utils import refresh_google_token
 from utils.email_utils import send_system_email
+import requests
+import base64
+import html
+# from google.auth.transport.requests import Request
 
 
 def update_account_status(account, reference_date):
@@ -307,11 +314,78 @@ Content-Transfer-Encoding: 7bit
                 "error": "Failed to send email",
                 "details": response.json()
             }, status=status.HTTP_400_BAD_REQUEST)
+                   
+class GmailThreadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, thread_id):
+        try:
+            user_settings = UserSettings.objects.get(user=request.user)
+            conn: EmailConnection = user_settings.rfq_email_connection
+
+            if not conn or conn.provider != 'google':
+                print(f"conn: {conn}")
+                print(f"conn.provider: {conn.provider if conn else 'None'}")
+                return Response({"error": "No valid Google email connection found."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                access_token = refresh_google_token(conn)
+            except Exception as e:
+                return Response({"error": f"Token refresh failed: {str(e)}"}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            url = f"https://gmail.googleapis.com/gmail/v1/users/me/threads/{thread_id}?format=full"
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            }
+            response = requests.get(url, headers=headers)
+            if response.status_code != 200:
+                return Response({"error": "Failed to fetch thread data", "details": response.json()}, status=response.status_code)
+            
+            thread_data = response.json()
+            messages = []
+
+            for msg in thread_data.get('messages', []):
+                headers_map = {header['name']: header['value'] for header in msg.get('payload', {}).get('headers', [])}
+                body = extract_body_from_payload(msg.get('payload', {}))
+                messages.append({
+                    "message_id": msg.get('id'),
+                    "from": headers_map.get('From', ''),
+                    "to": headers_map.get('To', ''),
+                    "subject": headers_map.get('Subject', ''),
+                    "date": headers_map.get('Date', ''),
+                    "body": body,
+                })
+            return Response({
+                "thread_id": thread_data.get('id'),
+                "messages": messages
+            }, status=status.HTTP_200_OK)
+        except UserSettings.DoesNotExist:
+            return Response({"error": "User settings not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+def extract_body_from_payload(payload):
+    if "parts" in payload:
+        for part in payload["parts"]:
+            if part.get("mimeType") == "text/html":
+                return decode_body(part["body"].get("data", ""))
+            elif part.get("mimeType") == "text/plain":
+                return decode_body(part["body"].get("data", ""))
+    elif payload.get("body", {}).get("data"):
+        return decode_body(payload["body"]["data"])
+    return "[No body found]"
+
+
+def decode_body(data):
+    if not data:
+        return ""
+    try:
+        decoded_bytes = base64.urlsafe_b64decode(data.encode('UTF-8'))
+        return html.unescape(decoded_bytes.decode('UTF-8'))
+    except Exception:
+        return "[Body decode error]"
     
-
-
-                
-
 class CRMTaskViewSet(viewsets.ModelViewSet):
     queryset = CRMTask.objects.all().order_by('-due_date')
     serializer_class = CRMTaskSerializer
