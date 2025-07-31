@@ -7,6 +7,8 @@ class UserSettings(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     rfq_email_connection = models.ForeignKey(EmailConnection, on_delete=models.SET_NULL, null=True, blank=True, related_name='rfq_connection')
+    crm_email_connection = models.ForeignKey(EmailConnection, on_delete=models.SET_NULL, null=True, blank=True, related_name='crm_connection')
+    
 
     def __str__(self):
         return f"Settings for {self.user.email}"

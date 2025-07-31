@@ -265,3 +265,7 @@ html, body {
   margin-bottom: 1rem;
   border-radius: 12px;
 }
+
+thead.thead-light {
+  background-color: #b91313;
+}
