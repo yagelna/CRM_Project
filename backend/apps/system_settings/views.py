@@ -18,3 +18,10 @@ class SystemSettingsSingletonView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+    
+    def patch(self, request):
+        instance = SystemSettings.get_solo()
+        serializer = SystemSettingsSerializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)

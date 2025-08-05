@@ -7,6 +7,11 @@ const Connections = () => {
     const [systemSettings, setSystemSettings] = useState({});
     const [message, setMessage] = useState("");
     const [integrationType, setIntegrationType] = useState("smtp");
+    const [pendingChanges, setPendingChanges] = useState({
+        rfq: null,
+        crm: null,
+        inventory: null,
+        });
 
     useEffect(() => {
         fetchConnections();
@@ -25,7 +30,7 @@ const Connections = () => {
 
     const fetchUserSettings = async () => {
         try {
-            const response = await axiosInstance.get("api/usersettings/");
+            const response = await axiosInstance.get("api/usersettings/my_settings/");
             setUserSettings(response.data);
             console.log("User Settings:", response.data);
         } catch (error) {
@@ -44,35 +49,50 @@ const Connections = () => {
     };
 
     const getSelectedConnectionId = (purpose) => {
-        if (purpose === "rfq") return userSettings.rfq_email_connection;
-        if (purpose === "crm") return userSettings.crm_email_connection;
-        if (purpose === "inventory") return systemSettings.inventory_update_connection;
-    };
+    if (pendingChanges[purpose] !== null) {
+        return pendingChanges[purpose];
+    }
+    if (purpose === "rfq") return userSettings.rfq_email_connection;
+    if (purpose === "crm") return userSettings.crm_email_connection;
+    if (purpose === "inventory") return systemSettings.inventory_update_connection;
+};
+   const handlePurposeChange = (purpose, connectionId) => {
+  setPendingChanges(prev => ({
+    ...prev,
+    [purpose]: connectionId,
+  }));
+};
 
-    const handlePurposeChange = async (purpose, connectionId) => {
-        try {
-            if (purpose === "inventory") {
-                if (!window.confirm("⚠️ This will affect ALL users. Proceed?")) return;
-                await axiosInstance.patch("api/system-settings/", {
-                    inventory_update_connection: connectionId
-                });
-                setSystemSettings({
-                    ...systemSettings,
-                    inventory_update_connection: connectionId
-                });
-            } else {
-                await axiosInstance.patch("api/usersettings/update_settings/", {
-                    [`${purpose}_email_connection`]: connectionId,
-                });
-                setUserSettings({
-                    ...userSettings,
-                    [`${purpose}_email_connection`]: connectionId,
-                });
-            }
-        } catch (error) {
-            setMessage(`Failed to update ${purpose} connection.`);
-        }
-    };
+const saveAllChanges = async () => {
+  try {
+    if (pendingChanges.rfq !== null) {
+      await axiosInstance.patch("api/usersettings/update_settings/", {
+        rfq_email_connection: pendingChanges.rfq,
+      });
+      setUserSettings(prev => ({ ...prev, rfq_email_connection: pendingChanges.rfq }));
+    }
+
+    if (pendingChanges.crm !== null) {
+      await axiosInstance.patch("api/usersettings/update_settings/", {
+        crm_email_connection: pendingChanges.crm,
+      });
+      setUserSettings(prev => ({ ...prev, crm_email_connection: pendingChanges.crm }));
+    }
+
+    if (pendingChanges.inventory !== null) {
+      if (!window.confirm("⚠️ This will affect ALL users. Proceed?")) return;
+      await axiosInstance.patch("api/system-settings/", {
+        inventory_update_connection: pendingChanges.inventory,
+      });
+      setSystemSettings(prev => ({ ...prev, inventory_update_connection: pendingChanges.inventory }));
+    }
+
+    setMessage("Changes saved successfully.");
+    setPendingChanges({ rfq: null, crm: null, inventory: null });
+  } catch (error) {
+    setMessage("Failed to save changes.");
+  }
+};
 
     const deleteConnection = async (id) => {
         if (!window.confirm("Are you sure you want to delete this connection?")) return;
@@ -99,23 +119,84 @@ const Connections = () => {
     };
 
     const renderPurposeButton = (connId, label, purpose, isGlobal = false) => {
-        const selected = getSelectedConnectionId(purpose) === connId;
+        const savedId = getSelectedConnectionId(purpose);  // הנבחר בפועל כרגע
+        const pendingId = pendingChanges[purpose];
+
+        const isPending = pendingId !== null && pendingId === connId;
+        const isSelected = pendingId === null ? savedId === connId : pendingId === connId;
+
+        let buttonClass = "btn-outline-primary";
+        if (isPending) buttonClass = "btn-warning";  // שינוי שטרם נשמר
+        else if (isSelected) buttonClass = "btn-primary";
+
         return (
             <button
-                className={`btn btn-sm me-1 ${selected ? "btn-primary" : "btn-outline-primary"}`}
+                className={`btn btn-sm me-1 ${buttonClass}`}
                 onClick={() => handlePurposeChange(purpose, connId)}
             >
                 {label} {isGlobal && <span title="System-wide setting">🌐</span>}
+                {isPending && <span title="Unsaved change"> 🔄</span>}
             </button>
         );
     };
+
 
     return (
         <div className="container mt-4">
             <h2>Connections & Integrations</h2>
             {message && <div className="alert alert-info">{message}</div>}
 
-            <div className="mb-3">
+            <table className="table mt-3">
+                <thead className="thead-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Provider</th>
+                        <th>Email</th>
+                        <th>Display Name</th>
+                        <th>Expires At</th>
+                        <th>Used For</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {connections.length > 0 ? (
+                        connections.map(conn => (
+                            <tr key={conn.id}>
+                                <td>{conn.id}</td>
+                                <td>{conn.provider}</td>
+                                <td>{conn.email_address}</td>
+                                <td>{conn.display_name}</td>
+                                <td>{conn.token_expires ? new Date(conn.token_expires).toLocaleString() : "N/A"}</td>
+                                <td>
+                                    {renderPurposeButton(conn.id, "RFQ", "rfq")}
+                                    {renderPurposeButton(conn.id, "CRM", "crm")}
+                                    {renderPurposeButton(conn.id, "Inventory", "inventory", true)}
+                                </td>
+                                <td>
+                                    <button
+                                        className="btn btn-sm btn-danger"
+                                        onClick={() => deleteConnection(conn.id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="7" className="text-center">No connections found.</td>
+                        </tr>
+                    )}
+                </tbody>
+            </table>
+            {Object.values(pendingChanges).some(val => val !== null) && (
+  <div className="mt-3 text-end">
+    <button className="btn btn-success" onClick={saveAllChanges}>
+      Save Changes
+    </button>
+  </div>
+)}
+                        <div className="mb-3">
                 <p className="d-inline-flex gap-1">
                     <button className="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addConnection" aria-expanded="false" aria-controls="addConnection">
                         Add New Connection
@@ -195,50 +276,6 @@ const Connections = () => {
                     </div>
                 </div>
             </div>
-
-            <table className="table mt-3">
-                <thead className="thead-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Provider</th>
-                        <th>Email</th>
-                        <th>Display Name</th>
-                        <th>Expires At</th>
-                        <th>Used For</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {connections.length > 0 ? (
-                        connections.map(conn => (
-                            <tr key={conn.id}>
-                                <td>{conn.id}</td>
-                                <td>{conn.provider}</td>
-                                <td>{conn.email_address}</td>
-                                <td>{conn.display_name}</td>
-                                <td>{conn.token_expires ? new Date(conn.token_expires).toLocaleString() : "N/A"}</td>
-                                <td>
-                                    {renderPurposeButton(conn.id, "RFQ", "rfq")}
-                                    {renderPurposeButton(conn.id, "CRM", "crm")}
-                                    {renderPurposeButton(conn.id, "Inventory", "inventory", true)}
-                                </td>
-                                <td>
-                                    <button
-                                        className="btn btn-sm btn-danger"
-                                        onClick={() => deleteConnection(conn.id)}
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="7" className="text-center">No connections found.</td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
         </div>
     );
 };
