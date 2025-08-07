@@ -6,6 +6,7 @@ import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import { showToast } from '../common/toast';
 import GmailThreadViewer from './GmailThreadViewer';
+import QuoteModal from '../quotes/QuoteModal';
 
 const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
     const [accountData, setAccountData] = useState({
@@ -29,6 +30,7 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
     const [taskBeingEdited, setTaskBeingEdited] = useState(null);
     const [interactionBeingEdited, setInteractionBeingEdited] = useState(null);
     const [openThreads, setOpenThreads] = useState([]);
+    const [defaultQuoteData, setDefaultQuoteData] = useState(null);
 
     useEffect(() => {
         if (account) {
@@ -312,7 +314,24 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
                                                     {/* Gmail Thread Viewer - BELOW the button row */}
                                                     {interaction.type === 'email' && interaction.thread_id && openThreads.includes(interaction.id) && (
                                                         // <div className="mt-3 border rounded p-3 bg-light">
-                                                        <GmailThreadViewer threadId={interaction.thread_id} />
+                                                        <GmailThreadViewer
+                                                            threadId={interaction.thread_id}
+                                                            crmAccountId={account?.id}
+                                                            onRequestNewQuote={() => {
+                                                                setDefaultQuoteData({
+                                                                crm_account: account?.id,
+                                                                interaction: interaction.id
+                                                                });
+
+                                                                setTimeout(() => {
+                                                                const modalEl = document.getElementById("AddQuoteModal");
+                                                                if (modalEl) {
+                                                                    const modal = new window.bootstrap.Modal(modalEl);
+                                                                    modal.show();
+                                                                }
+                                                                }, 300);
+                                                            }}
+                                                            />
                                                         // </div>
                                                     )}
 
@@ -427,6 +446,7 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
                     setTaskBeingEdited(null);
                 }}
             />
+            <QuoteModal id="AddQuoteModal" mode="create" handleUpdateQuotes={() => {}} />
         </>
     );
 };

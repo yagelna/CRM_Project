@@ -7,11 +7,20 @@ from rest_framework.response import Response
 from django.utils import timezone
 from apps.email_connections.models import EmailConnection
 from apps.email_connections.utils import refresh_google_token
+import requests
+import base64
 
 class QuoteViewSet(viewsets.ModelViewSet):
     queryset = Quote.objects.all().order_by('-created_at')
     serializer_class = QuoteSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = Quote.objects.all().order_by('-created_at')
+        crm_account_id = self.request.query_params.get('crm_account', None)
+        if crm_account_id:
+            queryset = queryset.filter(crm_account__id=crm_account_id)
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
@@ -55,6 +64,11 @@ class QuoteViewSet(viewsets.ModelViewSet):
         quote = self.get_object()
         thread_id = request.data.get('thread_id')
         message_id = request.data.get('message_id')
+        subject_raw = request.data.get('subject', '')
+        if message_id.startswith('<') and message_id.endswith('>'):
+            formatted_msg_id = message_id
+        else:
+            formatted_msg_id = f"<{message_id}>"
 
         if not thread_id or not message_id:
             return Response({"error": "Missing thread_id or message_id"}, status=400)
@@ -96,8 +110,9 @@ class QuoteViewSet(viewsets.ModelViewSet):
         template_obj = EmailTemplate.objects.filter(name='quote_multiple_items').first()
         if not template_obj:
             return Response({"error": "Email template not found"}, status=500)
-        subject_raw = Template(template_obj.subject).render(Context(data))
-        body_html = Template(template_obj.content).render(Context(data))
+        email_body_template = template_obj.content
+        email_body_template = email_body_template.replace("{{items_table}}", "{{items_table|safe}}")
+        body_html = Template(email_body_template).render(Context(data))
 
         # base64 encode
         subject_encoded = base64.b64encode(subject_raw.encode("utf-8")).decode("utf-8")
@@ -105,8 +120,8 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         email_raw = f"""To: {crm_account.email}
 Subject: {subject_header}
-In-Reply-To: <{message_id}>
-References: <{message_id}>
+In-Reply-To: {formatted_msg_id}
+References: {formatted_msg_id}
 MIME-Version: 1.0
 Content-Type: text/html; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
@@ -125,7 +140,6 @@ Content-Transfer-Encoding: 7bit
             "raw": raw_base64,
             "threadId": thread_id
         } 
-
         response = requests.post(url, headers=headers, json=payload)
         if response.status_code == 200:
             # Update quote status and sent_at timestamp

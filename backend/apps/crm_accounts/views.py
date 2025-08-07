@@ -350,6 +350,7 @@ class GmailThreadView(APIView):
                 body = extract_body_from_payload(msg.get('payload', {}))
                 messages.append({
                     "message_id": msg.get('id'),
+                    "real_message_id": headers_map.get('Message-ID', ''),
                     "from": headers_map.get('From', ''),
                     "to": headers_map.get('To', ''),
                     "subject": headers_map.get('Subject', ''),
