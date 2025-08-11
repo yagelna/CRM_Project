@@ -269,3 +269,35 @@ html, body {
 thead.thead-light {
   background-color: #b91313;
 }
+
+.dotzhub-btn-group .btn {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  color: #5A34F1; /* טקסט סגול */
+  font-weight: 500;
+  padding: 6px 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+.dotzhub-btn-group .btn:hover {
+  background: #f8f6ff; /* סגול מאוד בהיר */
+  border-color: #5A34F1;
+}
+
+.dotzhub-btn-group .btn.active {
+  background: #5A34F1; /* סגול מותג */
+  color: white;
+  border-color: #5A34F1;
+  font-weight: 600;
+}
+
+.dotzhub-btn-group .btn:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.dotzhub-btn-group .btn:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}

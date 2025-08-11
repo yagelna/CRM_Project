@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '../../AxiosInstance';
 import AddInteractionModal from './AddInteractionModal';
 import EditInteractionModal from './EditInteractionModal';
+import EditCRMAccountModal from './EditCRMAccountModal';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import { showToast } from '../common/toast';
 import GmailThreadViewer from './GmailThreadViewer';
 import QuoteModal from '../quotes/QuoteModal';
 
-const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
+const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts }) => {
     const [accountData, setAccountData] = useState({
         name: '',
         email: '',
@@ -154,7 +155,11 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
 
                 <div className="offcanvas-body">
                     <div className="d-flex justify-content-end mb-3 gap-2">
-                        <button className="btn btn-outline-warning btn-sm">
+                        <button
+                            className="btn btn-outline-warning btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editCRMAccountModal"
+                        >
                             <i className="bi bi-pencil me-1" />
                             Edit
                         </button>
@@ -411,6 +416,18 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
                 </div>
 
             </div>
+            <EditCRMAccountModal
+                id="editCRMAccountModal"
+                account={account}
+                onSave={(updatedAccount) => {
+                    setAccountData({
+                        ...accountData,
+                        ...updatedAccount
+                    });
+                    refreshAccount();
+                    fetchAccounts(); // Refresh accounts list in parent component
+                }}
+            />
             <AddInteractionModal
                 id="addInteractionModal"
                 accountId={account?.id}

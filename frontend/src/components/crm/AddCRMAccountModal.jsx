@@ -28,9 +28,6 @@ const AddCRMAccountModal = ({ id, onSuccess }) => {
     useEffect(() => {
         fetchCompanies();
         fetchUsers();
-        console.log('AddCRMAccountModal mounted');
-        console.log('Companies:', companies);
-        console.log('Users:', users);
     }, []);
     
     const fetchCompanies = (query = '') => {

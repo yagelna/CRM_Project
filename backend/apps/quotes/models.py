@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from apps.crm_accounts.models import CRMAccount, CRMInteraction
+from django.core.validators import MinValueValidator
 
 class Quote(models.Model):
     crm_account = models.ForeignKey(CRMAccount, on_delete=models.CASCADE, related_name='quotes')
@@ -36,7 +37,7 @@ class QuoteItem(models.Model):
     qty_offered = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=4)
     date_code = models.CharField(max_length=50, blank=True)
-    lead_time = models.DateField(blank=True, null=True)
+    lead_time = models.PositiveIntegerField(blank=True, null=True, help_text="Lead time in days", validators=[MinValueValidator(0)])
     stock_source = models.CharField(max_length=255, blank=True)
     remarks = models.TextField(blank=True)
 

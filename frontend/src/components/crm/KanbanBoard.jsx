@@ -14,17 +14,19 @@ function KanbanBoard({ accounts, onAddAccount, onDeleteAccount, onStatusChange, 
     inactive: "Customers with no interaction for over 6 months",
     archived: "Archived customers kept for future reference"
   };
-
+  const [activeUser, setActiveUser] = useState("All");
   const columns = useMemo(() => {
-    return statuses.map((status) => ({
-      id: status,
-      title: status.charAt(0).toUpperCase() + status.slice(1),
-      tooltip: tooltipMap[status],
-      cards: accounts.filter((acc) => acc.status === status),
-    }));
-  }, [accounts]);
+  const filteredAccounts = activeUser === "All"
+    ? accounts
+    : accounts.filter(acc => acc.assigned_to_name === activeUser);
 
-
+  return statuses.map((status) => ({
+    id: status,
+    title: status.charAt(0).toUpperCase() + status.slice(1),
+    tooltip: tooltipMap[status],
+    cards: filteredAccounts.filter((acc) => acc.status === status),
+  }));
+}, [accounts, activeUser]);
 
   const [activeColumn, setActiveColumn] = useState(null);
   const [overColumnId, setOverColumnId] = useState(null);
@@ -102,7 +104,35 @@ function KanbanBoard({ accounts, onAddAccount, onDeleteAccount, onStatusChange, 
     }
   };
 
+  const externalFilterChanged = (user) => {
+    setActiveUser(user);
+  };
+
+  const filteredAccounts = useMemo(() => {
+    if (activeUser === "All") return accounts;
+    return accounts.filter((acc) => acc.assigned_to_name === activeUser);
+  }, [accounts, activeUser]);
+
   return (
+    <>
+    <div className="btn-group dotzhub-btn-group mb-3">
+  <button
+    className={`btn btn-outline-primary ${activeUser === "All" ? "active" : ""}`}
+    onClick={() => setActiveUser("All")}
+  >
+    All
+  </button>
+  {[...new Set(accounts.map(acc => acc.assigned_to_name).filter(Boolean))].map(user => (
+    <button
+      key={user}
+      className={`btn btn-outline-primary ${activeUser === user ? "active" : ""}`}
+      onClick={() => setActiveUser(user)}
+    >
+      {user}
+    </button>
+  ))}
+</div>
+
     <DndContext onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver}>
       <div className="container-fluid d-flex flex-column min-vh-100 overflow-hidden px-0">
         <div className="kanban-columns-wrapper d-flex justify-content-between" style={{ width: "100%" }}><SortableContext items={columns.map((col) => col.id)}>
@@ -138,6 +168,7 @@ function KanbanBoard({ accounts, onAddAccount, onDeleteAccount, onStatusChange, 
         document.body
       )}
     </DndContext>
+    </>
   );
 }
 
