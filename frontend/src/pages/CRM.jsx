@@ -17,7 +17,8 @@ const CRMAccounts = () => {
   const [accounts, setAccounts] = useState([]);
   const [viewMode, setViewMode] = useState('table'); // table / kanban
   const [selectedAccount, setSelectedAccount] = useState(null);
-
+  const [activeUser, setActiveUser] = useState("All");
+  const [uniqueUsers, setUniqueUsers] = useState([]);
 
   const gridRef = useRef();
   const myTheme = themeQuartz
@@ -35,8 +36,27 @@ const CRMAccounts = () => {
 
   useEffect(() => {
     fetchAccounts();
-    console.log('accounts:', accounts);
   }, []);
+
+  useEffect(() => {
+    if (accounts.length > 0) {
+      const users = [...new Set(accounts.map(acc => acc.assigned_to_name).filter(Boolean))];
+      setUniqueUsers(users);
+    }
+  }, [accounts]);
+
+  const externalFilterChanged = (user) => {
+    setActiveUser(user);
+    gridRef.current.api.onFilterChanged();
+  };
+
+  const isExternalFilterPresent = () => {
+    return activeUser !== "All";
+  };
+  const doesExternalFilterPass = (node) => {
+    if (activeUser === "All") return true;
+    return node.data.assigned_to_name === activeUser;
+  };
 
   const fetchFullAccount = async (accountId) => {
     try {
@@ -63,34 +83,34 @@ const CRMAccounts = () => {
   };
 
   const handleStatusChange = async (accountId, newStatus) => {
-  try {
-    await axiosInstance.patch(`/api/crm/accounts/${accountId}/`, { status: newStatus });
-    setAccounts(prev =>
-      prev.map(acc =>
-        acc.id === accountId ? { ...acc, status: newStatus } : acc
-      )
-    );
-    showToast?.({ type: 'success', title: 'Status Updated' });
-  } catch (error) {
-    console.error('Failed to update account status:', error);
-    showToast?.({ type: 'danger', title: 'Update Failed', message: 'Could not update status.' });
-  }
-};
-
-const handleViewAccount = async (accountId) => {
-  try {
-    const response = await axiosInstance.get(`/api/crm/accounts/${accountId}/`);
-    setSelectedAccount(response.data);
-
-    const el = document.getElementById("crmAccountOffcanvas");
-    if (el) {
-      const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(el);
-      bsOffcanvas.show();
+    try {
+      await axiosInstance.patch(`/api/crm/accounts/${accountId}/`, { status: newStatus });
+      setAccounts(prev =>
+        prev.map(acc =>
+          acc.id === accountId ? { ...acc, status: newStatus } : acc
+        )
+      );
+      showToast?.({ type: 'success', title: 'Status Updated' });
+    } catch (error) {
+      console.error('Failed to update account status:', error);
+      showToast?.({ type: 'danger', title: 'Update Failed', message: 'Could not update status.' });
     }
-  } catch (error) {
-    console.error("Failed to load account for view:", error);
-  }
-};
+  };
+
+  const handleViewAccount = async (accountId) => {
+    try {
+      const response = await axiosInstance.get(`/api/crm/accounts/${accountId}/`);
+      setSelectedAccount(response.data);
+
+      const el = document.getElementById("crmAccountOffcanvas");
+      if (el) {
+        const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(el);
+        bsOffcanvas.show();
+      }
+    } catch (error) {
+      console.error("Failed to load account for view:", error);
+    }
+  };
 
   const colDefs = [
     {
@@ -100,10 +120,6 @@ const handleViewAccount = async (accountId) => {
           href="#crmAccountOffcanvas"
           data-bs-toggle="offcanvas"
           className="link-opacity-50-hover fw-medium"
-          // onClick={() => {
-          //     setSelectedAccount(params.data);
-          //     console.log(params.data);
-          // }}
           onClick={() => fetchFullAccount(params.data.id)}
         >
           {params.value}
@@ -162,42 +178,67 @@ const handleViewAccount = async (accountId) => {
         </div>
       </div>
 
-      <div className="mb-2">
-        <input
-          type="text"
-          id="filter-text-box"
-          className="form-control"
-          placeholder="Filter..."
-          onInput={onFilterTextBoxChanged}
-          style={{ width: "200px" }}
-        />
-      </div>
+
 
       {viewMode === 'table' ? (
-        <div className="card border-0 shadow-sm">
-          <div className="card-body p-2">
-            <div className="ag-theme-alpine" style={{ height: 650, width: '100%' }}>
-              <AgGridReact
-                ref={gridRef}
-                columnDefs={colDefs}
-                rowData={accounts}
-                theme={myTheme}
-                defaultColDef={{ filter: true, flex: 1 }}
-                pagination={true}
-                paginationPageSize={20}
-                overlayNoRowsTemplate={`
+        <>
+          <div className="mb-2 d-flex align-items-center">
+            <input
+              type="text"
+              id="filter-text-box"
+              className="form-control me-3"
+              placeholder="Filter..."
+              onInput={onFilterTextBoxChanged}
+              style={{ width: "200px" }}
+            />
+
+            <div className="btn-group dotzhub-btn-group">
+              <Button
+                className={activeUser === "All" ? "active" : ""}
+                onClick={() => externalFilterChanged("All")}
+              >
+                All
+              </Button>
+              {uniqueUsers.map(user => (
+                <Button
+                  key={user}
+                  className={activeUser === user ? "active" : ""}
+                  onClick={() => externalFilterChanged(user)}
+                >
+                  {user}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+
+          <div className="card border-0 shadow-sm">
+            <div className="card-body p-2">
+              <div className="ag-theme-alpine" style={{ height: 650, width: '100%' }}>
+                <AgGridReact
+                  ref={gridRef}
+                  columnDefs={colDefs}
+                  rowData={accounts}
+                  theme={myTheme}
+                  defaultColDef={{ filter: true, flex: 1 }}
+                  isExternalFilterPresent={isExternalFilterPresent}
+                  doesExternalFilterPass={doesExternalFilterPass}
+                  pagination={true}
+                  paginationPageSize={20}
+                  overlayNoRowsTemplate={`
                     <div class="d-flex flex-column align-items-center text-primary justify-content-center" style="height: 100%;">
                     <img src="${Logo}" class="my-logo-fade" style="width: 48px; height: 48px;" />
                     <br/>
                     <span class="loading -text-purple">Connecting The Dotz...</span>
                     </div>
                 `}
-                overlayLoadingTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Updating Data...</div>'}
+                  overlayLoadingTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Updating Data...</div>'}
 
-              />
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </>
       ) : (
         <KanbanBoard accounts={accounts} onStatusChange={handleStatusChange} onDeleteAccount={handleDeleteAccount} onViewAccount={handleViewAccount} />
       )}
@@ -207,6 +248,7 @@ const handleViewAccount = async (accountId) => {
         account={selectedAccount}
         onDelete={handleDeleteAccount}
         onClose={() => setSelectedAccount(null)}
+        fetchAccounts={fetchAccounts}
       />
     </div>
   );

@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '../../AxiosInstance';
 import AddInteractionModal from './AddInteractionModal';
 import EditInteractionModal from './EditInteractionModal';
+import EditCRMAccountModal from './EditCRMAccountModal';
 import AddTaskModal from './AddTaskModal';
 import EditTaskModal from './EditTaskModal';
 import { showToast } from '../common/toast';
+import GmailThreadViewer from './GmailThreadViewer';
+import QuoteModal from '../quotes/QuoteModal';
 
-const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
+const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts }) => {
     const [accountData, setAccountData] = useState({
         name: '',
         email: '',
@@ -27,6 +30,8 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
     const [submitting, setSubmitting] = useState(false);
     const [taskBeingEdited, setTaskBeingEdited] = useState(null);
     const [interactionBeingEdited, setInteractionBeingEdited] = useState(null);
+    const [openThreads, setOpenThreads] = useState([]);
+    const [defaultQuoteData, setDefaultQuoteData] = useState(null);
 
     useEffect(() => {
         if (account) {
@@ -64,6 +69,14 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
         } catch (error) {
             console.error('Failed to refresh account:', error);
         }
+    };
+
+    const toggleThread = (interactionId) => {
+        setOpenThreads(prev =>
+            prev.includes(interactionId)
+                ? prev.filter(id => id !== interactionId)
+                : [...prev, interactionId]
+        );
     };
 
     const handleSubmitInteraction = async () => {
@@ -142,7 +155,11 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
 
                 <div className="offcanvas-body">
                     <div className="d-flex justify-content-end mb-3 gap-2">
-                        <button className="btn btn-outline-warning btn-sm">
+                        <button
+                            className="btn btn-outline-warning btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editCRMAccountModal"
+                        >
                             <i className="bi bi-pencil me-1" />
                             Edit
                         </button>
@@ -217,6 +234,11 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
                                         Tasks
                                     </button>
                                 </li>
+                                <li className="nav-item" role="presentation">
+                                    <button className="nav-link" id="emails-tab" data-bs-toggle="tab" data-bs-target="#emails" type="button" role="tab">
+                                        Emails
+                                    </button>
+                                </li>
                             </ul>
 
                             <div className="tab-content border border-top-0 p-3 rounded-bottom" id="crmTabsContent">
@@ -248,7 +270,7 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
                                                             })}
                                                         </small>
                                                     </div>
-
+{/* 
                                                     <div
                                                         className="p-2 bg-white rounded border"
 
@@ -260,15 +282,24 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
                                                         }}
                                                     >
                                                         {interaction.summary}
-                                                    </div>
+                                                    </div> */}
 
                                                     {/* Interaction Details */}
-                                                    <div className="d-flex justify-content-between align-items-center">
+                                                    <div className="d-flex justify-content-between align-items-center mt-3">
                                                         <small className="text-muted">By: {interaction.added_by_name || 'Unknown'}</small>
-                                                        <div className="ms-2 d-flex flex gap-1 align-items-end">
-                                                            {/* Edit Interaction */}
+
+                                                        <div className="d-flex gap-2">
+                                                            {interaction.type === 'email' && interaction.thread_id && (
+                                                                <button
+                                                                    className="btn btn-sm btn-outline-info"
+                                                                    onClick={() => toggleThread(interaction.id)}
+                                                                >
+                                                                    <i className="bi bi-chat-left-text me-1" />
+                                                                    {openThreads.includes(interaction.id) ? 'Hide Thread' : 'View Thread'}
+                                                                </button>
+                                                            )}
                                                             <button
-                                                                className="btn btn-sm btn-outline-primary mt-2"
+                                                                className="btn btn-sm btn-outline-primary"
                                                                 title="Edit"
                                                                 onClick={() => { setInteractionBeingEdited(interaction); }}
                                                                 data-bs-toggle="modal"
@@ -276,9 +307,8 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
                                                             >
                                                                 <i className="bi bi-pencil" />
                                                             </button>
-                                                            {/* Delete Interaction */}
                                                             <button
-                                                                className="btn btn-sm btn-outline-danger mt-2"
+                                                                className="btn btn-sm btn-outline-danger"
                                                                 title="Delete"
                                                                 onClick={() => handleDeleteInteraction(interaction.id)}
                                                             >
@@ -286,6 +316,30 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
                                                             </button>
                                                         </div>
                                                     </div>
+                                                    {/* Gmail Thread Viewer - BELOW the button row */}
+                                                    {interaction.type === 'email' && interaction.thread_id && openThreads.includes(interaction.id) && (
+                                                        // <div className="mt-3 border rounded p-3 bg-light">
+                                                        <GmailThreadViewer
+                                                            threadId={interaction.thread_id}
+                                                            crmAccountId={account?.id}
+                                                            onRequestNewQuote={() => {
+                                                                setDefaultQuoteData({
+                                                                crm_account: account?.id,
+                                                                interaction: interaction.id
+                                                                });
+
+                                                                setTimeout(() => {
+                                                                const modalEl = document.getElementById("AddQuoteModal");
+                                                                if (modalEl) {
+                                                                    const modal = new window.bootstrap.Modal(modalEl);
+                                                                    modal.show();
+                                                                }
+                                                                }, 300);
+                                                            }}
+                                                            />
+                                                        // </div>
+                                                    )}
+
                                                 </div>
                                             ))}
                                         </div>
@@ -362,6 +416,18 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
                 </div>
 
             </div>
+            <EditCRMAccountModal
+                id="editCRMAccountModal"
+                account={account}
+                onSave={(updatedAccount) => {
+                    setAccountData({
+                        ...accountData,
+                        ...updatedAccount
+                    });
+                    refreshAccount();
+                    fetchAccounts(); // Refresh accounts list in parent component
+                }}
+            />
             <AddInteractionModal
                 id="addInteractionModal"
                 accountId={account?.id}
@@ -397,6 +463,7 @@ const CRMOffcanvas = ({ id, account, onDelete, onClose }) => {
                     setTaskBeingEdited(null);
                 }}
             />
+            <QuoteModal id="AddQuoteModal" mode="create" handleUpdateQuotes={() => {}} />
         </>
     );
 };

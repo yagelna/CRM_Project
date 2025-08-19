@@ -230,7 +230,7 @@ const handleSubmit = async (e, sendEmail = false) => {
           <th>Qty *</th>
           <th>Price *</th>
           <th>Date Code</th>
-          <th>Lead Time</th>
+          <th>Lead Time (days)</th>
           <th>Stock Source</th>
           <th>Remarks</th>
           <th></th>
@@ -266,7 +266,7 @@ const handleSubmit = async (e, sendEmail = false) => {
                 onChange={(e) => handleItemChange(index, 'date_code', e.target.value)} />
             </td>
             <td>
-              <input type="date" className="form-control form-control-sm"
+              <input type="number" min={0} className="form-control form-control-sm"
                 value={item.lead_time}
                 onChange={(e) => handleItemChange(index, 'lead_time', e.target.value)} />
             </td>

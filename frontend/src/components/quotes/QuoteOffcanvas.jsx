@@ -223,7 +223,7 @@ const QuoteOffcanvas = ({ id, quote, onClose, refresh}) => {
                                                 <th>Qty</th>
                                                 <th>Unit Price</th>
                                                 <th>Date Code</th>
-                                                <th>Lead Time</th>
+                                                <th>Lead Time (days)</th>
                                                 <th>Stock Source</th>
                                                 <th>Remarks</th>
                                                 <th>Line Total</th>

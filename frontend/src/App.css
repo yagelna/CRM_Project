@@ -4,6 +4,10 @@ body {
     background-color: #dddddd;
 }
 
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
 
 .App {
   display: flex;
@@ -13,10 +17,15 @@ body {
 }
 
 .content {
-  margin-left: 4.5rem; /* כדי שהתוכן לא יתנגש עם ה-sidebar */
+  margin-left: 4.5rem;
   flex-grow: 1;
   padding: 1rem;
   background-color: #e5e7eb;
+  overflow-x: auto;
+}
+
+.content.full-width {
+  margin-left: 0;
 }
 
 .container {
@@ -214,7 +223,7 @@ body {
 }
 
 .kanban-card:hover {
-  border-color: #FF6C2F; /* הכתום של DotzHub */
+  border-color: #FF6C2F;
 }
 
 .card-action {
@@ -233,4 +242,62 @@ body {
 
 .preserve-newlines {
   white-space: pre-wrap;
+}
+
+.gmail-card-header {
+  background-color: #F2F0FC; /* DotzHub Light Purple */
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #ddd;
+  border-radius: 12px 12px 0 0;
+}
+
+.gmail-card-body {
+  padding: 1rem;
+  background-color: #ffffff;
+  border-radius: 0 0 12px 12px;
+  border: 1px solid #eee;
+  border-top: none;
+}
+
+.gmail-card {
+  border: none;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+  border-radius: 12px;
+}
+
+thead.thead-light {
+  background-color: #b91313;
+}
+
+.dotzhub-btn-group .btn {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  color: #5A34F1; /* טקסט סגול */
+  font-weight: 500;
+  padding: 6px 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+.dotzhub-btn-group .btn:hover {
+  background: #f8f6ff; /* סגול מאוד בהיר */
+  border-color: #5A34F1;
+}
+
+.dotzhub-btn-group .btn.active {
+  background: #5A34F1; /* סגול מותג */
+  color: white;
+  border-color: #5A34F1;
+  font-weight: 600;
+}
+
+.dotzhub-btn-group .btn:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.dotzhub-btn-group .btn:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }

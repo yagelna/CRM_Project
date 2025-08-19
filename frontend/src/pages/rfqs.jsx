@@ -21,6 +21,7 @@ const Rfqs = () => {
     const [selectedRfq, setSelectedRfq] = useState(null);
     const [selectedRows, setSelectedRows] = useState([]);
     const [autoFillData, setAutoFillData] = useState(null);
+    const [colDefs, setColDefs] = useState([]);
     const gridRef = useRef();
     const myTheme = themeQuartz
 	.withParams({
@@ -28,6 +29,30 @@ const Rfqs = () => {
         headerBackgroundColor: "#5A34F1",
         headerTextColor:"#ffffff",
     });
+
+    const mobileColDefs = [
+  {
+    field: "mpn",
+    headerName: "MPN",
+    cellRenderer: (params) => (
+        <a
+            href="#offcanvasRight"
+            data-bs-toggle="offcanvas"
+            className="link-opacity-50-hover fw-medium"
+            onClick={() => { setSelectedRfq(params.data) }}
+        >
+            {params.value}
+        </a>
+    ),
+    flex: 1,
+  },
+  {
+    field: "status",
+    headerName: "Status",
+    cellRenderer: "statusCellRenderer",
+    flex: 1,
+  },
+];
 
     // delete rfq by id
     const handleDelete = async (ids) => {
@@ -69,45 +94,92 @@ const Rfqs = () => {
     };
 
     // Column Definitions: Defines & controls grid columns.
-    const [colDefs, setColDefs] = useState([
-        {
-            field: "id",
-            headerName: "ID",
-            width: 80,
-            valueFormatter: (params) => '#'+ params.value.toString().padStart(5, '0'),
-            filter: false
-        },
-        {   field: "mpn",
-            headerName: "MPN",
-            cellRenderer: (params) => (
-                <a
-                    href="#offcanvasRight"
-                    data-bs-toggle="offcanvas"
-                    className="link-opacity-50-hover fw-medium"
-                    onClick={() => { setSelectedRfq(params.data) }}
-                >
-                    {params.value}
-                </a>
-            ),
-            width: 200,
-        },
-        {   field: "target_price", headerName: "TP", width: 80 },
-        {   field: "qty_requested", headerName: "QTY", width: 80 },
-        {   field: "manufacturer", headerName: "MFG", flex: 0.7 },
-        {   field: "stock_source", headerName: "Stock Source", flex: 1 },
-        {   field: "source", headerName: "RFQ Source", flex: 1 },
-        // { field: "contact_object.name", headerName: "Contact Name" },
-        {   field: "contact_object.company_object.name", headerName: "Company", flex: 1 },
-        {   field: "contact_object.company_object.country", headerName: "Country", flex: 1 },
-        {   field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc', hide: true },
-        {   field: "updated_at", headerName: "Updated At",flex: 1, valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '' },
-        { 
-            field: "status",
-            headerName: "Status",
-            cellRenderer: "statusCellRenderer",
-            flex: 0.8,
-        },
-    ]);
+    useEffect(() => {
+    const isMobile = window.innerWidth < 768; // או 576, אם אתה רוצה עוד יותר הדוק
+    if (isMobile) {
+        setColDefs(mobileColDefs);
+    } else {
+        setColDefs([
+            {
+                field: "id",
+                headerName: "ID",
+                width: 80,
+                valueFormatter: (params) => '#'+ params.value.toString().padStart(5, '0'),
+                filter: false
+            },
+            {
+                field: "mpn",
+                headerName: "MPN",
+                cellRenderer: (params) => (
+                    <a
+                        href="#offcanvasRight"
+                        data-bs-toggle="offcanvas"
+                        className="link-opacity-50-hover fw-medium"
+                        onClick={() => { setSelectedRfq(params.data) }}
+                    >
+                        {params.value}
+                    </a>
+                ),
+                width: 200,
+            },
+            { field: "target_price", headerName: "TP", width: 80 },
+            { field: "qty_requested", headerName: "QTY", width: 80 },
+            { field: "manufacturer", headerName: "MFG", flex: 0.7 },
+            { field: "stock_source", headerName: "Stock Source", flex: 1 },
+            { field: "source", headerName: "RFQ Source", flex: 1 },
+            { field: "contact_object.company_object.name", headerName: "Company", flex: 1 },
+            { field: "contact_object.company_object.country", headerName: "Country", flex: 1 },
+            { field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc', hide: true },
+            { field: "updated_at", headerName: "Updated At",flex: 1, valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '' },
+            {
+                field: "status",
+                headerName: "Status",
+                cellRenderer: "statusCellRenderer",
+                flex: 0.8,
+            },
+        ]);
+    }
+}, []);
+
+    // const [colDefs, setColDefs] = useState([
+    //     {
+    //         field: "id",
+    //         headerName: "ID",
+    //         width: 80,
+    //         valueFormatter: (params) => '#'+ params.value.toString().padStart(5, '0'),
+    //         filter: false
+    //     },
+    //     {   field: "mpn",
+    //         headerName: "MPN",
+    //         cellRenderer: (params) => (
+    //             <a
+    //                 href="#offcanvasRight"
+    //                 data-bs-toggle="offcanvas"
+    //                 className="link-opacity-50-hover fw-medium"
+    //                 onClick={() => { setSelectedRfq(params.data) }}
+    //             >
+    //                 {params.value}
+    //             </a>
+    //         ),
+    //         width: 200,
+    //     },
+    //     {   field: "target_price", headerName: "TP", width: 80 },
+    //     {   field: "qty_requested", headerName: "QTY", width: 80 },
+    //     {   field: "manufacturer", headerName: "MFG", flex: 0.7 },
+    //     {   field: "stock_source", headerName: "Stock Source", flex: 1 },
+    //     {   field: "source", headerName: "RFQ Source", flex: 1 },
+    //     // { field: "contact_object.name", headerName: "Contact Name" },
+    //     {   field: "contact_object.company_object.name", headerName: "Company", flex: 1 },
+    //     {   field: "contact_object.company_object.country", headerName: "Country", flex: 1 },
+    //     {   field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc', hide: true },
+    //     {   field: "updated_at", headerName: "Updated At",flex: 1, valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '' },
+    //     { 
+    //         field: "status",
+    //         headerName: "Status",
+    //         cellRenderer: "statusCellRenderer",
+    //         flex: 0.8,
+    //     },
+    // ]);
 
     const onSelectionChanged = (event) =>{
         const selectedData = event.api.getSelectedRows();

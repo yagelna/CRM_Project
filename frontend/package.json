@@ -18,6 +18,7 @@
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
+    "dompurify": "^3.2.6",
     "jodit-react": "^5.2.15",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.6",
