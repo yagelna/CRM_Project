@@ -9,7 +9,7 @@ class InventoryItem(models.Model):
     manufacturer = models.CharField(max_length=255, blank=True, null=True)
     quantity = models.IntegerField()
     location = models.CharField(max_length=255, blank=True, null=True)
-    supplier = models.CharField(max_length=255)
+    supplier = models.CharField(max_length=255, db_index=True)
     date_code = models.CharField(max_length=255, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=4, blank=True, null=True) # selling price
     cost = models.DecimalField(max_digits=10, decimal_places=4, blank=True, null=True) # purchase price
@@ -28,3 +28,4 @@ class InventoryItem(models.Model):
         required_suppliers = [s.strip().lower() for s in settings.LOCATION_REQUIRED_SUPPLIERS]
         if any(normalized_supplier.startswith(s) for s in required_suppliers) and not self.location:
             raise ValidationError({'location': f"Location is required when the supplier is '{self.supplier}'."})
+        
