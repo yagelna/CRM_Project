@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from django.db.models import Q
+from django.conf import settings
 from .models import CRMAccount, CRMInteraction, CRMTask
 from .serializers import CRMAccountSerializer, CRMInteractionSerializer, CRMTaskSerializer, EmailPrecheckSerializer, AutomatedInteractionSerializer
 from django.utils import timezone
@@ -253,7 +254,7 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
         # send email notification if there are changes
         if updated or new_accounts_no_interaction:
             send_system_email(
-                to_email="yagel@flychips.com",
+                to_email=settings.SYSTEM_EMAIL_RECIPIENTS,
                 subject="DotzHub CRM Status Update - {}".format(datetime.now().strftime("%Y-%m-%d")),
                 template_path="../templates/emails/crm_status_report.html",
                 context={
