@@ -1,14 +1,38 @@
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage, get_connection
-from datetime import datetime
 import logging
 from django.conf import settings
 from apps.email_templates.models import EmailTemplate
 from apps.email_templates.serializers import EmailTemplateSerializer
-from apps.email_templates.views import EmailTemplateViewSet
 from django.template import Template, Context
 logger = logging.getLogger('myapp')
+
+
+
+
+def parse_recipients(to_emails):
+    """
+    Accepts str (e.g. "a@x.com, b@x.com; c@x.com") or list like ["a@x.com","b@x.com"].
+    Returns a flat, de-duplicated list of emails (order-preserving).
+    No recursion, because we don't expect nested lists.
+    """
+    if not to_emails:
+        return []
+
+    if isinstance(to_emails, (list, tuple, set)):
+        to_emails = ",".join(str(x) for x in to_emails if x)
+
+    s = str(to_emails).replace(";", ",")
+    parts = []
+    for chunk in s.split(","):
+        parts += chunk.strip().split()
+
+    seen, result = set(), []
+    for p in parts:
+        if p and p.lower() not in seen:
+            seen.add(p.lower())
+            result.append(p)
+    return result
 
 
 # Function to send an HTML email
@@ -61,7 +85,8 @@ def send_html_email(data, template, from_account="default", attachments=None):
 
 # TO DO: create "system" email account in settings.py and use it for system emails - from_account="system"
 # TO DO: 
-def send_system_email(to_email, subject, template_path, context={}, from_account="inventory", attachments=None):
+def send_system_email(to_email, subject, template_path, context=None, from_account="inventory", attachments=None):
+    context = context or {}
     email_config = settings.EMAIL_ACCOUNTS.get(from_account, settings.EMAIL_ACCOUNTS["default"])
     connection = get_connection(
         host=email_config["EMAIL_HOST"],
@@ -72,12 +97,16 @@ def send_system_email(to_email, subject, template_path, context={}, from_account
     )
 
     html_body = render_to_string(template_path, context)
+    to_list = parse_recipients(to_email)
+    if not to_list:
+        logger.error(f"No valid recipients found in {to_email}")
+        return False
 
     email = EmailMessage(
         subject=subject,
         body=html_body,
         from_email=email_config["EMAIL_HOST_USER"],
-        to=[to_email],
+        to=to_list,
         connection=connection
     )
     email.content_subtype = "html"
