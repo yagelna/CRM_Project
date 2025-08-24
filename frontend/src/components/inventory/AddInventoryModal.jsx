@@ -3,36 +3,44 @@ import axiosInstance from '../../AxiosInstance';
 import Modal from '../common/modal';
 import { CONFIG } from '../../config';
 
-const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
-    const [formData, setFormData] = useState({
-        mpn: '',
-        manufacturer: '',
-        quantity: '',
-        date_code: '',
-        supplier: CONFIG.DEFAULT_SUPPLIER,
-        location: '',
-        price: '',
-        cost: '',
-        url: null,
-        break_qty_a: '',
-        price_a: '',
-    });
+const initialForm = {
+  mpn: '',
+  manufacturer: '',
+  quantity: '',
+  date_code: '',
+  supplier: CONFIG.DEFAULT_SUPPLIER,
+  location: '',
+  price: '',
+  cost: '',
+  url: '',
+  break_qty_a: '',
+  price_a: '',
+};
 
+const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
+    const [formData, setFormData] = useState(initialForm);
     const [customSupplier, setCustomSupplier] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
     useEffect(() => {
         if (mode === 'edit' && itemData) {
             setFormData({
+                ...initialForm,
                 ...itemData,
-                supplier: itemData.supplier === CONFIG.DEFAULT_SUPPLIER ? CONFIG.DEFAULT_SUPPLIER : "Other", // קביעה אוטומטית של הספק
+                supplier: itemData.supplier === CONFIG.DEFAULT_SUPPLIER ? CONFIG.DEFAULT_SUPPLIER : "Other",
             });
-            if (itemData.supplier !== CONFIG.DEFAULT_SUPPLIER) {
-                setCustomSupplier(itemData.supplier);
-            }
+            setCustomSupplier(itemData.supplier !== CONFIG.DEFAULT_SUPPLIER ? itemData.supplier : '');
+        }
+        else if (mode === 'create') {
+            setFormData(initialForm);
+            setCustomSupplier('');
         }
     }, [mode, itemData]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (submitting) return;
+        setSubmitting(true);
 
         const dataToSubmit = {
             ...formData,
@@ -74,13 +82,28 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                 .then((response) => {
                     console.log("Inventory updated successfully: ", response.data);
                     handleUpdateInventory(response.data, 'edit');
+                    setFormData({
+                        mpn: '',
+                        manufacturer: '',
+                        quantity: '',
+                        date_code: '',
+                        supplier: CONFIG.DEFAULT_SUPPLIER,
+                        location: '',
+                        price: '',
+                        cost: '',
+                        url: null,
+                        break_qty_a: '',
+                        price_a: '',
+                    });
+                    setCustomSupplier('');
                 })
                 .catch((error) => console.error('Error updating inventory: ' + error));
-        }     
+            setSubmitting(false);   
+        }
     };
 
     return (
-        <Modal id={id} title={mode === 'create' ? 'Create New Inventory Item' : 'Edit Inventory Item'}>
+        <Modal id={id} title={mode === 'create' ? 'Create New Inventory Item' : 'Edit Inventory Item'} onClose={() => { setFormData(initialForm); setCustomSupplier(''); }}>
             <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                     <input
@@ -199,7 +222,9 @@ const AddInventoryModal = ({ id, mode, itemData, handleUpdateInventory }) => {
                 </div>
                 <div className="modal-footer">
                     <button type="submit" className="btn btn-success" data-bs-dismiss="modal">{mode === 'create' ? 'Create' : 'Update'}</button>
-                    <button type="button" className="btn btn-danger" data-bs-dismiss="modal">Discard</button>
+                    <button type="button" className="btn btn-danger" data-bs-dismiss="modal" onClick={() => setFormData(initialForm)}>
+                        Discard
+                    </button>
                 </div>
             </form>
         </Modal>
