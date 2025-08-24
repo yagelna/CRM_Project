@@ -1,6 +1,6 @@
 import React from "react";
 
-const Modal = ({id, title, children, size= ""}) => {
+const Modal = ({id, title, children, size= "", onClose}) => {
     return (
         <div className="modal fade" id={id} data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby={`${id}Label`} aria-hidden="true">
             <div className={`modal-dialog ${size}`}>
@@ -13,7 +13,7 @@ const Modal = ({id, title, children, size= ""}) => {
                                 title
                             )}
                         </div>
-                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={onClose}></button>
                     </div>
                     <div className="modal-body">
                         {children}
