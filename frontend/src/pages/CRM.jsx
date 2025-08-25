@@ -139,9 +139,15 @@ const CRMAccounts = () => {
     { field: 'status', headerName: 'Status', flex: 0.6 },
     {
       field: 'created_at',
-      headerName: 'Created',
+      headerName: 'Created At',
       flex: 1,
-      valueFormatter: p => new Date(p.value).toLocaleDateString()
+      valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : ''
+    },
+    {
+      field: 'updated_at',
+      headerName: 'Updated At',
+      flex: 1,
+      valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : ''
     },
   ];
 
