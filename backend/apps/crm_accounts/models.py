@@ -11,6 +11,7 @@ class CRMAccount(models.Model):
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     last_interaction = models.DateTimeField(null=True, blank=True)
     status = models.CharField(
         max_length=20,
@@ -48,11 +49,17 @@ class CRMInteraction(models.Model):
     thread_id = models.CharField(max_length=255, blank=True, null=True)
 
     title = models.CharField(max_length=255, blank=True, null=True)
-    summary = models.TextField()
+    summary = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(null=True, blank=True)
     added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['account', 'thread_id'], name='idx_acc_thread'),
+            models.Index(fields=['account', 'timestamp'], name='idx_acc_ts'),
+        ]
 
 
 class CRMTask(models.Model):

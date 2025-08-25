@@ -33,6 +33,38 @@ class CRMAccountSerializer(serializers.ModelSerializer):
         qs = obj.interactions.order_by('-timestamp')
         return CRMInteractionSerializer(qs, many=True).data
     
+class IngestEmailSerializer(serializers.Serializer):
+    message_id = serializers.CharField()
+    thread_id = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    from_email = serializers.EmailField()
+    to_emails = serializers.CharField()
+    cc_emails = serializers.CharField(allow_blank=True, required=False)
+    watched_email = serializers.EmailField()
+    subject = serializers.CharField(allow_blank=True, required=False)
+    timestamp = serializers.DateTimeField()
+
+    def validate(self, data):
+
+        def ensure_list(val):
+            if val is None: return []
+            if isinstance(val, str):
+                return [e.strip().lower() for e in val.split(',') if e.strip()]
+            return [str(e).strip().lower() for e in val if str(e).strip()]
+
+        data['to_emails'] = ensure_list(data.get('to_emails'))
+        data['cc_emails'] = ensure_list(data.get('cc_emails', []))
+        fe = data['from_email'].strip().lower()
+        we = data['watched_email'].strip().lower()
+
+        # direction logic
+        if fe == we:
+            data['direction'] = 'outgoing'
+        elif we in data['to_emails'] or we in data['cc_emails']:
+            data['direction'] = 'incoming'
+        else:
+            raise serializers.ValidationError("Email does not match the watched email or recipients.")
+        return data
+
 class EmailPrecheckSerializer(serializers.Serializer):
     message_id = serializers.CharField()
     thread_id = serializers.CharField(allow_null=True, allow_blank=True, required=False)

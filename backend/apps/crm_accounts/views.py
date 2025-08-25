@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from django.db.models import Q
 from django.conf import settings
 from .models import CRMAccount, CRMInteraction, CRMTask
-from .serializers import CRMAccountSerializer, CRMInteractionSerializer, CRMTaskSerializer, EmailPrecheckSerializer, AutomatedInteractionSerializer
+from .serializers import CRMAccountSerializer, CRMInteractionSerializer, CRMTaskSerializer, EmailPrecheckSerializer, AutomatedInteractionSerializer, IngestEmailSerializer
 from django.utils import timezone
 from apps.system_settings.models import SystemSettings
 from apps.usersettings.models import UserSettings
@@ -104,8 +104,74 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(account_id=crm_account_id)
         return queryset
 
+    @action(detail=False, methods=['post'], url_path='ingest-email')
+    def ingest_email(self, request):
+        serializer = IngestEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        message_id = data['message_id']
+        thread_id = data.get('thread_id')
+        direction = data['direction']
+        subject = data.get('subject', '')[:255]
+        timestamp = data['timestamp']
+        all_emails = set([data['from_email'], data['watched_email'], *data['to_emails'], *data.get('cc_emails', [])])
+
+        # Check if the message ID already exists
+        if CRMInteraction.objects.filter(message_id=message_id).exists():
+            return Response( {"status": "duplicate"}, status=status.HTTP_200_OK)
         
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+        # Check if any of the emails match existing CRM accounts
+        matching_accounts = CRMAccount.objects.filter(email__in=all_emails)
+        if not matching_accounts.exists():
+            return Response({ "status": "not_strategic" }, status=status.HTTP_200_OK)
+        account = matching_accounts.first() # in the future, we might want to handle multiple matches differently.
+        if thread_id:
+            existing = CRMInteraction.objects.filter(thread_id=thread_id, account=account).order_by('-timestamp').first()
+            if existing:
+                if existing.direction and existing.direction != direction:
+                    existing.direction = 'mixed'
+                else:
+                    existing.direction = direction
+
+                if not existing.timestamp or existing.timestamp < timestamp:
+                    existing.timestamp = timestamp
+                existing.save()
+
+                account.last_interaction = existing.timestamp
+                account.status = 'active'
+                account.save()
+
+                return Response({
+                    "status": "updated_existing",
+                    "account_id": account.id,
+                    "interaction_id": existing.id
+                }, status=status.HTTP_200_OK)
+            
+        # create a new interaction
+        interaction = CRMInteraction.objects.create(
+            account=account,
+            type='email',
+            is_auto_generated=True,
+            message_id=message_id,
+            thread_id=thread_id,
+            direction=direction,
+            title=subject,
+            summary="", # we might want to add more details in the future
+            timestamp=timestamp,
+            added_by=request.user
+        )
+        account.last_interaction = interaction.timestamp
+        account.status = 'active'
+        account.save()
+
+        return Response({
+            "status": "created",
+            "account_id": account.id,
+            "interaction_id": interaction.id
+        }, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'])
     def precheck(self, request):
         serializer = EmailPrecheckSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
