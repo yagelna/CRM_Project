@@ -388,7 +388,7 @@ class GmailThreadView(APIView):
     def get(self, request, thread_id):
         try:
             user_settings = UserSettings.objects.get(user=request.user)
-            conn: EmailConnection = user_settings.rfq_email_connection
+            conn: EmailConnection = user_settings.crm_email_connection
 
             if not conn or conn.provider != 'google':
                 print(f"conn: {conn}")
@@ -414,7 +414,11 @@ class GmailThreadView(APIView):
 
             for msg in thread_data.get('messages', []):
                 headers_map = {header['name']: header['value'] for header in msg.get('payload', {}).get('headers', [])}
-                body = extract_body_from_payload(msg.get('payload', {}))
+                body = extract_body_from_payload(
+                    msg.get('payload', {}),
+                    message_id=msg.get('id'),
+                    access_token=access_token
+                )
                 messages.append({
                     "message_id": msg.get('id'),
                     "real_message_id": headers_map.get('Message-ID', ''),
@@ -433,33 +437,110 @@ class GmailThreadView(APIView):
         except Exception as e:
             return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-def extract_body_from_payload(payload):
-    if "parts" in payload:
-        for part in payload["parts"]:
-            if part.get("mimeType") == "text/html":
-                return decode_body(part["body"].get("data", ""))
-            elif part.get("mimeType") == "text/plain":
-                return decode_body(part["body"].get("data", ""))
-    elif payload.get("body", {}).get("data"):
-        return decode_body(payload["body"]["data"])
-    return "[No body found]"
+def extract_body_from_payload(payload, message_id, access_token):
+    """
+    Recursively search for body; prefer text/html, then text/plain.
+    If the content sits behind attachmentId (not a real file, often Gmail stores big bodies this way),
+    fetch it via the attachments API. Returns a single string.
+    """
+    html_candidates = []
+    text_candidates = []
+    
+    data, mt = _get_part_text(payload, message_id, access_token)
 
+    if data:
+        if mt == "text/html":
+            return data
+        elif mt == "text/plain":
+            text_candidates.append(data)
 
-def decode_body(data):
+    for part in payload.get("parts", []) or []:
+        mt = (part.get("mimeType") or "").lower()
+
+        # dive into multipart/*
+        if mt.startswith("multipart/"):
+            inner = extract_body_from_payload(part, message_id, access_token)
+            if inner:
+                # we don't guess by tags; we just keep order and prefer html later
+                # keep as text candidate unless explicit html was returned
+                if "<" in inner and ">" in inner:
+                    html_candidates.append(inner)
+                else:
+                    text_candidates.append(inner)
+            continue
+
+        # leaf: fetch data or attachment only for text types
+        if mt in ("text/html", "text/plain"):
+            data, _ = _get_part_text(part, message_id, access_token)
+            if data:
+                if mt == "text/html":
+                    html_candidates.append(data)
+                else:
+                    text_candidates.append(data)
+
+    # 3) preference
+    return (html_candidates[0] if html_candidates else
+            (text_candidates[0] if text_candidates else "[No body found]"))
+    
+
+def _get_part_text(part, message_id, access_token):
+    """
+    Returns (text, mimeType) for text parts.
+    - If body.data exists -> decode and return.
+    - If body.attachmentId exists and mimeType is text/* -> fetch attachment and decode.
+    - Otherwise -> (None, mimeType)
+    """
+    mt = (part.get("mimeType") or "").lower()
+    body = part.get("body", {}) or {}
+
+    # direct data
+    raw = body.get("data")
+    if raw:
+        return _decode_body(raw), mt
+
+    attachment_id = body.get("attachmentId")
+    if attachment_id and mt.startswith("text/"):
+        try:
+            url = f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{message_id}/attachments/{attachment_id}"
+            headers = {"Authorization": f"Bearer {access_token}"}
+            resp = requests.get(url, headers=headers, timeout=15)
+            if resp.status_code == 200:
+                data = resp.json().get("data")
+                if data:
+                    return _decode_body(data), mt
+        except Exception:
+            pass
+
+    return None, mt
+
+def _decode_body(data):
+    """Decode base64url safely (add padding) and unescape HTML."""
     if not data:
         return ""
     try:
-        decoded_bytes = base64.urlsafe_b64decode(data.encode('UTF-8'))
-        return html.unescape(decoded_bytes.decode('UTF-8'))
+        pad = len(data) % 4
+        if pad:
+            data += "=" * (4 - pad)
+        decoded_bytes = base64.urlsafe_b64decode(data.encode("utf-8"))
+        return html.unescape(decoded_bytes.decode("utf-8", errors="replace"))
     except Exception:
         return "[Body decode error]"
-    
-class CRMTaskViewSet(viewsets.ModelViewSet):
-    queryset = CRMTask.objects.all().order_by('-due_date')
-    serializer_class = CRMTaskSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(added_by=self.request.user)
+# def decode_body(data):
+#     if not data:
+#         return ""
+#     try:
+#         decoded_bytes = base64.urlsafe_b64decode(data.encode('UTF-8'))
+#         return html.unescape(decoded_bytes.decode('UTF-8'))
+#     except Exception:
+#         return "[Body decode error]"
+    
+# class CRMTaskViewSet(viewsets.ModelViewSet):
+#     queryset = CRMTask.objects.all().order_by('-due_date')
+#     serializer_class = CRMTaskSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def perform_create(self, serializer):
+#         serializer.save(added_by=self.request.user)
 
     
