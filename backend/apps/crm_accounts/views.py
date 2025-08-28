@@ -535,12 +535,12 @@ def _decode_body(data):
 #     except Exception:
 #         return "[Body decode error]"
     
-# class CRMTaskViewSet(viewsets.ModelViewSet):
-#     queryset = CRMTask.objects.all().order_by('-due_date')
-#     serializer_class = CRMTaskSerializer
-#     permission_classes = [permissions.IsAuthenticated]
+class CRMTaskViewSet(viewsets.ModelViewSet):
+    queryset = CRMTask.objects.all().order_by('-due_date')
+    serializer_class = CRMTaskSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-#     def perform_create(self, serializer):
-#         serializer.save(added_by=self.request.user)
+    def perform_create(self, serializer):
+        serializer.save(added_by=self.request.user)
 
     
