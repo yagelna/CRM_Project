@@ -110,6 +110,9 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
+        if not data.get('matches_watched', True):
+            return Response({"status": "ignored_non_matching_mailbox"}, status=status.HTTP_200_OK)
+
         message_id = data['message_id']
         thread_id = data.get('thread_id')
         direction = data['direction']
