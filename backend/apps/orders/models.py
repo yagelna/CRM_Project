@@ -2,6 +2,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.db import models
 from apps.companies.models import Company
 from apps.contacts.models import Contact
+from django.conf import settings
 from django.utils import timezone
 
 # helper for money rounding to 2 decimals
@@ -58,8 +59,8 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_orders')
-    updated_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_orders')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_orders')
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_orders')
 
     class Meta:
         ordering = ['-created_at']
