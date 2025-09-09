@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'apps.system_settings',
     'apps.crm_accounts',
     'apps.quotes',
+    'apps.orders',
     'rest_framework',
     'channels',
     'django_extensions',
@@ -192,6 +193,11 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'knox.auth.TokenAuthentication',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
+        'rest_framework.filters.SearchFilter',
     ],
 }
 
