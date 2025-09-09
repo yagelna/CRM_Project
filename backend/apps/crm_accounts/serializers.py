@@ -59,10 +59,13 @@ class IngestEmailSerializer(serializers.Serializer):
         # direction logic
         if fe == we:
             data['direction'] = 'outgoing'
+            data['matches_watched'] = True
         elif we in data['to_emails'] or we in data['cc_emails']:
             data['direction'] = 'incoming'
+            data['matches_watched'] = True
         else:
-            raise serializers.ValidationError("Email does not match the watched email or recipients.")
+            data['matches_watched'] = False
+            data['direction'] = 'unknown'
         return data
 
 class EmailPrecheckSerializer(serializers.Serializer):
@@ -74,17 +77,21 @@ class EmailPrecheckSerializer(serializers.Serializer):
     watched_email = serializers.EmailField()
 
     def validate(self, data):
+        data['from_email'] = data['from_email'].strip().lower()
+        data['watched_email'] = data['watched_email'].strip().lower()
         data['to_emails'] = [e.strip().lower() for e in data['to_emails'].split(',') if e.strip()]
         data['cc_emails'] = [e.strip().lower() for e in data['cc_emails'].split(',') if e.strip()]
 
-        # direction logic
+        # direction logic and matching
         if data['from_email'] == data['watched_email']:
             data['direction'] = 'outgoing'
+            data['matches_watched'] = True
         elif data['watched_email'] in data['to_emails'] or data['watched_email'] in data['cc_emails']:
             data['direction'] = 'incoming'
+            data['matches_watched'] = True
         else:
-            raise serializers.ValidationError("Email does not match the watched email or recipients.")
-        
+            data['matches_watched'] = False
+            data['direction'] = 'unknown'
         return data
 
 class AutomatedInteractionSerializer(serializers.Serializer):
