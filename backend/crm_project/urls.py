@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/', include('apps.email_templates.urls')),
     path('api/', include('apps.archive.urls')),
     path('api/', include('apps.ai_analysis.urls')),
+    path('api/', include('apps.orders.urls')),
     path('api/crm/', include('apps.crm_accounts.urls')),
     path('api/crm/', include('apps.quotes.urls')),
     path('api/email-connections/', include('apps.email_connections.urls')),
