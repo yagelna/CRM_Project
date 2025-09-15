@@ -14,6 +14,7 @@ import AI from './pages/ai';
 import Settings from './pages/settings';
 import CRMAccounts from './pages/CRM';
 import Quotes from './pages/quotes';
+import Orders from './pages/orders';
 
 import ProtectedRoute from './components/ProtectedRoutes'; 
 
@@ -42,6 +43,8 @@ function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/ai" element={<AI />} />
             <Route path="/crm/quotes" element={<Quotes />} />
+            <Route path="/orders" element={<Orders />} />
+            
 
           {/* </Route> */}
         </Routes>

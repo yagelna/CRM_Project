@@ -79,6 +79,11 @@ const Sidebar = () => {
 
           </NavLink>
         </li>
+        <li className="nav-item">
+          <NavLink to="/orders" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="Orders" data-bs-toggle="tooltip" data-bs-placement="right">
+            <i className="bi bi-bag sidebar-icon"></i>
+          </NavLink>
+        </li>
       </ul>
       
       {/* User Dropdown */}
