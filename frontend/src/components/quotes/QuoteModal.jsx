@@ -219,82 +219,82 @@ const handleSubmit = async (e, sendEmail = false) => {
             
         {/* Items */}
         <div className="mb-3">
-  <label className="form-label">Items</label>
-  <div className="table-responsive">
-    <table className="table table-hover align-middle">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>MPN *</th>
-          <th>Manufacturer</th>
-          <th>Qty *</th>
-          <th>Price *</th>
-          <th>Date Code</th>
-          <th>Lead Time (days)</th>
-          <th>Stock Source</th>
-          <th>Remarks</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {items.map((item, index) => (
-          <tr key={index}>
-            <th scope="row">{index + 1}</th>
-            <td>
-              <input type="text" className={`form-control form-control-sm ${submitAttempted && !item.mpn ? 'is-invalid' : ''}`}
-                value={item.mpn}
-                onChange={(e) => handleItemChange(index, 'mpn', e.target.value)} />
-            </td>
-            <td>
-              <input type="text" className="form-control form-control-sm"
-                value={item.manufacturer}
-                onChange={(e) => handleItemChange(index, 'manufacturer', e.target.value)} />
-            </td>
-            <td>
-              <input type="number" className={`form-control form-control-sm ${!item.qty_offered && submitAttempted ? 'is-invalid' : ''}`}
-                value={item.qty_offered || ''}
-                onChange={(e) => handleItemChange(index, 'qty_offered', e.target.value)} />
-            </td>
-            <td>
-              <input type="number" step="0.0001" className={`form-control form-control-sm ${!item.unit_price && submitAttempted ? 'is-invalid' : ''}`}
-                value={item.unit_price || ''}
-                onChange={(e) => handleItemChange(index, 'unit_price', e.target.value)} />
-            </td>
-            <td>
-              <input type="text" className="form-control form-control-sm"
-                value={item.date_code}
-                onChange={(e) => handleItemChange(index, 'date_code', e.target.value)} />
-            </td>
-            <td>
-              <input type="number" min={0} className="form-control form-control-sm"
-                value={item.lead_time}
-                onChange={(e) => handleItemChange(index, 'lead_time', e.target.value)} />
-            </td>
-            <td>
-              <input type="text" className="form-control form-control-sm"
-                value={item.stock_source}
-                onChange={(e) => handleItemChange(index, 'stock_source', e.target.value)} />
-            </td>
-            <td>
-              <input type="text" className="form-control form-control-sm"
-                value={item.remarks}
-                onChange={(e) => handleItemChange(index, 'remarks', e.target.value)} />
-            </td>
-            <td>
-              <button type="button" className="btn btn-outline-danger btn-sm"
-                onClick={() => handleRemoveItem(index)} title="Remove">
-                &times;
-              </button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-  <div className="text-end">
-    <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAddItem}>+ Add Item</button>
-  </div>
-</div>
+          <label className="form-label">Items</label>
+          <div className="table-responsive">
+            <table className="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>MPN *</th>
+                  <th>Manufacturer</th>
+                  <th>Qty *</th>
+                  <th>Price *</th>
+                  <th>Date Code</th>
+                  <th>Lead Time (days)</th>
+                  <th>Stock Source</th>
+                  <th>Remarks</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, index) => (
+                  <tr key={index}>
+                    <th scope="row">{index + 1}</th>
+                    <td>
+                      <input type="text" className={`form-control form-control-sm ${submitAttempted && !item.mpn ? 'is-invalid' : ''}`}
+                        value={item.mpn}
+                        onChange={(e) => handleItemChange(index, 'mpn', e.target.value)} />
+                    </td>
+                    <td>
+                      <input type="text" className="form-control form-control-sm"
+                        value={item.manufacturer}
+                        onChange={(e) => handleItemChange(index, 'manufacturer', e.target.value)} />
+                    </td>
+                    <td>
+                      <input type="number" className={`form-control form-control-sm ${!item.qty_offered && submitAttempted ? 'is-invalid' : ''}`}
+                        value={item.qty_offered || ''}
+                        onChange={(e) => handleItemChange(index, 'qty_offered', e.target.value)} />
+                    </td>
+                    <td>
+                      <input type="number" step="0.0001" className={`form-control form-control-sm ${!item.unit_price && submitAttempted ? 'is-invalid' : ''}`}
+                        value={item.unit_price || ''}
+                        onChange={(e) => handleItemChange(index, 'unit_price', e.target.value)} />
+                    </td>
+                    <td>
+                      <input type="text" className="form-control form-control-sm"
+                        value={item.date_code}
+                        onChange={(e) => handleItemChange(index, 'date_code', e.target.value)} />
+                    </td>
+                    <td>
+                      <input type="number" min={0} className="form-control form-control-sm"
+                        value={item.lead_time}
+                        onChange={(e) => handleItemChange(index, 'lead_time', e.target.value)} />
+                    </td>
+                    <td>
+                      <input type="text" className="form-control form-control-sm"
+                        value={item.stock_source}
+                        onChange={(e) => handleItemChange(index, 'stock_source', e.target.value)} />
+                    </td>
+                    <td>
+                      <input type="text" className="form-control form-control-sm"
+                        value={item.remarks}
+                        onChange={(e) => handleItemChange(index, 'remarks', e.target.value)} />
+                    </td>
+                    <td>
+                      <button type="button" className="btn btn-outline-danger btn-sm"
+                        onClick={() => handleRemoveItem(index)} title="Remove">
+                        &times;
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="text-end">
+            <button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAddItem}>+ Add Item</button>
+          </div>
+        </div>
 
         {/* Buttons */}
         <div className="d-flex justify-content-end gap-2">

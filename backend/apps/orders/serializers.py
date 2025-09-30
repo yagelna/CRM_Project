@@ -29,6 +29,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source='company.name', read_only=True)
+    contact_name = serializers.CharField(source='contact.name', read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
 
     items_payload = serializers.ListSerializer(
@@ -41,9 +43,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
+
         fields = [
             "id", "order_number", "customer_order_number",
             "company", "contact",
+            "company_name", "contact_name",
             "status", "payment_status", "currency",
             "sub_total", "discount_total", "tax_total", "shipping_total", "grand_total",
             "shipping_address", "notes",
