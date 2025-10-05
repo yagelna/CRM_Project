@@ -15,7 +15,7 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [showDiscount, setShowDiscount] = useState(false);
     const [showShipping, setShowShipping] = useState(false);
-    const [showHandling, setShowHandling] = useState(false);
+    // const [showHandling, setShowHandling] = useState(false);
 
     useEffect(() => {
         // Reset form when modal is opened
@@ -27,7 +27,7 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
             setSubmitAttempted(false);
             setShowDiscount(false);
             setShowShipping(false);
-            setShowHandling(false);
+            // setShowHandling(false);
         }
         if (modalElement) {
             modalElement.addEventListener("show.bs.modal", resetForm);
@@ -128,7 +128,7 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
         try {
             const formData = new FormData();
             formData.append('file', selectedFile);
-            const { data } = await axiosInstance.post('/orders/upload_po/', formData);
+            const { data } = await axiosInstance.post('/api/orders/upload_po/', formData);
             if (data?.form) {
                 setForm((f) => ({ ...f, ...data.form }));
             }
@@ -158,8 +158,9 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
         setSubmitAttempted(true);
         // Basic validation
         const hasMissingFormFields = !form.company;
-        const hasInvalidItems = items.some
-            (it => !it.mpn || !it.qty_ordered || !it.unit_price);
+        const hasInvalidItems = items.some(it =>
+            !it.mpn || !it.qty_ordered || it.qty_ordered <= 0 || it.unit_price === "" || it.unit_price === null || isNaN(it.unit_price)
+        );
         if (hasMissingFormFields || hasInvalidItems) {
             showToast({
                 title: "Validation Error",
@@ -194,6 +195,11 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
                 message: `Order #${data.order_number} created successfully.`,
                 type: "success",
             });
+            const modalElement = document.getElementById(id);
+            if (modalElement) {
+                const modal = window.bootstrap.Modal.getInstance(modalElement);
+                modal.hide();
+            }
         } catch (error) {
             console.error("Error saving order:", error);
             showToast({
@@ -203,11 +209,7 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
             });
         } finally {
             setSaving(false);
-            const modalElement = document.getElementById(id);
-            if (modalElement) {
-                const modal = window.bootstrap.Modal.getInstance(modalElement);
-                modal.hide();
-            }
+            
         }
     };
 
@@ -224,7 +226,7 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
             discount_total: 0,
             tax_total: 0,
             shipping_total: 0,
-            handling_total: 0,
+            // handling_total: 0,
         };
     }
 
@@ -359,7 +361,7 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
                                         <th>Date Code</th>
                                         <th>Requested Date</th>
                                         <th>Source</th>
-                                        <th>Remarks</th>
+                                        <th>Notes</th>
                                         <th>Status</th>
                                         <th></th>
                                     </tr>
@@ -410,8 +412,8 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
                                             </td>
                                             <td>
                                                 <input type="text" className="form-control form-control-sm"
-                                                    value={item.remarks}
-                                                    onChange={(e) => handleItemChange(index, 'remarks', e.target.value)} />
+                                                    value={item.notes}
+                                                    onChange={(e) => handleItemChange(index, 'notes', e.target.value)} />
                                             </td>
                                             <td>
                                                 <select className="form-select form-select-sm"
@@ -469,7 +471,7 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
                             />
                         )}
                     </div>
-                    <div className="col-md-4 form-check form-switch">
+                    {/* <div className="col-md-4 form-check form-switch">
                         <input className="form-check-input" type="checkbox" id="toggleHandling" checked={showHandling} onChange={() => setShowHandling(!showHandling)} />
                         <label className="form-check-label" htmlFor="toggleHandling">Add Handling Fee </label>
                         {showHandling && (
@@ -482,7 +484,7 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
                                 placeholder="Handling Fee"
                             />
                         )}
-                    </div>
+                    </div> */}
                 <div className="modal-footer mt-4">
                     <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" className="btn btn-primary" onClick={saveOrder} disabled={saving} >

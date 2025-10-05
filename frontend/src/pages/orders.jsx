@@ -36,11 +36,13 @@ const Orders = () => {
 
     const ORDER_STATUS_TO_BOOTSTRAP = {
         new: "primary",
+        awaiting_payment: "secondary",
         processing: "warning",
         shipped: "info",
         completed: "success",
         cancelled: "danger",
         returned: "dark",
+        refunded: "info",
     };
 
     const PAYMENT_STATUS_TO_BOOTSTRAP = {
