@@ -4,6 +4,8 @@ import axiosInstance from "../AxiosInstance";
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community';
 import { showToast } from '../components/common/toast';
 import OrderModal from '../components/orders/OrderModal';
+import OrderOffcanvas from "../components/orders/OrderOffcanvas";
+import EditOrderModal from "../components/orders/EditOrderModal";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -19,12 +21,14 @@ const Orders = () => {
     // Data
     const [orders, setOrders] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [viewOrder, setViewOrder] = useState(null);
 
-    
+
     const gridRef = useRef();
     const myTheme = themeQuartz.withParams({
         browserColorScheme: "light",
         headerBackgroundColor: "#5A34F1",
+        headerTextColor: "#ffffff",
     });
 
     // // Helper: map status/payment to Bootstrap badges
@@ -52,9 +56,31 @@ const Orders = () => {
         refunded: "info",
     };
 
+    useEffect(() => {
+        const el = document.getElementById('orderViewCanvas');
+        if (!el) return;
+        const handler = () => setViewOrder(null);
+        el.addEventListener('hidden.bs.offcanvas', handler);
+        return () => el.removeEventListener('hidden.bs.offcanvas', handler);
+    }, []);
+
     const colDefs = useMemo(
         () => [
-            { field: "order_number", headerName: "Order #", filter: true, width: 160 },
+            {
+                field: "order_number",
+                headerName: "Order #",
+                width: 160,
+                cellRenderer: (params) => (
+                    <a
+                        href="#orderViewCanvas"
+                        data-bs-toggle="offcanvas"
+                        className="link-opacity-50-hover fw-medium"
+                        onClick={() => setViewOrder(params.data)}
+                    >
+                        {params.value}
+                    </a>
+                ),
+            },
             { field: "company_name", headerName: "Company", filter: true, flex: 1, minWidth: 160 },
             { field: "contact_name", headerName: "Contact", filter: true, flex: 1, minWidth: 140 },
             {
@@ -76,7 +102,10 @@ const Orders = () => {
                 field: "grand_total",
                 headerName: "Grand Total",
                 width: 150,
-                // valueFormatter: (p) => formatMoney(p.value),
+                valueFormatter: (p) =>
+                    p.value != null
+                        ? Number(p.value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                        : "",
             },
             {
                 field: "created_at",
@@ -102,22 +131,20 @@ const Orders = () => {
 
     const fetchOrders = useCallback(async () => {
         try {
-        const qs = buildQuery();
-        const url = qs ? `/api/orders/?${qs}` : "/api/orders/";
-        const { data } = await axiosInstance.get(url);
+            const qs = buildQuery();
+            const url = qs ? `/api/orders/?${qs}` : "/api/orders/";
+            const { data } = await axiosInstance.get(url);
 
-        const shaped = data.map((o) => ({
-            ...o,
-            company_name: o.company_name || o.company?.name || o.company || "",
-            contact_name: o.contact_name || o.contact?.name || o.contact || "",
-        }));
+            const shaped = data.map((o) => ({
+                ...o,
+                company_name: o.company_name || o.company?.name || o.company || "",
+                contact_name: o.contact_name || o.contact?.name || o.contact || "",
+            }));
 
-        setOrders(shaped);
-        console.log("Fetched orders:", shaped);
-        console.log("Data:", data);
+            setOrders(shaped);
         } catch (err) {
-        console.error(err);
-        showToast("Error fetching orders: " + (err?.response?.data?.detail || err.message), "danger");
+            console.error(err);
+            showToast("Error fetching orders: " + (err?.response?.data?.detail || err.message), "danger");
         }
     }, [orderStatus, paymentStatus, company, contact, createdFrom, createdTo]);
 
@@ -126,30 +153,36 @@ const Orders = () => {
     }, [fetchOrders]);
 
     return (
-    <div className="container-fluid py-3">
-      <div className="d-flex align-items-center mb-2">
-  <h3 className="m-0">Orders</h3>
-  <button type="button" className="btn btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#orderModal" onClick={() => setSelectedOrder(null)}>
-    + Create Order
-  </button>
-</div>
+        <div className="container-fluid py-3">
+            <div className="d-flex align-items-center mb-2">
+                <h3 className="m-0">Orders</h3>
+                <button type="button" className="btn btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#orderModal" onClick={() => setSelectedOrder(null)}>
+                    + Create Order
+                </button>
+            </div>
 
 
-      <div className="ag-theme-quartz" style={{ height: "50vh", width: "100%" }}>
-        <AgGridReact
-          ref={gridRef}
-          rowData={orders}
-          columnDefs={colDefs}
-          defaultColDef={{filter: true, flex: 1}}
-          animateRows
-          rowSelection="single"
-          onRowDoubleClicked={(e) => onOpenOrder(e.data)}
-        />
-      </div>
-    <OrderModal id="orderModal" order={selectedOrder} handleUpdateOrders={fetchOrders} />
-
-    </div>
-  );
+            <div className="ag-theme-quartz" style={{ height: "50vh", width: "100%" }}>
+                <AgGridReact
+                    theme={myTheme}
+                    ref={gridRef}
+                    rowData={orders}
+                    columnDefs={colDefs}
+                    defaultColDef={{ filter: true, flex: 1 }}
+                    animateRows
+                    rowSelection="single"
+                    enableCellTextSelection={true}
+                //   onRowDoubleClicked={(e) => console.log('double click order:', e.data)}
+                />
+            </div>
+            <OrderModal id="orderModal" order={selectedOrder} handleUpdateOrders={fetchOrders} />
+            <OrderOffcanvas id="orderViewCanvas" order={viewOrder} onClose={() => setViewOrder(null)} refresh={fetchOrders} />
+            <EditOrderModal id="editOrderModal" order={viewOrder} onSaved={(updated) => {
+                setViewOrder((prev) => (prev && prev.id === updated.id ? { ...prev, ...updated } : updated));
+                fetchOrders();
+            }} />
+        </div>
+    );
 
 }
 
