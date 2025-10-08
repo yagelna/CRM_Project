@@ -29,6 +29,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source='company.name', read_only=True)
+    contact_name = serializers.CharField(source='contact.name', read_only=True)
     items = OrderItemSerializer(many=True, read_only=True)
 
     items_payload = serializers.ListSerializer(
@@ -41,9 +43,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
+
         fields = [
             "id", "order_number", "customer_order_number",
             "company", "contact",
+            "company_name", "contact_name",
             "status", "payment_status", "currency",
             "sub_total", "discount_total", "tax_total", "shipping_total", "grand_total",
             "shipping_address", "notes",
@@ -70,12 +74,11 @@ class OrderSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"items_payload": "qty_ordered must be >= 1"})
         
         # unit_price
-        up = raw.get("unit_price", Decimal("0.0000"))
-        if isinstance(up, str):
-            try:
-                up = Decimal(up)
-            except (InvalidOperation, TypeError):
-                raise serializers.ValidationError({"items_payload": "unit_price must be a decimal"})
+        up = raw.get("unit_price", "0")
+        try:
+            up = Decimal(up)
+        except (InvalidOperation, TypeError):
+            raise serializers.ValidationError({"items_payload": "unit_price must be a decimal"})
         if up < 0:
             raise serializers.ValidationError({"items_payload": "unit_price must be >= 0"})
         
@@ -118,6 +121,7 @@ class OrderSerializer(serializers.ModelSerializer):
                 OrderItem.objects.create(order=order, **{k: v for k, v in data.items() if k != "id"})
         # Ensure totals are fresh
         order.recalc_totals(save=True)
+        order.refresh_from_db()
         return order
     
     @transaction.atomic
@@ -160,4 +164,5 @@ class OrderSerializer(serializers.ModelSerializer):
                     obj.delete()
 
         instance.recalc_totals(save=True)
+        instance.refresh_from_db()
         return instance

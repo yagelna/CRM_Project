@@ -4,6 +4,7 @@ from apps.companies.models import Company
 from apps.contacts.models import Contact
 from django.conf import settings
 from django.utils import timezone
+from django.db.models import Sum
 
 # helper for money rounding to 2 decimals
 def q2(value) -> Decimal:
@@ -89,9 +90,9 @@ class Order(models.Model):
         self.order_number = f"{prefix}-{month_count:05d}"
 
     def recalc_totals(self, save=True):
-        """Recalculate the order totals (totals at 2 decimals)"""
-        items = list(self.items.all())
-        self.sub_total = q2(sum((i.line_subtotal for i in items), Decimal("0.00")))
+        """Recalculate the order totals (DB aggregate; totals at 2 decimals)"""
+        total = self.items.aggregate(total=Sum('line_subtotal'))['total'] or Decimal("0.00")
+        self.sub_total = q2(total)
         self.grand_total = q2(self.sub_total - self.discount_total + self.tax_total + self.shipping_total)
         if save:
             super().save(update_fields=['sub_total', 'grand_total', 'updated_at'])
@@ -100,7 +101,7 @@ class Order(models.Model):
         creating = self.pk is None
         if creating and not self.order_number:
             self.ensure_order_number()
-        self.grand_total = (q2(self.sub_total - self.discount_total + self.tax_total + self.shipping_total))
+        # self.grand_total = (q2(self.sub_total - self.discount_total + self.tax_total + self.shipping_total))
         super().save(*args, **kwargs)
 
 class OrderItem(models.Model):
@@ -143,7 +144,7 @@ class OrderItem(models.Model):
         return f"{self.mpn} X {self.qty_ordered} ({self.order})"
     
     def save(self, *args, **kwargs):
-        self.line_subtotal = q2(self.unit_price * self.qty_ordered)
+        self.line_subtotal = q2(Decimal(str(self.unit_price)) * Decimal(str(self.qty_ordered)))
         super().save(*args, **kwargs)
-        self.order.recalc_totals(save=True)
+        # self.order.recalc_totals(save=True)
 
