@@ -339,7 +339,7 @@ const Inventory = () => {
             </div>
             <div className="card border-0 shadow-sm mb-4 mt-2">
                 <div className="card-body p-2">
-                    <div className="ag-theme-alpine" style={{ height: 650, width: '100%' }}>
+                    <div className="ag-theme-quartz" style={{ height: 650, width: '100%' }}>
                         <AgGridReact
                             ref={gridRef}
                             columnDefs={colDefs}

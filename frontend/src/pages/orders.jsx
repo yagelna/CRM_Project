@@ -56,6 +56,13 @@ const Orders = () => {
         refunded: "info",
     };
 
+    const onFilterTextBoxChanged = useCallback(() => {
+            gridRef.current.api.setGridOption(
+              "quickFilterText",
+              document.getElementById("filter-text-box").value,
+            );
+          }, []);
+
     useEffect(() => {
         const el = document.getElementById('orderViewCanvas');
         if (!el) return;
@@ -81,23 +88,24 @@ const Orders = () => {
                     </a>
                 ),
             },
+            { field: "customer_order_number", headerName: "Cust. Order #", filter: true, minWidth: 140 },
             { field: "company_name", headerName: "Company", filter: true, flex: 1, minWidth: 160 },
             { field: "contact_name", headerName: "Contact", filter: true, flex: 1, minWidth: 140 },
             {
                 field: "status",
                 headerName: "Status",
-                width: 140,
+                width: 100,
                 filter: true,
                 cellRenderer: (p) => <StatusBadge value={p.value} map={ORDER_STATUS_TO_BOOTSTRAP} />,
             },
             {
                 field: "payment_status",
                 headerName: "Payment",
-                width: 140,
+                width: 100,
                 filter: true,
                 cellRenderer: (p) => <StatusBadge value={p.value} map={PAYMENT_STATUS_TO_BOOTSTRAP} />,
             },
-            { field: "currency", headerName: "Curr", width: 90 },
+            { field: "currency", headerName: "Curr", maxWidth: 100   },
             {
                 field: "grand_total",
                 headerName: "Grand Total",
@@ -160,21 +168,42 @@ const Orders = () => {
                     + Create Order
                 </button>
             </div>
-
-
-            <div className="ag-theme-quartz" style={{ height: "50vh", width: "100%" }}>
-                <AgGridReact
-                    theme={myTheme}
-                    ref={gridRef}
-                    rowData={orders}
-                    columnDefs={colDefs}
-                    defaultColDef={{ filter: true, flex: 1 }}
-                    animateRows
-                    rowSelection="single"
-                    enableCellTextSelection={true}
-                //   onRowDoubleClicked={(e) => console.log('double click order:', e.data)}
-                />
+            <div>
+                <div className="d-flex justify-content-between align-items-center">
+                        <input
+                        type="text"
+                        id="filter-text-box"
+                        className="form-control"
+                        placeholder="Quick Filter..."
+                        onInput={onFilterTextBoxChanged}
+                        style={{ width: '200px' }}
+                    />
+                </div>
             </div>
+
+
+            {/* <div className="ag-theme-quartz" style={{ height: "50vh", width: "100%" }}> */}
+            <div className="card border-0 shadow-sm mb-4 mt-2">
+                <div className="card-body p-2">
+                    <div className="ag-theme-quartz" style={{ height: 650, width: "100%" }}>
+                        <AgGridReact
+                            theme={myTheme}
+                            ref={gridRef}
+                            rowData={orders}
+                            columnDefs={colDefs}
+                            defaultColDef={{ filter: true, flex: 1 }}
+                            animateRows
+                            rowSelection="single"
+                            enableCellTextSelection={true}
+                            pagination={true}                 // ← חדש
+                            paginationPageSize={20}  
+                            overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
+                        //   onRowDoubleClicked={(e) => console.log('double click order:', e.data)}
+                        />
+                    </div>
+                </div>
+            </div>
+            {/* </div> */}
             <OrderModal id="orderModal" order={selectedOrder} handleUpdateOrders={fetchOrders} />
             <OrderOffcanvas id="orderViewCanvas" order={viewOrder} onClose={() => setViewOrder(null)} refresh={fetchOrders} />
             <EditOrderModal id="editOrderModal" order={viewOrder} onSaved={(updated) => {
