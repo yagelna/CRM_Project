@@ -57,11 +57,11 @@ const Orders = () => {
     };
 
     const onFilterTextBoxChanged = useCallback(() => {
-            gridRef.current.api.setGridOption(
-              "quickFilterText",
-              document.getElementById("filter-text-box").value,
-            );
-          }, []);
+        gridRef.current.api.setGridOption(
+            "quickFilterText",
+            document.getElementById("filter-text-box").value,
+        );
+    }, []);
 
     useEffect(() => {
         const el = document.getElementById('orderViewCanvas');
@@ -105,7 +105,7 @@ const Orders = () => {
                 filter: true,
                 cellRenderer: (p) => <StatusBadge value={p.value} map={PAYMENT_STATUS_TO_BOOTSTRAP} />,
             },
-            { field: "currency", headerName: "Curr", maxWidth: 100   },
+            { field: "currency", headerName: "Curr", maxWidth: 100 },
             {
                 field: "grand_total",
                 headerName: "Grand Total",
@@ -121,6 +121,19 @@ const Orders = () => {
                 width: 150,
                 valueFormatter: (p) => (p.value ? new Date(p.value).toLocaleString() : ""),
                 sort: "desc",
+            },
+            {
+                // hidden column for searching items' MPNs and customer part numbers
+                field: "__itemsSearch",
+                headerName: "Items (search)",
+                hide: true,
+                suppressColumnsToolPanel: true,
+                valueGetter: (p) => {
+                    const items = p.data?.items || [];
+                    return items.map(it => [
+                        it.mpn, it.customer_part_number
+                    ].filter(Boolean).join(" ")).join(" | ");
+                }
             },
         ],
         []
@@ -170,7 +183,7 @@ const Orders = () => {
             </div>
             <div>
                 <div className="d-flex justify-content-between align-items-center">
-                        <input
+                    <input
                         type="text"
                         id="filter-text-box"
                         className="form-control"
@@ -195,10 +208,10 @@ const Orders = () => {
                             animateRows
                             rowSelection="single"
                             enableCellTextSelection={true}
-                            pagination={true}                 // ← חדש
-                            paginationPageSize={20}  
+                            includeHiddenColumnsInQuickFilter={true}
+                            pagination={true}
+                            paginationPageSize={20}
                             overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
-                        //   onRowDoubleClicked={(e) => console.log('double click order:', e.data)}
                         />
                     </div>
                 </div>

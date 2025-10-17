@@ -1,7 +1,8 @@
 // src/components/orders/OrderOffcanvas.jsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { showToast } from '../common/toast';
 import EditOrderModal from './EditOrderModal';
+import axiosInstance from '../../AxiosInstance';
 
 const STATUS_BADGES = {
     new: 'primary',
@@ -41,6 +42,8 @@ function fmtDate(iso) {
 }
 
 const OrderOffcanvas = ({ id = 'OrderOffcanvas', order, onClose, refresh }) => {
+
+    const [deleting, setDeleting] = useState(false);
     const itemCount = order?.items?.length || 0;
 
     const totals = useMemo(() => ({
@@ -50,6 +53,27 @@ const OrderOffcanvas = ({ id = 'OrderOffcanvas', order, onClose, refresh }) => {
         shipping_total: order?.shipping_total ?? 0,
         grand_total: order?.grand_total ?? 0,
     }), [order]);
+
+    const handleDelete = async () => {
+        if (!order?.id) return;
+        if (!window.confirm('Are you sure you want to delete order #' + (order.order_number || order.id) + '? This action cannot be undone.')) {
+            return;
+        }
+        setDeleting(true);
+        try {
+            await axiosInstance.delete(`/api/orders/${order.id}/`);
+            showToast({ type: 'success', title: 'Deleted', message: `Order #${order.order_number || order.id} deleted successfully.` });
+            onClose();
+            refresh?.();
+        }
+        catch (error) {
+            console.error('Error deleting order:', error);
+            showToast({ type: 'danger', title: 'Error', message: `Failed to delete order #${order.order_number || order.id}.` });
+        }
+        finally {
+            setDeleting(false);
+        }
+    };
 
     return (
         <div className="offcanvas offcanvas-end lg-offcanvas" tabIndex="-1" id={id} aria-labelledby={`${id}Label`}>
@@ -180,6 +204,15 @@ const OrderOffcanvas = ({ id = 'OrderOffcanvas', order, onClose, refresh }) => {
                                                         data-bs-target="#editOrderModal"
                                                     >
                                                         Edit Order
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-outline-danger"
+                                                        onClick={handleDelete}
+                                                        data-bs-dismiss="offcanvas"
+                                                        disabled={!order || deleting}
+                                                    >
+                                                        {deleting ? "Deleting..." : "Delete"}
                                                     </button>
                                                 </div>
                                             </li>
