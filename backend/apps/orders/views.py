@@ -1,8 +1,10 @@
 from django.shortcuts import render
+from httpcore import Response
 from rest_framework import viewsets, permissions, decorators, response, status
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.db.models import Prefetch
 from django.utils.dateparse import parse_date
+from rest_framework.decorators import action
 
 from .models import Order, OrderItem
 from .serializers import OrderSerializer, OrderItemSerializer
@@ -71,6 +73,17 @@ class OrderViewSet(viewsets.ModelViewSet):
         order = self.get_object()
         order.recalc_totals(save=True)
         return response.Response({"detail": "Totals recalculated."}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["delete"], url_path="bulk-delete")
+    def bulk_delete(self, request, *args, **kwargs):
+        """Bulk delete orders by IDs."""
+        ids = request.data.get("ids", [])
+        if not ids:
+            return Response({"error": "No Order IDs provided"}, status=status.HTTP_400_BAD_REQUEST)
+        if not isinstance(ids, list) or not all(isinstance(i, int) for i in ids):
+            return Response({"detail": "Invalid 'ids' parameter."}, status=status.HTTP_400_BAD_REQUEST)
+        deleted, _ = Order.objects.filter(id__in=ids).delete()
+        return Response({"success": f"{deleted} orders deleted successfully"})
 
 class OrderItemViewSet(viewsets.ModelViewSet):
     """
