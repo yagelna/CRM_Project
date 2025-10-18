@@ -114,6 +114,10 @@ html, body {
   --bs-offcanvas-width: 65%;
 }
 
+.xl-offcanvas {
+  --bs-offcanvas-width: 80%;
+}
+
 @media (max-width: 768px) {
     .offcanvas {
         --bs-offcanvas-width: 100%;

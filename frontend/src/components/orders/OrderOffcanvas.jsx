@@ -76,7 +76,7 @@ const OrderOffcanvas = ({ id = 'OrderOffcanvas', order, onClose, refresh }) => {
     };
 
     return (
-        <div className="offcanvas offcanvas-end lg-offcanvas" tabIndex="-1" id={id} aria-labelledby={`${id}Label`}>
+        <div className="offcanvas offcanvas-end xl-offcanvas" tabIndex="-1" id={id} aria-labelledby={`${id}Label`}>
             <div className="offcanvas-header">
                 <h5 className="offcanvas-title" id={`${id}Label`}>
                     {order ? `Order ${order.order_number || `#${order.id}`}` : 'Loading…'}
