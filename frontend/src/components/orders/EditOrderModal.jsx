@@ -158,7 +158,7 @@ const EditOrderModal = ({ id="editOrderModal", order, onSaved }) => {
   if (!order) return null;
 
   return (
-    <Modal id={id} title={`Edit Order ${order.order_number || `#${order.id}`}`} size="modal-xl">
+    <Modal id={id} title={`Edit Order ${order.order_number || `#${order.id}`}`} customWidth="90%">
       <div className="row g-3">
         <div className="col-md-3">
           <label className="form-label">Company *</label>

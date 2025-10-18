@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axiosInstance from '../../AxiosInstance';
 import Modal from '../common/modal';
 import { showToast } from '../common/toast';
@@ -128,7 +128,7 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
         setItems((prevItems) => prevItems.filter((_, i) => i !== index));
     };
 
-    const handleUpload = async (e) => {
+    const handleUpload = async () => {
         if (!selectedFile) {
             showToast({
                 title: "No File Selected",
@@ -141,7 +141,10 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
         try {
             const formData = new FormData();
             formData.append('file', selectedFile);
-            const { data } = await axiosInstance.post('/api/orders/upload_po/', formData);
+            const { data } = await axiosInstance.post('/api/orders/upload_po/', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                transformRequest: [(data, headers) => data],
+            });
             if (data?.form) {
                 setForm((f) => ({ ...f, ...data.form }));
             }
@@ -248,7 +251,7 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
 
     return (
         <>
-            <Modal id={id} title={"Create New Order"} size="modal-xl">
+            <Modal id={id} title={"Create New Order"} customWidth="90%">
                 <div className="row g-3">
                     <div className="col-md-3">
                         <label className="form-label">Company *</label>

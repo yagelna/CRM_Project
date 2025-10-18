@@ -1,9 +1,13 @@
 import React from "react";
 
-const Modal = ({id, title, children, size= "", onClose}) => {
+const Modal = ({id, title, children, size= "", customWidth, customHeight, onClose}) => {
+    const customStyle = {};
+    if (customWidth) customStyle.maxWidth = typeof customWidth === "number" ? `${customWidth}%` : customWidth;
+    if (customHeight) customStyle.height = typeof customHeight === "number" ? `${customHeight}%` : customHeight;
+
     return (
         <div className="modal fade" id={id} data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby={`${id}Label`} aria-hidden="true">
-            <div className={`modal-dialog ${size}`}>
+            <div className={`modal-dialog ${size}`} style={customStyle}>
                 <div className="modal-content">
                     <div className="modal-header d-flex justify-content-between align-items-start">
                         <div className="d-flex flex-column">

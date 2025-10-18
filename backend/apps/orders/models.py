@@ -1,10 +1,11 @@
 from decimal import Decimal, ROUND_HALF_UP
-from django.db import models
+from django.db import models, IntegrityError, transaction
 from apps.companies.models import Company
 from apps.contacts.models import Contact
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import Sum
+
 
 # helper for money rounding to 2 decimals
 def q2(value) -> Decimal:
@@ -84,10 +85,15 @@ class Order(models.Model):
             return
         dt = timezone.localdate()
         prefix = f"FY-{dt.strftime('%Y%m')}"
-        month_count = Order.objects.filter(
-            created_at__year=dt.year, created_at__month=dt.month
-        ).count() + 1
-        self.order_number = f"{prefix}-{month_count:05d}"
+        last = (
+            Order.objects
+            .filter(order_number__startswith=prefix)
+            .order_by('-order_number')
+            .values_list('order_number', flat=True)
+            .first()
+        )
+        next_seq = int(last[-5:]) + 1 if last else 1
+        self.order_number = f"{prefix}-{next_seq:05d}"
 
     def recalc_totals(self, save=True):
         """Recalculate the order totals (DB aggregate; totals at 2 decimals)"""
@@ -99,10 +105,18 @@ class Order(models.Model):
 
     def save(self, *args, **kwargs):
         creating = self.pk is None
-        if creating and not self.order_number:
-            self.ensure_order_number()
-        # self.grand_total = (q2(self.sub_total - self.discount_total + self.tax_total + self.shipping_total))
-        super().save(*args, **kwargs)
+        for attempt in range(5):
+            if creating and not self.order_number:
+                self.ensure_order_number()
+            try:
+                with transaction.atomic():
+                    return super().save(*args, **kwargs)
+            except IntegrityError as e:
+                if 'orders_order_order_number_key' in str(e) or 'order_number' in str(e):
+                    self.order_number = None
+                    continue
+                raise
+        raise IntegrityError("Could not generate a unique order number after several attempts.")
 
 class OrderItem(models.Model):
     class ItemStatus(models.TextChoices):
