@@ -36,10 +36,11 @@ class OrderSerializer(serializers.ModelSerializer):
     items_payload = serializers.ListSerializer(
         child=serializers.DictField(), write_only=True, required=False
     )
-
+    requested_date_earliest = serializers.DateField(read_only=True)
     # grand_total and sub_total are calculated on server
     sub_total = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
     grand_total = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    
 
     class Meta:
         model = Order
@@ -54,6 +55,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "created_at", "updated_at", "created_by", "updated_by",
             "items",
             "items_payload",
+            "requested_date_earliest",
         ]
         read_only_fields = ("order_number", "created_at", "updated_at", "created_by", "updated_by")
     
