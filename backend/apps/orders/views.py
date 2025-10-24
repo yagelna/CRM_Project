@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, decorators, response, status
 from rest_framework.filters import SearchFilter, OrderingFilter
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Min
 from django.utils.dateparse import parse_date
 from rest_framework.decorators import action
 from openai import OpenAI
@@ -25,6 +25,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         Order.objects
         .select_related('company', 'contact',"created_by", "updated_by")
         .prefetch_related(Prefetch('items', queryset=OrderItem.objects.order_by('id')))
+        .annotate(requested_date_earliest=Min('items__requested_date')) 
     )
 
     serializer_class = OrderSerializer
@@ -32,7 +33,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ["order_number", "customer_order_number", "company__name", "contact__name", "notes"]
-    ordering_fields = ["created_at", "grand_total", "status", "payment_status"]
+    ordering_fields = ["created_at", "grand_total", "status", "payment_status", "requested_date_earliest"]
     ordering = ["-created_at"]
 
     def get_queryset(self):

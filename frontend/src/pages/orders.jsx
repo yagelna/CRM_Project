@@ -92,6 +92,28 @@ const Orders = () => {
             { field: "company_name", headerName: "Company", filter: true, flex: 1, minWidth: 160 },
             { field: "contact_name", headerName: "Contact", filter: true, flex: 1, minWidth: 140 },
             {
+                field: "requested_date_earliest",
+                headerName: "Requested (Earliest)",
+                width: 170,
+                comparator: (a, b) => new Date(a || 0) - new Date(b || 0),
+                valueFormatter: (p) => (p.value ? new Date(p.value).toLocaleDateString() : " Not defined"),
+                cellClassRules: {
+                    'text-muted fst-italic': (p) => !p.value,
+                    'text-danger fw-semibold': (p) => {
+                        if (!p.value) return false;
+                        const d = new Date(p.value);
+                        const diff = (d - new Date()) / (1000 * 60 * 60 * 24);
+                        return diff <= 7; // within a week or past
+                    },
+                    'text-warning fw-semibold': (p) => {
+                        if (!p.value) return false;
+                        const d = new Date(p.value);
+                        const diff = (d - new Date()) / (1000 * 60 * 60 * 24);
+                        return diff > 7 && diff <= 14; // 8-14 days
+                    },
+                },
+            },
+            {
                 field: "status",
                 headerName: "Status",
                 width: 100,
