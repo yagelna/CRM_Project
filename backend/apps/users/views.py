@@ -1,11 +1,12 @@
 from django.shortcuts import render
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 from .models import *
 from .serializers import *
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model, authenticate
 from knox.models import AuthToken
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 
 
@@ -13,13 +14,12 @@ User = get_user_model()
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = ShortUserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     @action(detail=False, methods=['get'], url_path='me')
     def get_me(self, request):
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
-    
+        return Response(MeSerializer(request.user).data)
+
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
@@ -29,7 +29,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class LoginViewSet(viewsets.ViewSet):
-    permission_classes = [permissions.AllowAny] 
+    permission_classes = [AllowAny] 
     serializer_class = LoginSerializer
 
     def create(self, request):
@@ -52,7 +52,7 @@ class LoginViewSet(viewsets.ViewSet):
             return Response(serializer.errors, status=400)
 
 class RegisterViewSet(viewsets.ViewSet):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
 

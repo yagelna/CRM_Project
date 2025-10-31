@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { NavLink } from 'react-router-dom';
 import Logo from '../../assets/Icon-01.png';
 import './sidebar.css';
+import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
+  const { logout } = useAuth();
   useEffect(() => {
     // Enable Bootstrap tooltips
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -94,7 +96,7 @@ const Sidebar = () => {
         <ul className="dropdown-menu text-small shadow" aria-labelledby="dropdownUser">
           <li><Link className="dropdown-item" to="/settings">Settings</Link></li>
           <li><hr className="dropdown-divider" /></li>
-          <li><Link className="dropdown-item" to="#">Sign out</Link></li>
+          <li><Link className="dropdown-item" to="#" onClick={logout}>Sign out</Link></li>
         </ul>
       </div>
     </aside>

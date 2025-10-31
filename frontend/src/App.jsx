@@ -15,8 +15,9 @@ import Settings from './pages/settings';
 import CRMAccounts from './pages/CRM';
 import Quotes from './pages/quotes';
 import Orders from './pages/orders';
-
-import ProtectedRoute from './components/ProtectedRoutes'; 
+import { AuthProvider } from './context/AuthContext';
+import PermissionGate from './components/common/PermissionGate';
+import NoAccessCard from './components/common/NoAccessCard';
 
 function App() {
   // Determine if the sidebar should be hidden based on the current location
@@ -31,20 +32,28 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/" element={<Rfqs />} />
-          
+
           {/* Protected routes */}
           {/* <Route element={<ProtectedRoute />} > */}
-            <Route path="/rfqs" element={<Rfqs />} />
-            <Route path="/contacts" element={<Contacts />} />
-            <Route path="/companies" element={<Companies />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/crm" element={<CRMAccounts />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/ai" element={<AI />} />
-            <Route path="/crm/quotes" element={<Quotes />} />
-            <Route path="/orders" element={<Orders />} />
-            
+          <Route path="/rfqs" element={<Rfqs />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/companies" element={<Companies />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/crm" element={
+            <PermissionGate anyOfPerms={['*.access_crm']}>
+              <CRMAccounts />
+            </PermissionGate>
+          } />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/ai" element={<AI />} />
+          <Route path="/crm/quotes" element={
+            <PermissionGate anyOfPerms={['*.access_crm']}>
+              <Quotes />
+            </PermissionGate>
+          } />
+          <Route path="/orders" element={<Orders />} />
+
 
           {/* </Route> */}
         </Routes>
@@ -57,7 +66,9 @@ function App() {
 function AppWrapper() {
   return (
     <Router>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </Router>
   );
 }

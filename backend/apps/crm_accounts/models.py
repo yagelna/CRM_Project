@@ -25,6 +25,11 @@ class CRMAccount(models.Model):
         default='new'
     )
 
+    class Meta:
+        permissions = [
+            ("access_crm", "Can access CRM module"),
+        ]
+
     def __str__(self):
         return self.name
 

@@ -1,9 +1,11 @@
 import React, { useState, useEffect} from 'react';
+import { useAuth } from "../context/AuthContext";
 import axiosInstance from '../AxiosInstance';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -24,8 +26,9 @@ const Login = () => {
                 email: formData.email,
                 password: formData.password,
             });
-            console.log(res.data);
-            localStorage.setItem('access_token', res.data.token);
+            const token = res.data?.token;
+            if (!token) throw new Error("No token in response");
+            await login({ token });
             navigate('/rfqs');
             setSuccess(true);
         } catch (error) {
