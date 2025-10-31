@@ -34,4 +34,16 @@ class ShortUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'first_name', 'last_name']
 
+class MeSerializer(serializers.ModelSerializer):
+    groups = serializers.SlugRelatedField(many=True, slug_field='name', read_only=True)
+    permissions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'is_staff', 'is_active', 'date_joined', 'groups', 'permissions']
+        read_only_fields = ['id', 'email', 'date_joined', 'groups', 'permissions']
+
+    def get_permissions(self, obj):
+        # return sorted list of 'app_label.codename' like 'crm.access_crm'
+        return sorted(list(obj.get_all_permissions()))
         

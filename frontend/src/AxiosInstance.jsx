@@ -6,8 +6,7 @@ const isDevlopment = import.meta.env.MODE === 'development'
 const axiosInstance = axios.create({
     baseURL: CONFIG.API_BASE_URL,
     headers: {
-        // 'Content-Type': 'application/json',
-        accept: 'application/json',
+        Accept: 'application/json',
     },
 });
 
@@ -18,7 +17,7 @@ axiosInstance.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Token ${token}`;
         } else {
-            config.headers.Authorization = ``;
+            delete config.headers.Authorization;
         }
 
         const isFormData =
@@ -35,17 +34,25 @@ axiosInstance.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+let isRedirecting401 = false;
+
 axiosInstance.interceptors.response.use(
-    (response) => {
-        return response;
-    },
-    (error) => {
-        if (error.response && error.response.status === 401) {
-            localStorage.removeItem('access_token');
-            window.location.href = '/login';
-        }
-        return Promise.reject(error);
+    (response) => response,
+     (error) => {
+    const status = error?.response?.status;
+
+    if (status === 401) {
+      const path = window.location.pathname;
+      if (!isRedirecting401 && path !== '/login' && path !== '/register') {
+        isRedirecting401 = true;
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('userProfile');
+        window.location.replace('/login');
+      }
     }
+
+    return Promise.reject(error);
+  }
 );
 
 export default axiosInstance;

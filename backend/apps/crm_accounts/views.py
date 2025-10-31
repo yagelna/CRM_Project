@@ -1,8 +1,9 @@
 from datetime import datetime
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from apps.common.permissions import CanAccessCRM, StrictDjangoModelPermissions
 from rest_framework.decorators import action
 from django.db.models import Q
 from django.conf import settings
@@ -37,12 +38,12 @@ def update_account_status(account, reference_date):
 class CRMAccountViewSet(viewsets.ModelViewSet):
     queryset = CRMAccount.objects.all().order_by('-created_at')
     serializer_class = CRMAccountSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanAccessCRM]
 
 class CRMInteractionViewSet(viewsets.ModelViewSet):
     queryset = CRMInteraction.objects.all().order_by('-timestamp')
     serializer_class = CRMInteractionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanAccessCRM]
     
     def perform_create(self, serializer):
         raw_timestamp = self.request.data.get('timestamp')
@@ -217,8 +218,8 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
             "account_id": account.id,
             "direction": direction
         })
-        
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='automated-interaction')
+
+    @action(detail=False, methods=['post'], url_path='automated-interaction')
     def automated(self, request):
         serializer = AutomatedInteractionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -280,7 +281,7 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
             "account_id": account.id
         }, status=status.HTTP_201_CREATED)
         
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='refresh-status')
+    @action(detail=False, methods=['post'], url_path='refresh-status')
     def refresh_statuses(self, request):
         print("Refreshing CRM account statuses...")
         settings_obj = SystemSettings.get_solo()
@@ -338,8 +339,8 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
             "message": "CRM accounts statuses updated successfully.",
             "sent_email": bool(updated)
         }, status=status.HTTP_200_OK)
-    
-    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='send-test-email')
+
+    @action(detail=False, methods=['post'], url_path='send-test-email')
     def send_test_email(self, request):
         import base64
         import requests
@@ -386,7 +387,7 @@ Content-Transfer-Encoding: 7bit
             }, status=status.HTTP_400_BAD_REQUEST)
                    
 class GmailThreadView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanAccessCRM]
 
     def get(self, request, thread_id):
         try:
@@ -541,7 +542,7 @@ def _decode_body(data):
 class CRMTaskViewSet(viewsets.ModelViewSet):
     queryset = CRMTask.objects.all().order_by('-due_date')
     serializer_class = CRMTaskSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated, CanAccessCRM]
 
     def perform_create(self, serializer):
         serializer.save(added_by=self.request.user)
