@@ -47,3 +47,9 @@ class MeSerializer(serializers.ModelSerializer):
         # return sorted list of 'app_label.codename' like 'crm.access_crm'
         return sorted(list(obj.get_all_permissions()))
         
+class MFAVerifySerializer(serializers.Serializer):
+    session_id = serializers.UUIDField()
+    code = serializers.CharField()
+
+class MFAEnableSerializer(serializers.Serializer):
+    code = serializers.CharField()
