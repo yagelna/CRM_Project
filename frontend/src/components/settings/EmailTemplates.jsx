@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import RichTextEditor from "./RichTextEditor";
 import axiosInstance from "../../AxiosInstance";
+import BackToSettings from "./BackToSettings";
 
 
 const defaultTemplates = [
@@ -101,6 +102,8 @@ const EmailTemplates = () => {
     };
 
     return (
+        <>
+        <BackToSettings />
         <div className="row d-flex align-items-stretch">
             {/* Sidebar Card */}
             <div className="col-sm-3 d-flex">
@@ -211,6 +214,7 @@ const EmailTemplates = () => {
                 </div>
             )}
         </div>
+        </>
     );
 };
 

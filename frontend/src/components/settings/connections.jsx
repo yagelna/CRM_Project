@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../AxiosInstance";
+import BackToSettings from "./BackToSettings";
 
 const Connections = () => {
     const [connections, setConnections] = useState([]);
@@ -143,6 +144,7 @@ const saveAllChanges = async () => {
 
     return (
         <div className="container mt-4">
+            <BackToSettings />
             <h2>Connections & Integrations</h2>
             {message && <div className="alert alert-info">{message}</div>}
 

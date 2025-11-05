@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../AxiosInstance";
 import TwoFactorModal from "./TwoFactorModal";
+import BackToSettings from "./BackToSettings";
 import { showToast } from "../common/toast";
 import { useAuth } from "../../context/AuthContext";
 
@@ -77,6 +78,7 @@ const AccountSettings = () => {
 
   return (
     <div className="module-container">
+      <BackToSettings />
       <div className="d-flex align-items-center justify-content-between mb-3">
         <div>
           <h3 className="mb-0">Account & Security</h3>
