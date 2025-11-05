@@ -15,6 +15,10 @@ import Settings from './pages/settings';
 import CRMAccounts from './pages/CRM';
 import Quotes from './pages/quotes';
 import Orders from './pages/orders';
+import AccountSettings from './components/settings/AccountSettings';
+import ExportSettings from './components/settings/ExportSettings';
+import EmailTemplates from './components/settings/EmailTemplates';
+import Connections from './components/settings/connections';
 import { AuthProvider } from './context/AuthContext';
 import PermissionGate from './components/common/PermissionGate';
 import NoAccessCard from './components/common/NoAccessCard';
@@ -45,7 +49,12 @@ function App() {
             </PermissionGate>
           } />
           <Route path="/dashboard" element={<Dashboard />} />
+          {/* Settings dashboard + subpages */}
           <Route path="/settings" element={<Settings />} />
+          <Route path="/settings/account" element={<AccountSettings />} />
+          <Route path="/settings/export" element={<ExportSettings />} />
+          <Route path="/settings/templates" element={<EmailTemplates />} />
+          <Route path="/settings/connections" element={<Connections />} />
           <Route path="/ai" element={<AI />} />
           <Route path="/crm/quotes" element={
             <PermissionGate anyOfPerms={['*.access_crm']}>
