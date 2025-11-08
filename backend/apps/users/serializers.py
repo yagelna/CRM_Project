@@ -40,7 +40,7 @@ class MeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'is_staff', 'is_active', 'date_joined', 'groups', 'permissions']
+        fields = ['id', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'is_active', 'date_joined', 'groups', 'permissions']
         read_only_fields = ['id', 'email', 'date_joined', 'groups', 'permissions']
 
     def get_permissions(self, obj):

@@ -29,6 +29,12 @@ const Settings = () => {
       desc: "Manage external connections and API keys.",
       path: "/settings/connections",
     },
+    {
+      icon: "bi-people",
+      title: "Manage Users Access",
+      desc: "Grant or revoke access to modules per user.",
+      path: "/settings/access",
+    },
   ];
 
   return (
