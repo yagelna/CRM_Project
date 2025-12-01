@@ -7,10 +7,13 @@ from .serializers import CompanySerializer
 from ..contacts.serializers import ContactSerializer
 from ..rfqs.serializers import RFQSerializer
 from rest_framework.decorators import api_view
+from apps.common.permissions import CanAccessCompanies
+from rest_framework.permissions import IsAuthenticated
 
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
+    permission_classes = [IsAuthenticated, CanAccessCompanies]
 
 @api_view(['GET'])
 def company_search(request):

@@ -5,12 +5,15 @@ export default function PermissionGate({
   children,
   anyOfPerms = [],
   anyOfGroups = [],
+  allowSuperuser = true,
   fallback = <NoAccessCard />,
   loadingFallback = <div className="p-4 text-center">Loading…</div>,
 }) {
-  const { loading, hasPerm, hasGroup } = useAuth();
+  const { loading, hasPerm, hasGroup, isSuperuser } = useAuth();
 
   if (loading) return loadingFallback;
+
+  if (allowSuperuser && isSuperuser) return children;
 
   const allowed =
     (anyOfPerms.length === 0 || anyOfPerms.some((p) => hasPerm(p))) &&

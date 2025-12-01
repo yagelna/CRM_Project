@@ -53,3 +53,22 @@ class CanAccessCRM(BasePermission):
             or u.has_perm(f'{app_label}.access_crm')
             or u.groups.filter(name__iexact='crm_access').exists()
         )
+
+class CanAccessCompanies(BasePermission):
+    """
+    Permission class to check access to Companies-related views or actions 
+    that are not direct CRUD on the model (FBV/custom Actions).
+    approves access if the user has view on Company or is in 'Companies' group or superuser.
+    """
+    message = "You don't have permission to access Companies."
+
+    def has_permission(self, request, view):
+        u = request.user
+        if not u or not u.is_authenticated:
+            return False
+        app_label = CRMAccount._meta.app_label
+        return (
+            u.is_superuser
+            or u.has_perm(f'{app_label}.access_companies')
+            or u.groups.filter(name__iexact='companies_access').exists()
+        )    

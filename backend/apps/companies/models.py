@@ -10,5 +10,10 @@ class Company(models.Model):
     address = models.TextField(blank=True, null=True)
     country = models.CharField(max_length=50, blank=True, null=True)
 
+    class Meta:
+        permissions = [
+            ("access_companies", "Can access Companies module"),
+        ]
+
     def __str__(self):
         return self.name

@@ -54,6 +54,9 @@ export function AuthProvider({ children }) {
         }
         return user.permissions.includes(perm);
     };
+
+    const isSuperuser = !!user?.is_superuser;
+
     const login = async ({ token }) => {
         localStorage.setItem("access_token", token);
     await refreshMe();
@@ -73,7 +76,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, hasGroup, hasPerm, login, logout, refreshMe }}>
+        <AuthContext.Provider value={{ user, loading, hasGroup, hasPerm, isSuperuser, login, logout, refreshMe }}>
             {children}
         </AuthContext.Provider>
     );

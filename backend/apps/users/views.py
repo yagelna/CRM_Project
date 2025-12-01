@@ -6,9 +6,12 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth import get_user_model, authenticate
 from knox.models import AuthToken
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from rest_framework import status
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from apps.common.constants import MODULE_GROUPS
+from django.contrib.auth.models import Group
 
 
 
@@ -43,6 +46,39 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(MeSerializer(user).data, status=200)
+    
+    @action(detail=False, methods=['get'], url_path='list-for-access', permission_classes=[IsAuthenticated, IsAdminUser])
+    def list_for_access(self, request):
+        qs = User.objects.filter(is_superuser=False).order_by('email')
+        data = MeSerializer(qs, many=True).data
+        return Response(data)
+
+    @action(detail=True, methods=['post'], url_path='set-module-access', permission_classes=[IsAuthenticated, IsAdminUser])
+    def set_module_access(self, request, pk=None):
+        """
+        Body:
+        {
+          "module": "crm",
+          "allow": true
+        }
+        """
+        user = self.get_object()
+        module = request.data.get("module")
+        allow = request.data.get("allow")
+
+        if module not in MODULE_GROUPS:
+            return Response({"error": f"Unknown module '{module}'"}, status=status.HTTP_400_BAD_REQUEST)
+
+        group_name = MODULE_GROUPS[module]
+        group, _ = Group.objects.get_or_create(name=group_name)
+
+        if allow:
+            user.groups.add(group)
+        else:
+            user.groups.remove(group)
+
+        user.save()
+        return Response(MeSerializer(user).data, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['post'], url_path='change-password')
     def change_password(self, request):

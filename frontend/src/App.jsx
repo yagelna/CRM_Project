@@ -19,9 +19,9 @@ import AccountSettings from './components/settings/AccountSettings';
 import ExportSettings from './components/settings/ExportSettings';
 import EmailTemplates from './components/settings/EmailTemplates';
 import Connections from './components/settings/connections';
+import SettingsAccess from './components/settings/ManageUsersAccess';
 import { AuthProvider } from './context/AuthContext';
 import PermissionGate from './components/common/PermissionGate';
-import NoAccessCard from './components/common/NoAccessCard';
 
 function App() {
   // Determine if the sidebar should be hidden based on the current location
@@ -39,12 +39,28 @@ function App() {
 
           {/* Protected routes */}
           {/* <Route element={<ProtectedRoute />} > */}
-          <Route path="/rfqs" element={<Rfqs />} />
-          <Route path="/contacts" element={<Contacts />} />
-          <Route path="/companies" element={<Companies />} />
-          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/rfqs" element={
+            <PermissionGate anyOfGroups={['rfqs_access']}>
+              <Rfqs />
+            </PermissionGate>
+          } />
+          <Route path="/contacts" element={
+            <PermissionGate anyOfGroups={['contacts_access']}>
+              <Contacts />
+            </PermissionGate>
+          } />
+          <Route path="/companies" element={
+            <PermissionGate anyOfGroups={['companies_access']}>
+              <Companies />
+            </PermissionGate>
+          } />
+          <Route path="/inventory" element={
+            <PermissionGate anyOfGroups={['inventory_access']}>
+              <Inventory />
+            </PermissionGate>
+          } />
           <Route path="/crm" element={
-            <PermissionGate anyOfPerms={['*.access_crm']}>
+            <PermissionGate anyOfGroups={['crm_access']}>
               <CRMAccounts />
             </PermissionGate>
           } />
@@ -55,14 +71,22 @@ function App() {
           <Route path="/settings/export" element={<ExportSettings />} />
           <Route path="/settings/templates" element={<EmailTemplates />} />
           <Route path="/settings/connections" element={<Connections />} />
-          <Route path="/ai" element={<AI />} />
+          <Route path="/settings/access" element={<SettingsAccess />} />
+          <Route path="/ai" element={
+            <PermissionGate anyOfGroups={['ai_access']}>
+              <AI />
+            </PermissionGate>
+          } />
           <Route path="/crm/quotes" element={
-            <PermissionGate anyOfPerms={['*.access_crm']}>
+            <PermissionGate anyOfGroups={['crm_access']}>
               <Quotes />
             </PermissionGate>
           } />
-          <Route path="/orders" element={<Orders />} />
-
+          <Route path="/orders" element={
+            <PermissionGate anyOfGroups={['orders_access']}>
+              <Orders />
+            </PermissionGate>
+          } />
 
           {/* </Route> */}
         </Routes>
