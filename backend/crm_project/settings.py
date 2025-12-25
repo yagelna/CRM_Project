@@ -202,7 +202,7 @@ REST_FRAMEWORK = {
 }
 
 REST_KNOX = {
-    'TOKEN_TTL': timedelta(days=7), # 3 days token expiration
+    'TOKEN_TTL': timedelta(days=1), # 1 day token expiration
 }
 
 # Logging settings
