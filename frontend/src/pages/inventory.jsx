@@ -4,6 +4,8 @@ import AddInventoryModal from '../components/inventory/AddInventoryModal';
 import UploadBulkModal from '../components/inventory/UploadBulkModal';
 import BulkEditModal from '../components/inventory/BulkEditModal';
 import ExportModal from '../components/inventory/ExportModal';
+import PlatformExportModal from '../components/inventory/PlatformExportModal';
+import DownloadExportModal from '../components/inventory/DownloadExportModal';
 import InventoryOffcanvas from '../components/inventory/InventoryOffcanvas';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community';
@@ -18,6 +20,7 @@ const Inventory = () => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedRows, setSelectedRows] = useState([]);
     const [showArchive, setShowArchive] = useState(false); // false = inventory, true = archive
+    const [downloadScope, setDownloadScope] = useState("all"); // "all" | "suppliers" | "selected"
     const gridRef = useRef();
     const myTheme = themeQuartz
         .withParams({
@@ -95,24 +98,6 @@ const Inventory = () => {
             console.error("Archive failed", error);
         }
     };
-
-
-
-    // const handleArchive = async () => {
-    //     if (selectedRows.length === 0) return;
-
-    //     if(window.confirm(`Are you sure you want to archive ${selectedRows.length} item(s)?`)){
-    //         const ids = selectedRows.map(row => row.id);
-    //         try {
-    //             const res = await axiosInstance.post('api/archive/archive/', { ids });
-    //             console.log(res.data);
-    //             setInventory(prevInventory => prevInventory.filter(item => !ids.includes(item.id)));
-    //             setSelectedRows([]);
-    //         } catch (error) {
-    //             console.error("Archive failed", error);
-    //         }
-    //     }
-    // };
 
     const handleDeleteSelected = () => {
         console.log("delete selected rows");
@@ -298,8 +283,61 @@ const Inventory = () => {
                     <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#UploadBulkModal">
                         Upload Bulk Inventory
                     </button>
-                    <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ExportModal">
-                        Export
+                    <div className="dropdown d-inline-block me-2">
+                        <button
+                            className="btn btn-outline-primary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                        >
+                            <i className="bi bi-download"></i> Export Inventory
+                        </button>
+
+                        <ul className="dropdown-menu">
+                            <li>
+                                <button
+                                    className="dropdown-item"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#DownloadInventoryModal"
+                                    onClick={() => setDownloadScope("all")}
+                                >
+                                    Download all inventory
+                                </button>
+                            </li>
+
+                            <li>
+                                <button
+                                    className="dropdown-item"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#DownloadInventoryModal"
+                                    onClick={() => setDownloadScope("suppliers")}
+                                >
+                                    Download specific suppliers
+                                </button>
+                            </li>
+
+                            <li>
+                                <button
+                                    className="dropdown-item"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#DownloadInventoryModal"
+                                    onClick={() => setDownloadScope("selected")}
+                                    disabled={selectedRows.length === 0}
+                                    title={selectedRows.length === 0 ? "Select rows in the table first" : ""}
+                                >
+                                    Download selected rows ({selectedRows.length})
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#ExportPlatformsModal"
+                    >
+                        <i className="bi bi-box-arrow-up"></i> Export to NC / ICS
                     </button>
                 </div>
             </div>
@@ -361,7 +399,8 @@ const Inventory = () => {
             <AddInventoryModal id="EditInventoryModal" mode="edit" itemData={selectedItem} handleUpdateInventory={handleUpdateInventory} />
             <UploadBulkModal id="UploadBulkModal" fetchInventory={fetchInventory} />
             <BulkEditModal id="BulkEditModal" selectedRows={selectedRows} />
-            <ExportModal id="ExportModal" />
+            <PlatformExportModal id="ExportPlatformsModal" mode="platforms" />
+            <DownloadExportModal id="DownloadInventoryModal" scope={downloadScope} selectedRowIds={selectedRows.map(r => r.id)} />
             <InventoryOffcanvas id="InventoryOffcanvas" itemData={selectedItem} onDeleteRequest={handleDelete} onArchiveRequest={handleArchive} />
 
         </div>

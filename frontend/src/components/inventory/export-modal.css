@@ -1,0 +1,28 @@
+/* Compact limits group on small screens */
+.limits-group {
+  max-width: 420px;
+}
+
+/* Board styling */
+.export-board .card {
+  border-radius: .5rem;
+}
+.export-board .card-body {
+  overflow: auto;
+  min-height: 280px;
+}
+
+/* When droppable hovered */
+.bg-light-subtle {
+  background: rgba(13, 110, 253, 0.06); /* subtle primary */
+}
+
+/* Keep layout tight inside modal */
+.modal-xxl .modal-content {
+  border-radius: .75rem;
+}
+
+/* Small tweak for header badges */
+.card-header .badge {
+  font-weight: 600;
+}

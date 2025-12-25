@@ -23,6 +23,115 @@ from decimal import Decimal
 
 logger = logging.getLogger('myapp')
 
+# ---- shared download fields  ----
+DB_FIELDS = [
+    "mpn",
+    "description",
+    "manufacturer",
+    "quantity",
+    "supplier",
+    "location",
+    "date_code",
+    "price",
+    "url",
+]
+
+DOWNLOAD_COLUMNS = [
+    "MPN",
+    "Description",
+    "Manufacturer",
+    "Quantity",
+    "Supplier",
+    "Location",
+    "Date Code",
+    "Price",
+    "URL",
+]
+
+
+def _df_from_queryset(qs, fields, columns):
+    rows = list(qs.values(*fields))
+    df = pd.DataFrame(rows)
+    # Ensure all columns exist (even if queryset returned empty)
+    for f in fields:
+        if f not in df.columns:
+            df[f] = None
+    df = df[fields]
+    df.columns = columns
+    return df
+
+
+def _zip_single_file_response(df: pd.DataFrame, base_name: str, format_type: str):
+    """
+    Returns a ZIP (export.zip) that contains a single file: {base_name}.{csv|xlsx}
+    """
+    zip_buffer = io.BytesIO()
+    ext = "xlsx" if format_type == "xlsx" else "csv"
+    filename = f"{base_name}.{ext}"
+
+    with zipfile.ZipFile(zip_buffer, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        if format_type == "xlsx":
+            file_buffer = io.BytesIO()
+            with pd.ExcelWriter(file_buffer, engine="openpyxl") as writer:
+                df.to_excel(writer, index=False, sheet_name="Inventory")
+            zf.writestr(filename, file_buffer.getvalue())
+        else:
+            zf.writestr(filename, df.to_csv(index=False))
+
+    zip_buffer.seek(0)
+    resp = HttpResponse(zip_buffer.getvalue(), content_type="application/zip")
+    resp["Content-Disposition"] = 'attachment; filename="export.zip"'
+    return resp
+
+
+@api_view(["POST"])
+def download_inventory_all(request):
+    """
+    Download ALL inventory (no supplier filter).
+    Body: { "fileFormat": "csv" | "xlsx" }
+    """
+    data = request.data or {}
+    fmt = data.get("fileFormat", "csv")
+
+    qs = InventoryItem.objects.all().order_by("id")
+    df = _df_from_queryset(qs, DB_FIELDS, DOWNLOAD_COLUMNS)
+    return _zip_single_file_response(df, "inventory_all", fmt)
+
+
+@api_view(["POST"])
+def download_inventory_suppliers(request):
+    """
+    Download inventory by selected suppliers.
+    Body: { "suppliers": ["A", "B"], "fileFormat": "csv" | "xlsx" }
+    """
+    data = request.data or {}
+    fmt = data.get("fileFormat", "csv")
+    suppliers = data.get("suppliers") or []
+
+    if not suppliers:
+        return Response({"error": "No suppliers provided"}, status=400)
+
+    qs = InventoryItem.objects.filter(supplier__in=suppliers).order_by("supplier", "id")
+    df = _df_from_queryset(qs, DB_FIELDS, DOWNLOAD_COLUMNS)
+    return _zip_single_file_response(df, "inventory_suppliers", fmt)
+
+
+@api_view(["POST"])
+def download_inventory_selected(request):
+    """
+    Download inventory by selected row IDs.
+    Body: { "ids": [1,2,3], "fileFormat": "csv" | "xlsx" }
+    """
+    data = request.data or {}
+    fmt = data.get("fileFormat", "csv")
+    ids_list = data.get("ids") or []
+
+    if not ids_list:
+        return Response({"error": "No ids provided"}, status=400)
+
+    qs = InventoryItem.objects.filter(id__in=ids_list).order_by("id")
+    df = _df_from_queryset(qs, DB_FIELDS, DOWNLOAD_COLUMNS)
+    return _zip_single_file_response(df, "inventory_selected_rows", fmt)
 
 # search_parts view to search for parts by MPN
 @api_view(['GET'])
@@ -143,60 +252,81 @@ def export_inventory(request):
     Export inventory data to a CSV/Excel file using Pandas.
     Supports NetComponents and IC Source exports.
     Can be triggered from the web or Make.com.
+
+    NEW:
+    - Use separate stockSuppliers and availableSuppliers lists.
+    - For each platform (NC/ICS): fill stock first, overflow to available,
+      then process available suppliers.
     """
     start_time = time.time()
     print("Starting export process...")
-  
-    # ---------- Parse input / system settings ----------
-    data = request.data
-    source = data.get("source", "web")
-    print(f"Export source: {source}")
 
-    if (source == "make"):
+    # ---------- Parse input / system settings ----------
+
+    data = request.data
+    source = data.get("source", "web") # "web" | "make"
+    action = data.get("action", "send")  # "send" | "download" | "both"
+
+    # When triggered from Make.com – read from SystemSettings
+    if source == "make":
         system_settings = SystemSettings.get_solo()
         if not system_settings:
-            return Response({"error": "No settings found"}, status=400)
-        data = {
-            "actions": {
-                "sendToNC": system_settings.export_netcomponents,
-                "sendToICS": system_settings.export_icsource,
-                "download": False,
-            },
-            "selectedSuppliers": system_settings.selected_suppliers,
-            "fileFormat": system_settings.export_file_format,
-            "netCOMPONENTS": {
-                "enabled": system_settings.export_netcomponents,
-                "max_stock_rows": system_settings.netcomponents_max_stock,
-                "max_available_rows": system_settings.netcomponents_max_available,
-            },
-            "icSource": {
-                "enabled": system_settings.export_icsource,
-                "max_stock_rows": system_settings.icsource_max_stock,
-                "max_available_rows": system_settings.icsource_max_available,
-            },
-            "inventory": {
-                "enabled": False,
-            }
-        }
-    print(f"Export data: {data}")    
-    actions = data.get("actions", {})
-    send_to_nc = actions.get("sendToNC", False)
-    send_to_ics = actions.get("sendToICS", False)
-    download = actions.get("download", False)
-    suppliers = data.get("selectedSuppliers", [])
-    format_type = data.get("fileFormat", "csv")
-    net_components = data.get("netCOMPONENTS", {}).get("enabled", False)
-    ic_source = data.get("icSource", {}).get("enabled", False)
-    inventory_export = data.get("inventory", {}).get("enabled", False)
+            return Response({"error": "System settings not found"}, status=500)
 
-    limits = {
-        "nc_stock": data.get("netCOMPONENTS", {}).get("max_stock_rows", 0),
-        "nc_avail": data.get("netCOMPONENTS", {}).get("max_available_rows", 0),
-        "ics_stock": data.get("icSource", {}).get("max_stock_rows", 0),
-        "ics_avail": data.get("icSource", {}).get("max_available_rows", 0),
-    }
+        if not system_settings.auto_update:
+            return Response({"message": "Auto update disabled"}, status=200)
 
-        # ---------- Prepare zip / email attachments ----------
+        net_components_enabled = system_settings.export_netcomponents
+        ic_source_enabled = system_settings.export_icsource
+        # You can decide default action for make:
+        action = "send"
+
+        stock_suppliers = system_settings.stock_suppliers or []
+        available_suppliers = system_settings.available_suppliers or []
+
+        file_format = system_settings.export_file_format or "csv"
+
+        max_nc_stock = system_settings.netcomponents_max_stock or 0
+        max_nc_avail = system_settings.netcomponents_max_available or 0
+        max_ics_stock = system_settings.icsource_max_stock or 0
+        max_ics_avail = system_settings.icsource_max_available or 0
+
+    else:
+        # Web: use payload
+        net_components_enabled = data.get("netCOMPONENTS", {}).get("enabled", False)
+        ic_source_enabled = data.get("icSource", {}).get("enabled", False)
+
+        stock_suppliers = data.get("stockSuppliers", []) or []
+        available_suppliers = data.get("availableSuppliers", []) or []
+
+        file_format = data.get("fileFormat", "csv")
+
+        max_nc_stock = data.get("netCOMPONENTS", {}).get("max_stock_rows", 0) or 0
+        max_nc_avail = data.get("netCOMPONENTS", {}).get("max_available_rows", 0) or 0
+        max_ics_stock = data.get("icSource", {}).get("max_stock_rows", 0) or 0
+        max_ics_avail = data.get("icSource", {}).get("max_available_rows", 0) or 0
+
+    # Validate platforms
+    if not net_components_enabled and not ic_source_enabled:
+        return Response({"error": "Please enable at least one platform"}, status=400)
+
+    # Map action to booleans
+    send_to_nc = action in ("send", "both") and net_components_enabled
+    send_to_ics = action in ("send", "both") and ic_source_enabled
+    download = action in ("download", "both")
+
+    # Must have at least one supplier if any export is enabled
+    if not (stock_suppliers or available_suppliers):
+        if net_components_enabled or ic_source_enabled:
+            return Response({"error": "No suppliers selected"}, status=400)
+
+    # Union of all suppliers for inventory export / DB fetch
+    all_suppliers = []
+    for s in stock_suppliers + available_suppliers:
+        if s not in all_suppliers:
+            all_suppliers.append(s)
+
+    # ---------- Prepare zip / email attachments ----------
     zip_buffer = io.BytesIO()
     zip_file = zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED)
     nc_attachments, ics_attachments = [], []
@@ -208,15 +338,13 @@ def export_inventory(request):
     ICS_FIELDS  = ["mpn", "description", "manufacturer", "quantity"]
     ICS_COLUMNS = ["P/N", "DESCRIPTION", "MFG", "QTY"]
 
-    INV_FIELDS  = ["mpn", "description", "manufacturer", "quantity", "supplier", "location", "date_code", "price", "url"]
-
     # ---------- Helper to write a dataframe into the zip & attachments ----------
-
     def write_rows(rows, filename, fields, column_names, recipient=None):
         print(f"Exporting {filename} ({len(rows)} rows)...")
         if not rows:
             return
         df = pd.DataFrame(rows)
+
         # make sure all columns exist (in case some fields absent)
         for f in fields:
             if f not in df.columns:
@@ -225,7 +353,7 @@ def export_inventory(request):
         df.columns = column_names
 
         out = io.BytesIO()
-        if format_type == "xlsx":
+        if file_format == "xlsx":
             df.to_excel(out, index=False, engine="xlsxwriter")
         else:
             df.to_csv(out, index=False, encoding="utf-8-sig")
@@ -238,76 +366,117 @@ def export_inventory(request):
         elif recipient == "icsource":
             ics_attachments.append((filename, out.getvalue()))
 
-    # we need up to the maximum total rows across both sites.
-    need_shared = (net_components or ic_source) and suppliers
-    total_nc  = limits["nc_stock"]  + limits["nc_avail"]  if net_components else 0
-    total_ics = limits["ics_stock"] + limits["ics_avail"] if ic_source       else 0
-    required_total = max(total_nc, total_ics)
+    # ---------- Fetch rows once for all suppliers (for NC/ICS) ----------
+    rows_by_supplier = {}
+    need_any_platform = (net_components_enabled or ic_source_enabled) and all_suppliers
 
-    ordered_rows = []  # list of dicts (union of fields)
-    if need_shared and required_total > 0:
-        UNION_FIELDS = sorted(set(NC_FIELDS) | set(ICS_FIELDS))
-        CHUNK_SIZE = 10000
+    if need_any_platform:
+        union_fields = sorted(set(NC_FIELDS) | set(ICS_FIELDS) | {"supplier"})
 
-        print(f"Shared fetch start. Suppliers={len(suppliers)}, target rows={required_total}")
+        print(f"Shared fetch start. Suppliers={len(all_suppliers)}")
         t0 = time.time()
 
-        # iterate suppliers in the user-defined order; stop once enough rows collected
-        for s in suppliers:
-            qs = InventoryItem.objects.filter(supplier=s).values(*UNION_FIELDS).order_by('id')
-            cnt_before = len(ordered_rows)
-            for row in qs.iterator(chunk_size=CHUNK_SIZE):
-                ordered_rows.append(row)
-                if len(ordered_rows) >= required_total:
-                    break
-            print(f"  supplier='{s}': +{len(ordered_rows)-cnt_before} rows (total {len(ordered_rows)})")
-            if len(ordered_rows) >= required_total:
-                break
-
-        print(f"Shared fetch done in {time.time() - t0:.2f}s; collected {len(ordered_rows)} rows.")
-
-    # ---------- Build NC exports ----------
-    if net_components:
-        t1 = time.time()
-        rows_nc_full = ordered_rows[:total_nc] if need_shared else list(
-            InventoryItem.objects.filter(supplier__in=suppliers)
-            .order_by('supplier', 'id')
-            .values(*NC_FIELDS)[:total_nc]
+        qs = (
+            InventoryItem.objects
+            .filter(supplier__in=all_suppliers)
+            .order_by("supplier", "id")
+            .values(*union_fields)
         )
 
-        nc_stock_rows = rows_nc_full[:limits["nc_stock"]]
-        nc_avail_rows = rows_nc_full[limits["nc_stock"]: total_nc]
+        CHUNK_SIZE = 10000
+        for row in qs.iterator(chunk_size=CHUNK_SIZE):
+            s = row["supplier"]
+            rows_by_supplier.setdefault(s, []).append(row)
 
-        write_rows(nc_stock_rows,  f"netcomponents_stock.{format_type}",    NC_FIELDS, NC_COLUMNS, "netcomponents")
-        write_rows(nc_avail_rows,  f"netcomponents_available.{format_type}", NC_FIELDS, NC_COLUMNS, "netcomponents")
+        print(
+            f"Shared fetch done in {time.time() - t0:.2f}s; "
+            f"collected rows for {len(rows_by_supplier)} suppliers."
+        )
+
+    # ---------- Helper: build stock/available rows for a single platform ----------
+    def build_platform_rows(stock_list, avail_list, stock_limit, avail_limit):
+        """
+        Fill stock rows first, overflow to available, then process available suppliers.
+        """
+        stock_rows = []
+        avail_rows = []
+
+        # Phase 1: STOCK suppliers
+        for s in stock_list:
+            supplier_rows = rows_by_supplier.get(s, [])
+            for row in supplier_rows:
+                if len(stock_rows) < stock_limit:
+                    stock_rows.append(row)
+                elif len(avail_rows) < avail_limit:
+                    # overflow from stock → available
+                    avail_rows.append(row)
+                else:
+                    return stock_rows, avail_rows
+
+        # Phase 2: AVAILABLE suppliers
+        for s in avail_list:
+            supplier_rows = rows_by_supplier.get(s, [])
+            for row in supplier_rows:
+                if len(avail_rows) < avail_limit:
+                    avail_rows.append(row)
+                else:
+                    return stock_rows, avail_rows
+
+        return stock_rows, avail_rows
+
+    # ---------- Build NC exports ----------
+    if net_components_enabled:
+        t1 = time.time()
+
+        nc_stock_rows, nc_avail_rows = build_platform_rows(
+            stock_suppliers,
+            available_suppliers,
+            max_nc_stock,
+            max_nc_avail
+        )
+
+        write_rows(
+            nc_stock_rows,
+            f"netcomponents_stock.{file_format}",
+            NC_FIELDS,
+            NC_COLUMNS,
+            "netcomponents",
+        )
+        write_rows(
+            nc_avail_rows,
+            f"netcomponents_available.{file_format}",
+            NC_FIELDS,
+            NC_COLUMNS,
+            "netcomponents",
+        )
         print(f"NC file creation time: {time.time() - t1:.2f}s")
 
     # ---------- Build ICS exports ----------
-    if ic_source:
+    if ic_source_enabled:
         t2 = time.time()
-        rows_ics_full = ordered_rows[:total_ics] if need_shared else list(
-            InventoryItem.objects.filter(supplier__in=suppliers)
-            .order_by('supplier', 'id')
-            .values(*ICS_FIELDS)[:total_ics]
+
+        ics_stock_rows, ics_avail_rows = build_platform_rows(
+            stock_suppliers,
+            available_suppliers,
+            max_ics_stock,
+            max_ics_avail,
         )
 
-        ics_stock_rows = rows_ics_full[:limits["ics_stock"]]
-        ics_avail_rows = rows_ics_full[limits["ics_stock"]: total_ics]
-
-        write_rows(ics_stock_rows, f"icsource_stock.{format_type}",     ICS_FIELDS, ICS_COLUMNS, "icsource")
-        write_rows(ics_avail_rows, f"icsource_available.{format_type}", ICS_FIELDS, ICS_COLUMNS, "icsource")
+        write_rows(
+            ics_stock_rows,
+            f"icsource_stock.{file_format}",
+            ICS_FIELDS,
+            ICS_COLUMNS,
+            "icsource",
+        )
+        write_rows(
+            ics_avail_rows,
+            f"icsource_available.{file_format}",
+            ICS_FIELDS,
+            ICS_COLUMNS,
+            "icsource",
+        )
         print(f"ICS file creation time: {time.time() - t2:.2f}s")
-
-    # ---------- Optional full inventory export ----------
-    if inventory_export:
-        t3 = time.time()
-        qs = (InventoryItem.objects
-              .filter(supplier__in=suppliers)
-              .values(*INV_FIELDS)
-              .order_by('supplier', 'id'))
-        inv_rows = list(qs)  # אם תרצה: לעבור עם iterator ולכתוב בקבצים חלקיים
-        write_rows(inv_rows, f"inventory.{format_type}", INV_FIELDS, INV_FIELDS, None)
-        print(f"Inventory file creation time: {time.time() - t3:.2f}s")
 
     # ---------- Finish up ----------
     zip_file.close()
@@ -322,10 +491,15 @@ def export_inventory(request):
             template="ncupdate",
             from_account="inventory",
             attachments=[
-                (fname, io.BytesIO(content), "text/csv" if fname.endswith(".csv") else
-                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                (
+                    fname,
+                    io.BytesIO(content),
+                    "text/csv"
+                    if fname.endswith(".csv")
+                    else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
                 for (fname, content) in nc_attachments
-            ]
+            ],
         )
 
     if send_to_ics and ics_attachments:
@@ -335,10 +509,15 @@ def export_inventory(request):
             template="icsupdate",
             from_account="inventory",
             attachments=[
-                (fname, io.BytesIO(content), "text/csv" if fname.endswith(".csv") else
-                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                (
+                    fname,
+                    io.BytesIO(content),
+                    "text/csv"
+                    if fname.endswith(".csv")
+                    else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
                 for (fname, content) in ics_attachments
-            ]
+            ],
         )
 
     if download:
