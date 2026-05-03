@@ -3,20 +3,37 @@ from .models import CRMAccount, CRMInteraction, CRMTask
 from apps.companies.serializers import CompanySerializer
 
 
+def _display_user(user):
+    if not user:
+        return ''
+    full_name = user.get_full_name()
+    return full_name or user.get_username() or ''
+
+
 class CRMInteractionSerializer(serializers.ModelSerializer):
-    added_by_name = serializers.CharField(source='added_by.get_full_name', read_only=True)
+    added_by_name = serializers.SerializerMethodField()
+    account_name = serializers.CharField(source='account.name', read_only=True)
+    account_email = serializers.CharField(source='account.email', read_only=True)
 
     class Meta:
         model = CRMInteraction
         fields = '__all__'
 
+    def get_added_by_name(self, obj):
+        return _display_user(obj.added_by)
+
 
 class CRMTaskSerializer(serializers.ModelSerializer):
-    added_by_name = serializers.CharField(source='added_by.get_full_name', read_only=True)
+    added_by_name = serializers.SerializerMethodField()
+    account_name = serializers.CharField(source='account.name', read_only=True)
+    account_email = serializers.CharField(source='account.email', read_only=True)
 
     class Meta:
         model = CRMTask
         fields = '__all__'
+
+    def get_added_by_name(self, obj):
+        return _display_user(obj.added_by)
 
 
 class CRMAccountSerializer(serializers.ModelSerializer):

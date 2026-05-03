@@ -26,10 +26,9 @@ const EditCRMAccountModal = ({ id, account, onSave }) => {
         country: ''
     });
 
-useEffect(() => {
-    fetchCompanies();
-    fetchUsers();
-    if (account) {
+    useEffect(() => {
+        if (!account) return;
+
         setFormData({
             name: account.name || '',
             email: account.email || '',
@@ -38,8 +37,27 @@ useEffect(() => {
             company: account.company || null,
             assigned_to: account.assigned_to || '',
         });
-    }
-}, [account]);
+    }, [account]);
+
+    useEffect(() => {
+        const modalEl = document.getElementById(id);
+
+        const handleModalShow = () => {
+            if (companies.length === 0) {
+                fetchCompanies();
+            }
+
+            if (users.length === 0) {
+                fetchUsers();
+            }
+        };
+
+        modalEl?.addEventListener('show.bs.modal', handleModalShow);
+
+        return () => {
+            modalEl?.removeEventListener('show.bs.modal', handleModalShow);
+        };
+    }, [id, companies.length, users.length]);
 
 
     const fetchCompanies = (query = '') => {
@@ -122,7 +140,10 @@ useEffect(() => {
     <Select
         options={companies.map((c) => ({ value: c.id, label: c.name }))}
         value={formData.company
-            ? { value: formData.company, label: companies.find(c => c.id === formData.company)?.name || 'dfd' }
+            ? {
+                value: formData.company,
+                label: companies.find(c => c.id === formData.company)?.name || account?.company_details?.name || ''
+            }
             : null
         }
         onInputChange={(value) => fetchCompanies(value)}

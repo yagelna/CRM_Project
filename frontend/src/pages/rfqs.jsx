@@ -12,11 +12,15 @@ import BulkEditModal from '../components/rfqs/BulkEditModal';
 import Offcanvas from '../components/rfqs/RfqOffcanvas';
 import { CONFIG } from '../config';
 import { showToast } from '../components/common/toast';
+import { Button } from 'react-bootstrap';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const Rfqs = () => {
     const [rfqs, setRfqs] = useState([]);
+    const [statusFilter, setStatusFilter] = useState("pending");
+    const [dateRange, setDateRange] = useState("14");
+    const [isLoading, setIsLoading] = useState(false);
     const [selectedRfq, setSelectedRfq] = useState(null);
     const [selectedRows, setSelectedRows] = useState([]);
     const [autoFillData, setAutoFillData] = useState(null);
@@ -199,14 +203,61 @@ const Rfqs = () => {
         onSelectionChanged,
     };
 
-    // fetch rfqs from the backend function
-    const fetchRfqs = () => {
-        axiosInstance.get('api/rfqs/')
-            .then((response) => {
-                setRfqs(response.data);
-            })
-            .catch((error) => console.error('Error fetching rfqs: ' + error));
-    };
+    const overlayLoadingTemplate = `
+        <div class="text-primary">
+            <div class="spinner-grow spinner-grow-sm me-1" role="status"></div>
+            <div class="spinner-grow spinner-grow-sm me-1" role="status"></div>
+            <div class="spinner-grow spinner-grow-sm" role="status"></div>
+            <br/><br/>
+            Loading RFQs...
+        </div>
+    `;
+
+    const overlayNoRowsTemplate = `
+        <div class="text-muted">
+            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+            No RFQs found for the selected filters.
+        </div>
+    `;
+
+    // fetch rfqs from the backend function with filters for status and date range
+    const fetchRfqs = useCallback(async () => {
+        setIsLoading(true);
+        setSelectedRows([]);
+
+        try {
+            const response = await axiosInstance.get('api/rfqs/', {
+                params: {
+                    status: statusFilter,
+                    date_range: dateRange,
+                }
+            });
+
+            setRfqs(response.data || []);
+        } catch (error) {
+            console.error('Error fetching rfqs: ' + error);
+            setRfqs([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [statusFilter, dateRange]);
+
+    useEffect(() => {
+        const api = gridRef.current?.api;
+        if (!api) return;
+
+        if (isLoading) {
+            api.showLoadingOverlay();
+            return;
+        }
+
+        if (rfqs.length === 0) {
+            api.showNoRowsOverlay();
+            return;
+        }
+
+        api.hideOverlay();
+    }, [isLoading, rfqs]);
 
     const handleMarkUnattractive = () => {
         const ids = selectedRows.map(row => row.id);
@@ -231,37 +282,47 @@ const Rfqs = () => {
             });
     };
 
-
-
     useEffect(() => {
         fetchRfqs();
+    }, [fetchRfqs]);
+
+    useEffect(() => {
+        // fetchRfqs();
         // WebSocket connection
         const ws = new WebSocket(CONFIG.WS_BASE_URL);
+
         ws.onopen = () => {
             console.log('Websocket connected');
         };
+
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log("New data received via websocket: ", data);
-            fetchRfqs(); // fetch rfqs after receiving new data
+            fetchRfqs();
         };
 
         ws.onclose = () => {
             console.log('WebSocket connection closed');
         };
+
         const emailModal = document.getElementById('SendEmailModal');
+
         const handleModalClose = () => {
-            console.log('Email modal closed');
             setAutoFillData(null);
         };
-        emailModal.addEventListener('hidden.bs.modal', handleModalClose);
+
+        if (emailModal) {
+            emailModal.addEventListener('hidden.bs.modal', handleModalClose);
+        }
 
         return () => {
             ws.close();
-            emailModal.removeEventListener('hidden.bs.modal', handleModalClose);
+
+            if (emailModal) {
+                emailModal.removeEventListener('hidden.bs.modal', handleModalClose);
+            }
         };
-        
-    }, []); 
+    }, [fetchRfqs]);
 
 
     //update rfqs state after adding or editing an rfq
@@ -300,9 +361,10 @@ const Rfqs = () => {
                     + Add RFQ
                 </button>
             </div>
-            <div>
-                <div className="d-flex justify-content-between align-items-center">
-                        <input
+            <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                {/* LEFT SIDE */}
+                <div>
+                    <input
                         type="text"
                         id="filter-text-box"
                         className="form-control"
@@ -310,26 +372,48 @@ const Rfqs = () => {
                         onInput={onFilterTextBoxChanged}
                         style={{ width: '200px' }}
                     />
+                    
+                </div>
+                <select
+                        className="form-select"
+                        style={{ width: '170px' }}
+                        value={dateRange}
+                        onChange={(e) => setDateRange(e.target.value)}
+                    >
+                        <option value="14">Last 14 days</option>
+                        <option value="30">Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                        <option value="all">All time</option>
+                    </select>
 
-                    {selectedRows.length > 0 && (
-                        <div className="btn-group">
-                            <button type="button" className="btn btn-sm btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            Bulk Actions
-                            </button>
-                            <ul className="dropdown-menu">
-                                <li><button className="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#BulkEmailModal"> 
-                                    <i className="bi bi-envelope"></i> Send Email</button></li>
-                                <li><button className="dropdown-item" type="button" onClick={handleMarkUnattractive}>
-                                <i className="bi bi-eye-slash"></i> Mark as Unattractive</button></li>
-                                <li><button className="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#BulkEditModal">
-                                    <i className="bi bi-pencil-square"></i> Edit</button></li>
-                                <li><hr className="dropdown-divider"></hr></li>
-                                <li><button className="dropdown-item text-danger" type="button" onClick={handleDeleteSelected}> <i className="bi bi-trash"></i> Delete</button></li>
-                            </ul>
-                        </div>
-                    )}
+                {/* RIGHT SIDE */}
+                <div className="d-flex flex-wrap align-items-center gap-2 ms-auto">
+
+                    <div className="btn-group dotzhub-btn-group" role="group">
+                        {[
+                            { value: "pending", label: "Pending" },
+                            { value: "Quote Sent", label: "Quote Sent" },
+                            { value: "unattractive", label: "Unattractive" },
+                            { value: "T/P Request Sent", label: "T/P Sent" },
+                            { value: "MOV Requirement Sent", label: "MOV Sent" },
+                            { value: "all", label: "All" },
+
+                        ].map((option) => (
+                            <Button
+                                key={option.value}
+                                className={statusFilter === option.value ? "active" : ""}
+                                onClick={() => setStatusFilter(option.value)}
+                            >
+                                {option.label}
+                            </Button>
+                        ))}
+                    </div>
+
+                    
                 </div>
             </div>
+
+
             <div className="card border-0 shadow-sm mb-4 mt-2">
                 <div className="card-body p-2">
                 <div className="ag-theme-quartz" style={{ height: 650, width: '100%' }}>
@@ -343,7 +427,8 @@ const Rfqs = () => {
                         pagination={true}
                         paginationPageSize={20}
                         components={{ actionCellRenderer: ActionCellRenderer, statusCellRenderer: StatusCellRenderer }}
-                        overlayNoRowsTemplate={'<div class="text-primary"><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm me-1" role="status"></div><div class="spinner-grow spinner-grow-sm" role="status"></div></br></br>Connecting The Dots...</div>'}
+                        overlayLoadingTemplate={overlayLoadingTemplate}
+                        overlayNoRowsTemplate={overlayNoRowsTemplate}
                     />
                 </div>
                 </div>

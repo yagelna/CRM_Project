@@ -26,9 +26,24 @@ const AddCRMAccountModal = ({ id, onSuccess }) => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        fetchCompanies();
-        fetchUsers();
-    }, []);
+        const modalEl = document.getElementById(id);
+
+         const handleShow = () => {
+            if (companies.length === 0) {
+                fetchCompanies();
+            }
+
+            if (users.length === 0) {
+                fetchUsers();
+            }
+        };
+
+        modalEl?.addEventListener('show.bs.modal', handleShow);
+
+        return () => {
+            modalEl?.removeEventListener('show.bs.modal', handleShow);
+        };
+    }, [id, companies.length, users.length]);
     
     const fetchCompanies = (query = '') => {
         axiosInstance.get(`api/company-search/?q=${query}`)
