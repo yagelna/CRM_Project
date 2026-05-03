@@ -13,6 +13,8 @@ import Register from './pages/register';
 import AI from './pages/ai';
 import Settings from './pages/settings';
 import CRMAccounts from './pages/CRM';
+import CRMTasks from './pages/crmTasks';
+import CRMInteractions from './pages/crmInteractions';
 import Quotes from './pages/quotes';
 import Orders from './pages/orders';
 import AccountSettings from './components/settings/AccountSettings';
@@ -62,6 +64,26 @@ function App() {
           <Route path="/crm" element={
             <PermissionGate anyOfGroups={['crm_access']}>
               <CRMAccounts />
+            </PermissionGate>
+          } />
+          <Route path="/crm/tasks" element={
+            <PermissionGate anyOfGroups={['crm_access']}>
+              <CRMTasks />
+            </PermissionGate>
+          } />
+          <Route path="/crm/tasks/*" element={
+            <PermissionGate anyOfGroups={['crm_access']}>
+              <CRMTasks />
+            </PermissionGate>
+          } />
+          <Route path="/crm/interactions" element={
+            <PermissionGate anyOfGroups={['crm_access']}>
+              <CRMInteractions />
+            </PermissionGate>
+          } />
+          <Route path="/crm/interactions/*" element={
+            <PermissionGate anyOfGroups={['crm_access']}>
+              <CRMInteractions />
             </PermissionGate>
           } />
           <Route path="/dashboard" element={<Dashboard />} />

@@ -1,28 +1,35 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import Logo from '../../assets/Icon-01.png';
 import './sidebar.css';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
   const { logout } = useAuth();
-  useEffect(() => {
-    // Enable Bootstrap tooltips
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    const tooltips = [];
-    
-    tooltipTriggerList.forEach(tooltipTriggerEl => {
-      const tooltipInstance = new bootstrap.Tooltip(tooltipTriggerEl);
-      tooltips.push(tooltipInstance);
-      
-      // Hide tooltip on click
-      tooltipTriggerEl.addEventListener('click', () => {
-        tooltipInstance.hide();
-      });
-    });
-  }, []);
+  const location = useLocation();
+  const [isCrmMenuOpen, setIsCrmMenuOpen] = useState(false);
+  const isCrmAccountsActive = location.pathname === '/crm';
+  const isCrmTasksActive = location.pathname === '/crm/tasks';
+  const isCrmInteractionsActive = location.pathname === '/crm/interactions';
 
+  useEffect(() => {
+    setIsCrmMenuOpen(false);
+  }, [location.pathname]);
+
+  const closeCrmMenu = () => {
+    setIsCrmMenuOpen(false);
+  };
+
+  const renderNavLink = (to, label, iconClass) => (
+    <NavLink
+      to={to}
+      className={({ isActive }) => `nav-link sidebar-nav-link border-bottom ${isActive ? 'active' : ''}`}
+    >
+      <i className={`${iconClass} sidebar-icon`}></i>
+      <span className="sidebar-nav-label">{label}</span>
+    </NavLink>
+  );
 
   return (
     <aside className='d-flex flex-column flex-shrink-0 sidebar' style={{ width: '4.5rem' }}>
@@ -34,57 +41,68 @@ const Sidebar = () => {
       {/* Navigation Links */}
       <ul className="nav nav-pills nav-flush flex-column mb-auto text-center">
         <li className="nav-item">
-        <NavLink 
-          to="/dashboard"
-          className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`}
-          title="Dashboard"
-          data-bs-toggle="tooltip"
-          data-bs-placement="right"
+          {renderNavLink('/dashboard', 'Dashboard', 'bi bi-speedometer2')}
+        </li>
+        <li className="nav-item">
+          {renderNavLink('/rfqs', 'RFQs', 'bi bi-file-earmark-text')}
+        </li>
+        <li className="nav-item">
+          {renderNavLink('/contacts', 'Contacts', 'bi bi-person')}
+        </li>
+        <li className="nav-item">
+          {renderNavLink('/companies', 'Companies', 'bi bi-building')}
+        </li>
+        <li className="nav-item">
+          {renderNavLink('/inventory', 'Inventory', 'bi bi-archive')}
+        </li>
+        <li
+          className={`nav-item crm-nav-item ${isCrmMenuOpen ? 'is-open' : ''}`}
+          onMouseEnter={() => setIsCrmMenuOpen(true)}
+          onMouseLeave={() => setIsCrmMenuOpen(false)}
         >
-          <i className="bi bi-speedometer2 sidebar-icon"></i>
-        </NavLink>
-
-        </li>
-        <li className="nav-item">
-          <NavLink to="/rfqs" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="RFQs" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-file-earmark-text sidebar-icon"></i>
-          </NavLink>
-        </li>
-        <li className="nav-item">
-          <NavLink to="/contacts" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="Contacts" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-person sidebar-icon"></i>
-          </NavLink>
-        </li>
-        <li className="nav-item">
-          <NavLink to="/companies" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="Companies" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-building sidebar-icon"></i>
-          </NavLink>
-        </li>
-        <li className="nav-item">
-          <NavLink to="/inventory" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="Inventory" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-archive sidebar-icon"></i>
-          </NavLink>
-        </li>
-        <li className="nav-item">
-          <NavLink to="/crm" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="CRM" data-bs-toggle="tooltip" data-bs-placement="right">
+          <button
+            type="button"
+            className="nav-link sidebar-nav-link border-bottom crm-trigger-button"
+            aria-haspopup="true"
+            aria-expanded={isCrmMenuOpen}
+          >
             <i className="bi bi-people sidebar-icon"></i>
-          </NavLink>
-        </li>
-        <li className="nav-item">
-          <NavLink to="/ai" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="AI" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-lightbulb sidebar-icon"></i>
-          </NavLink>
-        </li>
-        <li className="nav-item">
-          <NavLink to="/crm/quotes" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="Quotes" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-receipt sidebar-icon"></i>
+            <span className="sidebar-nav-label">CRM</span>
+          </button>
 
-          </NavLink>
+          <div className="crm-submenu shadow-sm">
+            <NavLink
+              to="/crm"
+              end
+              className={`crm-submenu-link ${isCrmAccountsActive ? 'active' : ''}`}
+              onClick={closeCrmMenu}
+            >
+              Accounts
+            </NavLink>
+            <NavLink
+              to="/crm/tasks"
+              className={`crm-submenu-link ${isCrmTasksActive ? 'active' : ''}`}
+              onClick={closeCrmMenu}
+            >
+              Tasks
+            </NavLink>
+            <NavLink
+              to="/crm/interactions"
+              className={`crm-submenu-link ${isCrmInteractionsActive ? 'active' : ''}`}
+              onClick={closeCrmMenu}
+            >
+              Interactions
+            </NavLink>
+          </div>
         </li>
         <li className="nav-item">
-          <NavLink to="/orders" className={({ isActive }) => `nav-link py-3 border-bottom ${isActive ? 'active' : ''}`} title="Orders" data-bs-toggle="tooltip" data-bs-placement="right">
-            <i className="bi bi-bag sidebar-icon"></i>
-          </NavLink>
+          {renderNavLink('/ai', 'AI', 'bi bi-lightbulb')}
+        </li>
+        <li className="nav-item">
+          {renderNavLink('/crm/quotes', 'Quotes', 'bi bi-receipt')}
+        </li>
+        <li className="nav-item">
+          {renderNavLink('/orders', 'Orders', 'bi bi-bag')}
         </li>
       </ul>
       

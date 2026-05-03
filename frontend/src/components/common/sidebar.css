@@ -9,7 +9,7 @@
 .sidebar-icon {
   font-size: 1.2rem;
   color: #5A34F1; 
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .nav-link:hover .sidebar-icon,
@@ -42,11 +42,116 @@
 
 .sidebar .nav-link {
   color: #5A34F1;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .sidebar .nav-link:hover,
 .sidebar .nav-link.active {
+  color: #FF6C2F;
+}
+
+.crm-trigger-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  appearance: none;
+  cursor: default;
+}
+
+.crm-trigger-button:focus {
+  outline: none;
+}
+
+.crm-trigger-button:hover {
+  color: #FF6C2F;
+}
+
+.sidebar-nav-link {
+  position: relative;
+  min-height: 4rem;
+  padding: 0.6rem 0.25rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.sidebar-nav-label {
+  margin-top: 0.3rem;
+  font-size: 0.68rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transform: translateY(0.35rem) scale(0.92);
+  max-height: 0;
+  color: #5A34F1;
+  transition: opacity 0.2s ease, transform 0.2s ease, max-height 0.2s ease, color 0.2s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.sidebar-nav-link:hover .sidebar-icon,
+.sidebar-nav-link.active .sidebar-icon,
+.sidebar-nav-link:focus-visible .sidebar-icon {
+  transform: translateY(-0.12rem) scale(0.88);
+}
+
+.sidebar-nav-link:hover .sidebar-nav-label,
+.sidebar-nav-link.active .sidebar-nav-label,
+.sidebar-nav-link:focus-visible .sidebar-nav-label {
+  opacity: 1;
+  max-height: 1rem;
+  transform: translateY(0) scale(1);
+}
+
+.crm-nav-item {
+  position: relative;
+}
+
+.crm-submenu {
+  position: absolute;
+  left: calc(100% - 0.1rem);
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 11rem;
+  background: #ffffff;
+  border: 1px solid rgba(90, 52, 241, 0.12);
+  border-radius: 0.75rem;
+  padding: 0.35rem 0.35rem 0.35rem 0.7rem;
+  display: none;
+  flex-direction: column;
+  gap: 0.25rem;
+  z-index: 2050;
+}
+
+.crm-nav-item.is-open .crm-submenu {
+  display: flex;
+}
+
+.crm-submenu::before {
+  content: '';
+  position: absolute;
+  left: -0.7rem;
+  top: 0;
+  bottom: 0;
+  width: 0.7rem;
+}
+
+.crm-submenu-link {
+  display: block;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  color: #5A34F1;
+  text-decoration: none;
+  font-size: 0.9rem;
+  text-align: left;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.crm-submenu-link:hover,
+.crm-submenu-link.active {
+  background-color: rgba(90, 52, 241, 0.08);
   color: #FF6C2F;
 }
 

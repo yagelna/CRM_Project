@@ -30,8 +30,32 @@ def search_rfqs(request, mpn):
 
 
 class RFQViewSet(viewsets.ModelViewSet):
-    queryset = RFQ.objects.all()
     serializer_class = RFQSerializer
+
+    def get_queryset(self):
+        queryset = RFQ.objects.select_related(
+            "customer",
+            "company",
+            "customer__company",
+            "inventory_item",
+        ).order_by("-created_at")
+
+        status_filter = self.request.query_params.get("status", "pending")
+        date_range = self.request.query_params.get("date_range", "14")
+
+        if status_filter != "all":
+            queryset = queryset.filter(status=status_filter)
+
+        if date_range != "all":
+            try:
+                days = int(date_range)
+                queryset = queryset.filter(
+                    created_at__gte=now() - timedelta(days=days)
+                )
+            except ValueError:
+                pass
+
+        return queryset
 
     @action(detail=False, methods=['delete'], url_path='bulk-delete')
     def bulk_delete(self, request):

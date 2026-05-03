@@ -44,6 +44,9 @@ class CRMInteractionViewSet(viewsets.ModelViewSet):
     queryset = CRMInteraction.objects.all().order_by('-timestamp')
     serializer_class = CRMInteractionSerializer
     permission_classes = [IsAuthenticated, CanAccessCRM]
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('account', 'added_by')
     
     def perform_create(self, serializer):
         raw_timestamp = self.request.data.get('timestamp')
@@ -543,6 +546,9 @@ class CRMTaskViewSet(viewsets.ModelViewSet):
     queryset = CRMTask.objects.all().order_by('-due_date')
     serializer_class = CRMTaskSerializer
     permission_classes = [IsAuthenticated, CanAccessCRM]
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('account', 'added_by')
 
     def perform_create(self, serializer):
         serializer.save(added_by=self.request.user)

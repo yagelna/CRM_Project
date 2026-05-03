@@ -9,7 +9,7 @@ import { showToast } from '../common/toast';
 import GmailThreadViewer from './GmailThreadViewer';
 import QuoteModal from '../quotes/QuoteModal';
 
-const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts }) => {
+const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts, accounts = [] }) => {
     const [accountData, setAccountData] = useState({
         name: '',
         email: '',
@@ -463,7 +463,12 @@ const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts }) => {
                     setTaskBeingEdited(null);
                 }}
             />
-            <QuoteModal id="AddQuoteModal" mode="create" handleUpdateQuotes={() => {}} />
+            <QuoteModal
+                id="AddQuoteModal"
+                mode="create"
+                crmAccounts={accounts}
+                handleUpdateQuotes={() => {}}
+            />
         </>
     );
 };

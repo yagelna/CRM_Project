@@ -255,6 +255,7 @@ const CRMAccounts = () => {
         onDelete={handleDeleteAccount}
         onClose={() => setSelectedAccount(null)}
         fetchAccounts={fetchAccounts}
+        accounts={accounts}
       />
     </div>
   );

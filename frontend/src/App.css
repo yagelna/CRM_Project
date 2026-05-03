@@ -284,24 +284,45 @@ thead.thead-light {
   transition: all 0.2s ease-in-out;
 }
 
+.dotzhub-btn-group .btn {
+  background: white !important;
+  border: 1px solid #ccc !important;
+  border-radius: 8px;
+  color: #5A34F1 !important;
+  font-weight: 500;
+  padding: 6px 14px;
+  transition: all 0.2s ease-in-out;
+}
+
 .dotzhub-btn-group .btn:hover {
-  background: #f8f6ff; /* סגול מאוד בהיר */
-  border-color: #5A34F1;
+  background: #f8f6ff !important;
+  border-color: #5A34F1 !important;
+  color: #5A34F1 !important;
 }
 
 .dotzhub-btn-group .btn.active {
-  background: #5A34F1; /* סגול מותג */
-  color: white;
-  border-color: #5A34F1;
+  background: #5A34F1 !important;
+  color: white !important;
+  border-color: #5A34F1 !important;
   font-weight: 600;
 }
 
-.dotzhub-btn-group .btn:first-child {
-  border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px;
+:root {
+  --bs-primary: #5A34F1;
+  --bs-primary-rgb: 90, 52, 241;
 }
 
-.dotzhub-btn-group .btn:last-child {
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
+.btn-primary {
+  background-color: #5A34F1 !important;
+  border-color: #5A34F1 !important;
+}
+
+.btn-primary:hover {
+  background-color: #4728c7 !important;
+  border-color: #4728c7 !important;
+}
+
+.btn-primary:active {
+  background-color: #3d22aa !important;
+  border-color: #3d22aa !important;
 }

@@ -14,8 +14,9 @@ const defaultItem = {
   remarks: '',
 };
 
-const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes, refetchQuote }) => {
-  const [CRMAccounts, setCRMAccounts] = useState([]);
+const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes, refetchQuote, crmAccounts = null }) => {
+  const [localCRMAccounts, setLocalCRMAccounts] = useState([]);
+  const accountsOptions = crmAccounts ?? localCRMAccounts;
   const [interactions, setInteractions] = useState([]);
   const [formData, setFormData] = useState({
     crm_account: '',
@@ -28,8 +29,6 @@ const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes,
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
   useEffect(() => {
-    fetchCRMAccounts();
-
     if (mode === 'edit' && quoteData) {
       setFormData({
         crm_account: quoteData.crm_account,
@@ -43,6 +42,22 @@ const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes,
     }
   }, [mode, quoteData]);
 
+  useEffect(() => {
+    const modalEl = document.getElementById(id);
+
+    const handleModalShow = () => {
+      if (!crmAccounts && localCRMAccounts.length === 0) {
+        fetchCRMAccounts();
+      }
+    };
+
+    modalEl?.addEventListener('show.bs.modal', handleModalShow);
+
+    return () => {
+      modalEl?.removeEventListener('show.bs.modal', handleModalShow);
+    };
+  }, [id, crmAccounts, localCRMAccounts.length]);
+
   const resetForm = () => {
     setFormData({ crm_account: '', interaction: '', status: 'draft' });
     setItems([{ ...defaultItem }]);
@@ -52,9 +67,12 @@ const QuoteModal = ({ id, mode = 'create', quoteData = null, handleUpdateQuotes,
   const fetchCRMAccounts = async () => {
     try {
       const response = await axiosInstance.get('api/crm/accounts/');
-      setCRMAccounts(response.data);
+      setLocalCRMAccounts(response.data);
     } catch (error) {
-      showToast('error', 'Failed to load CRM accounts');
+      showToast({
+        type: 'danger',
+        title: 'Failed to load CRM accounts',
+      });
     }
   };
 
@@ -185,7 +203,7 @@ const handleSubmit = async (e, sendEmail = false) => {
             required
           >
             <option value="">Select a contact</option>
-            {CRMAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            {accountsOptions.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
         </div>
 

@@ -39,5 +39,12 @@ class RFQ(models.Model):
         else:
             self.auto_quote_deadline = None
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["status", "-created_at"], name="rfq_status_created_idx"),
+            models.Index(fields=["created_at"], name="rfq_created_idx"),
+            models.Index(fields=["status"], name="rfq_status_idx"),
+        ]
+
     def __str__(self):
         return self.mpn
