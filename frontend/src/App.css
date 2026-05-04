@@ -326,3 +326,22 @@ thead.thead-light {
   background-color: #3d22aa !important;
   border-color: #3d22aa !important;
 }
+
+.btn-outline-primary {
+  color: #5A34F1 !important;
+  border-color: #5A34F1 !important;
+  background-color: transparent !important;
+}
+
+.btn-outline-primary:hover {
+  color: white !important;
+  background-color: #5A34F1 !important;
+  border-color: #5A34F1 !important;
+}
+
+.btn-outline-primary:active,
+.btn-outline-primary:focus {
+  color: white !important;
+  background-color: #4728c7 !important;
+  border-color: #4728c7 !important;
+}

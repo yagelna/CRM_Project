@@ -15,7 +15,21 @@ const BulkEditModal = ({ id, selectedRows, onSuccess }) => {
     { key: "qty_offered", label: "Qty Offered", type: "number" },
     { key: "offered_price", label: "Offered Price", type: "number" },
     { key: "stock_source", label: "Stock Source", type: "select", options: ["Stock", "Available", "Stock & Available", "Not Specified"] },
-    { key: "status", label: "Status", type: "select", options: ["Pending", "Quote Sent", "Reminder Sent", "Closed", "No Stock", "Rejected"] },
+    {
+      key: "status",
+      label: "Status",
+      type: "select",
+      options: [
+      { value: "pending", label: "Pending" },
+      { value: "T/P Request Sent", label: "T/P Request Sent" },
+      { value: "Quote Sent", label: "Quote Sent" },
+      { value: "unattractive", label: "Unattractive" },
+      { value: "Reminder Sent", label: "Reminder Sent" },
+      { value: "MOV Requirement Sent", label: "MOV Requirement Sent" },
+      { value: "No Stock Alert Sent", label: "No Stock Alert Sent" },
+      { value: "No Export Alert Sent", label: "No Export Alert Sent" },
+    ]
+    },
     { key: "notes", label: "Notes", type: "textarea" },
     { key: "auto_quote_deadline", label: "Auto Quote Deadline", type: "datetime-local" },
   ];
@@ -116,7 +130,15 @@ const BulkEditModal = ({ id, selectedRows, onSuccess }) => {
                       >
                         <option value="">Select value...</option>
                         {fieldMeta.options.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
+                          typeof opt === "object" ? (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ) : (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          )
                         ))}
                       </select>
                     ) : fieldMeta?.type === 'textarea' ? (
