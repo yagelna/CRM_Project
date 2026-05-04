@@ -44,7 +44,8 @@ class RFQViewSet(viewsets.ModelViewSet):
         date_range = self.request.query_params.get("date_range", "14")
 
         if status_filter != "all":
-            queryset = queryset.filter(status=status_filter)
+            statuses = [s.strip() for s in status_filter.split(",") if s.strip()]
+            queryset = queryset.filter(status__in=statuses)
 
         if date_range != "all":
             try:

@@ -18,7 +18,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const Rfqs = () => {
     const [rfqs, setRfqs] = useState([]);
-    const [statusFilter, setStatusFilter] = useState("pending");
+    const [statusFilter, setStatusFilter] = useState(["pending"]);
     const [dateRange, setDateRange] = useState("14");
     const [isLoading, setIsLoading] = useState(false);
     const [selectedRfq, setSelectedRfq] = useState(null);
@@ -26,6 +26,8 @@ const Rfqs = () => {
     const [autoFillData, setAutoFillData] = useState(null);
     const [colDefs, setColDefs] = useState([]);
     const gridRef = useRef();
+    const abortControllerRef = useRef(null);
+    const requestIdRef = useRef(0);
     const myTheme = themeQuartz
 	.withParams({
         browserColorScheme: "light",
@@ -222,46 +224,67 @@ const Rfqs = () => {
 
     // fetch rfqs from the backend function with filters for status and date range
     const fetchRfqs = useCallback(async () => {
+        requestIdRef.current += 1;
+        const requestId = requestIdRef.current;
+
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         setIsLoading(true);
         setSelectedRows([]);
+        setRfqs([]);
+
+        const currentStatus = statusFilter.includes("all") ? "all" : statusFilter.join(",");
+        const currentDateRange = dateRange;
 
         try {
             const response = await axiosInstance.get('api/rfqs/', {
                 params: {
-                    status: statusFilter,
-                    date_range: dateRange,
-                }
+                    status: currentStatus,
+                    date_range: currentDateRange,
+                },
+                signal: controller.signal,
             });
+
+            if (requestId !== requestIdRef.current) return;
 
             setRfqs(response.data || []);
         } catch (error) {
-            console.error('Error fetching rfqs: ' + error);
-            setRfqs([]);
+            if (
+                error.name === "CanceledError" ||
+                error.name === "AbortError" ||
+                error.code === "ERR_CANCELED"
+            ) {
+                return;
+            }
+
+            if (requestId === requestIdRef.current) {
+                console.error('Error fetching rfqs: ' + error);
+                setRfqs([]);
+            }
         } finally {
-            setIsLoading(false);
+            if (requestId === requestIdRef.current) {
+                setIsLoading(false);
+                abortControllerRef.current = null;
+            }
         }
     }, [statusFilter, dateRange]);
 
     useEffect(() => {
-        const api = gridRef.current?.api;
-        if (!api) return;
-
-        if (isLoading) {
-            api.showLoadingOverlay();
-            return;
-        }
-
-        if (rfqs.length === 0) {
-            api.showNoRowsOverlay();
-            return;
-        }
-
-        api.hideOverlay();
-    }, [isLoading, rfqs]);
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
+    }, []);
 
     const handleMarkUnattractive = () => {
         const ids = selectedRows.map(row => row.id);
-        const updates = { status: 'Unattractive' };
+        const updates = { status: 'unattractive' };
 
         axiosInstance.patch('api/rfqs/bulk-edit/', { updates, ids })
             .then((response) => {
@@ -362,21 +385,125 @@ const Rfqs = () => {
                 </button>
             </div>
             <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                {/* LEFT SIDE */}
-                <div>
-                    <input
-                        type="text"
-                        id="filter-text-box"
-                        className="form-control"
-                        placeholder="Quick Filter..."
-                        onInput={onFilterTextBoxChanged}
-                        style={{ width: '200px' }}
-                    />
-                    
+
+        {/* LEFT SIDE */}
+        <div className="d-flex flex-wrap align-items-center gap-2">
+            <input
+                type="text"
+                id="filter-text-box"
+                className="form-control"
+                placeholder="Quick Filter..."
+                onInput={onFilterTextBoxChanged}
+                style={{ width: '200px' }}
+            />
+
+            <span className="text-muted small ms-1">Active filters:</span>
+
+            <span className="badge rounded-pill text-bg-light border">
+                Status: {statusFilter.includes("all") ? "All" : statusFilter.join(", ")}
+            </span>
+
+            <span className="badge rounded-pill text-bg-light border">
+                Date: {dateRange === "all" ? "All time" : `Last ${dateRange} days`}
+            </span>
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="d-flex flex-wrap align-items-center gap-2 ms-auto">
+            {/* BULK ACTIONS */}
+            <div>
+                {selectedRows.length > 0 && (
+                    <div className="btn-group w-100">
+                        <button type="button" className="btn btn-sm btn-danger dropdown-toggle w-100" data-bs-toggle="dropdown">
+                            Bulk Actions ({selectedRows.length})
+                        </button>
+                        <ul className="dropdown-menu">
+                            <li>
+                                <button className="dropdown-item" data-bs-toggle="modal" data-bs-target="#BulkEmailModal">
+                                    <i className="bi bi-envelope"></i> Send Email
+                                </button>
+                            </li>
+                            <li>
+                                <button className="dropdown-item" onClick={handleMarkUnattractive}>
+                                    <i className="bi bi-eye-slash"></i> Mark as Unattractive
+                                </button>
+                            </li>
+                            <li>
+                                <button className="dropdown-item" data-bs-toggle="modal" data-bs-target="#BulkEditModal">
+                                    <i className="bi bi-pencil-square"></i> Edit
+                                </button>
+                            </li>
+                            <li><hr className="dropdown-divider" /></li>
+                            <li>
+                                <button className="dropdown-item text-danger" onClick={handleDeleteSelected}>
+                                    <i className="bi bi-trash"></i> Delete
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                )}
+            </div>
+
+        {/* FILTERS */}
+        <div className="dropdown">
+            <button
+                className="btn btn-sm btn-outline-primary dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                data-bs-auto-close="outside"
+            >
+                <i className="bi bi-funnel me-1"></i>
+                Filters
+            </button>
+
+            <div className="dropdown-menu dropdown-menu-end p-3 shadow" style={{ minWidth: "300px" }}>
+                <div className="mb-3">
+                    <label className="form-label small fw-semibold">Status</label>
+
+                    {[
+                        { value: "pending", label: "Pending" },
+                        { value: "T/P Request Sent", label: "T/P Request Sent" },
+                        { value: "Quote Sent", label: "Quote Sent" },
+                        { value: "unattractive", label: "Unattractive" },
+                        { value: "Reminder Sent", label: "Reminder Sent" },
+                        { value: "MOV Requirement Sent", label: "MOV Requirement Sent" },
+                        { value: "No Stock Alert Sent", label: "No Stock Alert Sent" },
+                        { value: "No Export Alert Sent", label: "No Export Alert Sent" },
+                    ].map((option) => (
+                        <div className="form-check" key={option.value}>
+                            <input
+                                className="form-check-input"
+                                type="checkbox"
+                                id={`status-${option.value.replace(/\s+/g, "-")}`}
+                                checked={statusFilter.includes(option.value)}
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setStatusFilter(prev => {
+                                            const cleanPrev = prev.filter(s => s !== "all");
+                                            return [...cleanPrev, option.value];
+                                        });
+                                    } else {
+                                        setStatusFilter(prev => {
+                                            const next = prev.filter(s => s !== option.value);
+                                            return next.length > 0 ? next : ["pending"];
+                                        });
+                                    }
+                                }}
+                            />
+                            <label
+                                className="form-check-label small"
+                                htmlFor={`status-${option.value.replace(/\s+/g, "-")}`}
+                            >
+                                {option.label}
+                            </label>
+                        </div>
+                    ))}
                 </div>
-                <select
-                        className="form-select"
-                        style={{ width: '170px' }}
+
+                <div className="mb-3">
+                    <label className="form-label small fw-semibold">Date range</label>
+                    <select
+                        className="form-select form-select-sm"
                         value={dateRange}
                         onChange={(e) => setDateRange(e.target.value)}
                     >
@@ -385,34 +512,35 @@ const Rfqs = () => {
                         <option value="90">Last 90 days</option>
                         <option value="all">All time</option>
                     </select>
+                </div>
 
-                {/* RIGHT SIDE */}
-                <div className="d-flex flex-wrap align-items-center gap-2 ms-auto">
+                <div className="d-flex gap-2">
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary w-50"
+                        onClick={() => {
+                            setStatusFilter(["pending"]);
+                            setDateRange("14");
+                        }}
+                    >
+                        Default
+                    </button>
 
-                    <div className="btn-group dotzhub-btn-group" role="group">
-                        {[
-                            { value: "pending", label: "Pending" },
-                            { value: "Quote Sent", label: "Quote Sent" },
-                            { value: "unattractive", label: "Unattractive" },
-                            { value: "T/P Request Sent", label: "T/P Sent" },
-                            { value: "MOV Requirement Sent", label: "MOV Sent" },
-                            { value: "all", label: "All" },
-
-                        ].map((option) => (
-                            <Button
-                                key={option.value}
-                                className={statusFilter === option.value ? "active" : ""}
-                                onClick={() => setStatusFilter(option.value)}
-                            >
-                                {option.label}
-                            </Button>
-                        ))}
-                    </div>
-
-                    
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary w-50"
+                        onClick={() => {
+                            setStatusFilter(["all"]);
+                            setDateRange("all");
+                        }}
+                    >
+                        Show all
+                    </button>
                 </div>
             </div>
-
+        </div>
+    </div>
+</div>
 
             <div className="card border-0 shadow-sm mb-4 mt-2">
                 <div className="card-body p-2">
@@ -422,6 +550,7 @@ const Rfqs = () => {
                         columnDefs={colDefs}
                         gridOptions={gridOptions}
                         rowData={rfqs}
+                        loading={isLoading}
                         theme={myTheme}
                         defaultColDef={{filter: true}}
                         pagination={true}

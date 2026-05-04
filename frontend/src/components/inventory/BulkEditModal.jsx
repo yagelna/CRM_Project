@@ -61,7 +61,7 @@ const BulkEditModal = ({ id, selectedRows }) => {
                     <div className="d-flex flex-column gap-3">
                         {fields.map((field, index) => (
                             <div key={index} className="d-flex align-items-center gap-3">
-                                <div style={{ flex: "2" }}> {/* הפיכת ה-Select לגדול יותר */}
+                                <div style={{ flex: "2" }}>
                                     <select 
                                         className="form-select form-select-sm"
                                         value={field.field || ""}
