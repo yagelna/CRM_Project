@@ -25,10 +25,11 @@ class CRMInteractionSerializer(serializers.ModelSerializer):
 
 class CRMTaskSerializer(serializers.ModelSerializer):
     added_by_name = serializers.SerializerMethodField()
-    account_name = serializers.CharField(source='account.name', read_only=True)
-    account_email = serializers.CharField(source='account.email', read_only=True)
-    account_phone = serializers.CharField(source='account.phone', read_only=True)
-    account_company = serializers.CharField(source='account.company.name', read_only=True)
+    assigned_to_name = serializers.SerializerMethodField()
+    account_name = serializers.SerializerMethodField()
+    account_email = serializers.SerializerMethodField()
+    account_phone = serializers.SerializerMethodField()
+    account_company = serializers.SerializerMethodField()
 
     class Meta:
         model = CRMTask
@@ -36,6 +37,21 @@ class CRMTaskSerializer(serializers.ModelSerializer):
 
     def get_added_by_name(self, obj):
         return _display_user(obj.added_by)
+
+    def get_assigned_to_name(self, obj):
+        return _display_user(obj.assigned_to)
+
+    def get_account_name(self, obj):
+        return obj.account.name if obj.account else ''
+
+    def get_account_email(self, obj):
+        return obj.account.email if obj.account else ''
+
+    def get_account_phone(self, obj):
+        return obj.account.phone if obj.account else ''
+
+    def get_account_company(self, obj):
+        return obj.account.company.name if obj.account and obj.account.company else ''
 
 
 class CRMAccountSerializer(serializers.ModelSerializer):
