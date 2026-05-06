@@ -119,7 +119,7 @@ const Companies = () => {
           <h2>Companies</h2>
           <p className="text-muted">Manage your customer companies</p>
         </div>
-        <button type="button" className="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addCompanyModal"> + Add Company </button>
+        <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCompanyModal"> + Add Company </button>
       </div>
       <div>
         <div className="d-flex align-items-center">

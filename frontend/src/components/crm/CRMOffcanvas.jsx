@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useLayoutEffect, useState, useRef } from 'react';
 import axiosInstance from '../../AxiosInstance';
 import AddInteractionModal from './AddInteractionModal';
 import EditInteractionModal from './EditInteractionModal';
@@ -20,7 +20,7 @@ const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts, accounts = [] }) =
         notes: '',
         created_at: '',
     });
-
+    const [fullAccount, setFullAccount] = useState(null);
     const [interactions, setInteractions] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [newInteraction, setNewInteraction] = useState({
@@ -32,42 +32,72 @@ const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts, accounts = [] }) =
     const [interactionBeingEdited, setInteractionBeingEdited] = useState(null);
     const [openThreads, setOpenThreads] = useState([]);
     const [defaultQuoteData, setDefaultQuoteData] = useState(null);
+    const [isAccountLoading, setIsAccountLoading] = useState(false);
+    const [loadedAccountId, setLoadedAccountId] = useState(null);
+    const activeAccountRequestRef = useRef(null);
 
-    useEffect(() => {
-        if (account) {
-            setAccountData({
-                name: account.name || '',
-                email: account.email || '',
-                phone: account.phone || '',
-                company: account.company_details?.name || '',
-                assigned_to: account.assigned_to_name || '',
-                status: account.status || '',
-                notes: account.notes || '',
-                created_at: account.created_at || '',
-                last_interaction: account.last_interaction || '',
-            });
-            setInteractions(account.interactions || []);
-            setTasks(account.tasks || []);
-        }
-    }, [account]);
+    useLayoutEffect(() => {
+        if (!account?.id) return;
 
-    const refreshAccount = async () => {
+        activeAccountRequestRef.current = account.id;
+        setIsAccountLoading(true);
+        setLoadedAccountId(null);
+        setOpenThreads([]);
+        setInteractions([]);
+        setTasks([]);
+        setAccountData({
+            name: '',
+            email: '',
+            phone: '',
+            company: '',
+            assigned_to: '',
+            status: '',
+            notes: '',
+            created_at: '',
+            last_interaction: '',
+        });
+        setFullAccount(null);
+        refreshAccount(account.id);
+    }, [account?.id]);
+
+    const refreshAccount = async (accountId) => {
+        if (!accountId) return;
+
+        activeAccountRequestRef.current = accountId;
+        setIsAccountLoading(true);
+
         try {
-            const response = await axiosInstance.get(`/api/crm/accounts/${account.id}/`);
+            const response = await axiosInstance.get(`/api/crm/accounts/${accountId}/`);
+
+            if (activeAccountRequestRef.current !== accountId) return;
+
             const updatedAccount = response.data;
+            setFullAccount(updatedAccount);
+
             setAccountData({
                 name: updatedAccount.name || '',
                 email: updatedAccount.email || '',
                 phone: updatedAccount.phone || '',
-                company: updatedAccount.company_details?.name || '',
+                company: updatedAccount.company_details?.name || updatedAccount.company_name || '',
                 assigned_to: updatedAccount.assigned_to_name || '',
                 status: updatedAccount.status || '',
                 notes: updatedAccount.notes || '',
                 created_at: updatedAccount.created_at || '',
                 last_interaction: updatedAccount.last_interaction || '',
             });
+
+            setInteractions(updatedAccount.interactions || []);
+            setTasks(updatedAccount.tasks || []);
+            setLoadedAccountId(updatedAccount.id);
         } catch (error) {
-            console.error('Failed to refresh account:', error);
+            if (activeAccountRequestRef.current === accountId) {
+                console.error('Failed to refresh account:', error);
+                showToast({ type: 'danger', title: 'Error', message: 'Failed to load account details.' });
+            }
+        } finally {
+            if (activeAccountRequestRef.current === accountId) {
+                setIsAccountLoading(false);
+            }
         }
     };
 
@@ -106,7 +136,7 @@ const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts, accounts = [] }) =
         } catch (error) {
             console.error('Failed to delete interaction:', error);
         }
-        refreshAccount();
+        refreshAccount(account.id);
     };
 
     const handleDelete = () => {
@@ -137,303 +167,361 @@ const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts, accounts = [] }) =
         }
     };
 
+    const shouldShowLoading = !account?.id || isAccountLoading || loadedAccountId !== account.id;
+
     return (
         <>
             <div className="offcanvas offcanvas-end lg-offcanvas" tabIndex="-1" id={id} aria-labelledby={`${id}Label`}>
                 <div className="offcanvas-header d-block">
                     <div className="d-flex justify-content-between align-items-start">
                         <div>
-                            <h5 className="offcanvas-title mb-0" id={`${id}Label`}>
-                                {accountData.name || 'CRM Account'}
-                            </h5>
-                            <small className="text-muted">{accountData.company}</small>
+                            {shouldShowLoading ? (
+                                <div className="placeholder-glow" style={{ minWidth: "220px" }}>
+                                    <span className="placeholder col-8 d-block mb-2"></span>
+                                    <span className="placeholder col-5 d-block"></span>
+                                </div>
+                            ) : (
+                                <>
+                                    <h5 className="offcanvas-title mb-0" id={`${id}Label`}>
+                                        {accountData.name || 'CRM Account'}
+                                    </h5>
+                                    <small className="text-muted">
+                                        {accountData.company || 'Unlinked'}
+                                    </small>
+                                </>
+                            )}
                         </div>
                         <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close" />
                     </div>
                 </div>
+
                 <hr className='m-0' />
 
                 <div className="offcanvas-body">
-                    <div className="d-flex justify-content-end mb-3 gap-2">
-                        <button
-                            className="btn btn-outline-warning btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#editCRMAccountModal"
-                        >
-                            <i className="bi bi-pencil me-1" />
-                            Edit
-                        </button>
-                        <button
-                            className="btn btn-outline-secondary btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#addInteractionModal"
-                        >
-                            <i className="bi bi-plus-circle me-1" />
-                            Add Interaction
-                        </button>
-                        <button
-                            className="btn btn-outline-secondary btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#addTaskModal"
-                        >
-                            <i className="bi bi-clipboard-plus me-1" />
-                            Add Task
-                        </button>
-                        <button type="button" className="btn btn-danger btn-sm" onClick={handleDelete}>
-                            <i className="bi bi-trash me-1" />
-                            Delete Account
-                        </button>
-                    </div>
+                    {shouldShowLoading ? (
+                        <div className="placeholder-glow">
+                            <div className="d-flex justify-content-end mb-3 gap-2">
+                                <span className="placeholder rounded" style={{ width: 55, height: 31 }}></span>
+                                <span className="placeholder rounded" style={{ width: 120, height: 31 }}></span>
+                                <span className="placeholder rounded" style={{ width: 95, height: 31 }}></span>
+                                <span className="placeholder rounded" style={{ width: 120, height: 31 }}></span>
+                            </div>
 
-                    {/* Row 1: Client Info & Summary */}
-                    <div className="row gy-3">
-                        <div className="col-md-6">
-                            <div className="card shadow-sm">
-                                <div className="card-body">
-                                    <h6 className="card-title text-primary">Client Info</h6>
-                                    <p><strong>Email:</strong> {accountData.email || <span className="text-muted">N/A</span>}</p>
-                                    <p><strong>Phone:</strong> {accountData.phone || <span className="text-muted">N/A</span>}</p>
-                                    <p><strong>Company:</strong> {accountData.company || <span className="text-muted">Unlinked</span>}</p>
-                                    <p><strong>Assigned To:</strong> {accountData.assigned_to || <span className="text-muted">Unassigned</span>}</p>
-                                    <p><strong>Status:</strong> <span className={`badge bg-${getStatusColor(accountData.status)}`}>{accountData.status}</span></p>
-                                    <p><strong>Created:</strong> {accountData.created_at ? new Date(accountData.created_at).toLocaleDateString() : 'N/A'}</p>
+                            <div className="row g-3 align-items-stretch">
+                                <div className="col-lg-5">
+                                    <div className="card shadow-sm h-100">
+                                        <div className="card-body">
+                                            <span className="placeholder col-3 mb-3 d-block"></span>
+                                            <span className="placeholder col-8 mb-2 d-block"></span>
+                                            <span className="placeholder col-5 mb-2 d-block"></span>
+                                            <span className="placeholder col-7 mb-2 d-block"></span>
+                                            <span className="placeholder col-6 mb-2 d-block"></span>
+                                            <span className="placeholder col-4 mb-2 d-block"></span>
+                                            <span className="placeholder col-5 d-block"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="col-lg-7">
+                                    <div className="card shadow-sm bg-light h-100">
+                                        <div className="card-body">
+                                            <span className="placeholder col-2 mb-3 d-block"></span>
+                                            <span className="placeholder col-3 mb-2 d-block"></span>
+                                            <span className="placeholder col-3 mb-2 d-block"></span>
+                                            <span className="placeholder col-5 mb-2 d-block"></span>
+                                            <span className="placeholder col-4 d-block"></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    ) : (
+                        <>
+                            <div className="d-flex justify-content-end mb-3 gap-2">
+                                <button
+                                    className="btn btn-outline-warning btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editCRMAccountModal"
+                                >
+                                    <i className="bi bi-pencil me-1" />
+                                    Edit
+                                </button>
+                                <button
+                                    className="btn btn-outline-secondary btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#addInteractionModal"
+                                >
+                                    <i className="bi bi-plus-circle me-1" />
+                                    Add Interaction
+                                </button>
+                                <button
+                                    className="btn btn-outline-secondary btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target={`#${id}_addTaskModal`}
+                                >
+                                    <i className="bi bi-clipboard-plus me-1" />
+                                    Add Task
+                                </button>
+                                <button type="button" className="btn btn-danger btn-sm" onClick={handleDelete}>
+                                    <i className="bi bi-trash me-1" />
+                                    Delete Account
+                                </button>
+                            </div>
 
-                        <div className="col-md-6">
-                            <div className="card shadow-sm bg-light">
-                                <div className="card-body">
-                                    <h6 className="card-title text-primary">Summary</h6>
-                                    <p><strong>Interactions:</strong> <span className="badge bg-secondary">{interactions.length}</span></p>
-                                    <p><strong>Open Tasks:</strong> <span className="badge bg-warning text-dark">{tasks.filter(t => !t.is_completed).length}</span></p>
-                                    <p><strong>Notes:</strong> {accountData.notes ? accountData.notes : <span className="text-muted">None</span>}</p>
-                                    <p><strong>Last Interaction:</strong> {accountData.last_interaction ? new Date(accountData.last_interaction).toLocaleString('en-GB', {
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    }) : 'N/A'}</p>
+                            {/* Row 1: Client Info & Summary */}
+                            <div className="row g-3 align-items-stretch">
+                                <div className="col-lg-5">
+                                    <div className="card shadow-sm h-100">
+                                        <div className="card-body">
+                                            <h6 className="card-title text-primary">Client Info</h6>
+                                            <div className="d-grid gap-2 small">
+                                                <div><strong>Email:</strong> {accountData.email || <span className="text-muted">N/A</span>}</div>
+                                                <div><strong>Phone:</strong> {accountData.phone || <span className="text-muted">N/A</span>}</div>
+                                                <div><strong>Company:</strong> {accountData.company || <span className="text-muted">Unlinked</span>}</div>
+                                                <div><strong>Assigned To:</strong> {accountData.assigned_to || <span className="text-muted">Unassigned</span>}</div>
+                                                <div><strong>Status:</strong> <span className={`badge bg-${getStatusColor(accountData.status)}`}>{accountData.status}</span></div>
+                                                <div><strong>Created:</strong> {accountData.created_at ? new Date(accountData.created_at).toLocaleDateString() : 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="col-lg-7">
+                                    <div className="card shadow-sm bg-light h-100">
+                                        <div className="card-body">
+                                            <h6 className="card-title text-primary">Summary</h6>
+                                            <div className="d-grid gap-2 small">
+                                                <div><strong>Interactions:</strong> <span className="badge bg-secondary">{interactions.length}</span></div>
+                                                <div><strong>Open Tasks:</strong> <span className="badge bg-warning text-dark">{tasks.filter(t => !t.is_completed).length}</span></div>
+                                                <div><strong>Notes:</strong> {accountData.notes ? accountData.notes : <span className="text-muted">None</span>}</div>
+                                                <div><strong>Last Interaction:</strong> {accountData.last_interaction ? new Date(accountData.last_interaction).toLocaleString('en-GB', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                }) : 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    {/* Tabs */}
-                    <div className="row mt-4">
-                        <div className="col-12">
-                            <ul className="nav nav-tabs" id="crmTabs" role="tablist">
-                                <li className="nav-item" role="presentation">
-                                    <button className="nav-link active" id="interactions-tab" data-bs-toggle="tab" data-bs-target="#interactions" type="button" role="tab">
-                                        Interactions
-                                    </button>
-                                </li>
-                                <li className="nav-item" role="presentation">
-                                    <button className="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab">
-                                        Tasks
-                                    </button>
-                                </li>
-                                <li className="nav-item" role="presentation">
-                                    <button className="nav-link" id="emails-tab" data-bs-toggle="tab" data-bs-target="#emails" type="button" role="tab">
-                                        Emails
-                                    </button>
-                                </li>
-                            </ul>
+                            {/* Tabs */}
+                            <div className="row mt-4">
+                                <div className="col-12">
+                                    <ul className="nav nav-tabs" id="crmTabs" role="tablist">
+                                        <li className="nav-item" role="presentation">
+                                            <button className="nav-link active" id="interactions-tab" data-bs-toggle="tab" data-bs-target="#interactions" type="button" role="tab">
+                                                Interactions
+                                            </button>
+                                        </li>
+                                        <li className="nav-item" role="presentation">
+                                            <button className="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab">
+                                                Tasks
+                                            </button>
+                                        </li>
+                                        <li className="nav-item" role="presentation">
+                                            <button className="nav-link" id="emails-tab" data-bs-toggle="tab" data-bs-target="#emails" type="button" role="tab">
+                                                Emails
+                                            </button>
+                                        </li>
+                                    </ul>
 
-                            <div className="tab-content border border-top-0 p-3 rounded-bottom" id="crmTabsContent">
-                                {/* Interactions Tab */}
-                                <div className="tab-pane fade show active" id="interactions" role="tabpanel">
+                                    <div className="tab-content border border-top-0 p-3 rounded-bottom" id="crmTabsContent">
+                                        {/* Interactions Tab */}
+                                        <div className="tab-pane fade show active" id="interactions" role="tabpanel">
 
-                                    {/* Interactions List */}
-                                    {interactions.length === 0 ? (
-                                        <p className="text-muted">No interactions found.</p>
-                                    ) : (
-                                        <div className="list-group">
-                                            {interactions.map((interaction, idx) => (
-                                                <div key={idx} className="list-group-item list-group-item-action flex-column align-items-start mb-2 border rounded">
-                                                    {/* Interaction Type and Date */}
-                                                    <div className="d-flex w-100 justify-content-between align-items-start mb-1">
-                                                        <div>
-                                                            <span className={`badge bg-${getInteractionColor(interaction.type)} me-2`}>
-                                                                {interaction.type.toUpperCase()}
-                                                            </span>
-                                                            <h6 className="mb-0 fw-bold d-inline">{interaction.title || 'Untitled Interaction'}</h6>
-                                                        </div>
-                                                        <small className="text-muted">
-                                                            {new Date(interaction.timestamp).toLocaleString('en-GB', {
-                                                                day: '2-digit',
-                                                                month: '2-digit',
-                                                                year: 'numeric',
-                                                                hour: '2-digit',
-                                                                minute: '2-digit'
-                                                            })}
-                                                        </small>
-                                                    </div>
-{/* 
-                                                    <div
-                                                        className="p-2 bg-white rounded border"
+                                            {/* Interactions List */}
+                                            {interactions.length === 0 ? (
+                                                <p className="text-muted">No interactions found.</p>
+                                            ) : (
+                                                <div className="list-group">
+                                                    {interactions.map((interaction, idx) => (
+                                                        <div key={idx} className="list-group-item list-group-item-action flex-column align-items-start mb-2 border rounded">
+                                                            {/* Interaction Type and Date */}
+                                                            <div className="d-flex w-100 justify-content-between align-items-start mb-1">
+                                                                <div>
+                                                                    <span className={`badge bg-${getInteractionColor(interaction.type)} me-2`}>
+                                                                        {interaction.type.toUpperCase()}
+                                                                    </span>
+                                                                    <h6 className="mb-0 fw-bold d-inline">{interaction.title || 'Untitled Interaction'}</h6>
+                                                                </div>
+                                                                <small className="text-muted">
+                                                                    {new Date(interaction.timestamp).toLocaleString('en-GB', {
+                                                                        day: '2-digit',
+                                                                        month: '2-digit',
+                                                                        year: 'numeric',
+                                                                        hour: '2-digit',
+                                                                        minute: '2-digit'
+                                                                    })}
+                                                                </small>
+                                                            </div>
+        {/* 
+                                                            <div
+                                                                className="p-2 bg-white rounded border"
 
-                                                        style={{
-                                                            whiteSpace: 'pre-wrap',
-                                                            direction: isRTL(interaction.summary) ? 'rtl' : 'ltr',
-                                                            textAlign: isRTL(interaction.summary) ? 'right' : 'left',
-                                                            fontSize: '0.95rem'
-                                                        }}
-                                                    >
-                                                        {interaction.summary}
-                                                    </div> */}
+                                                                style={{
+                                                                    whiteSpace: 'pre-wrap',
+                                                                    direction: isRTL(interaction.summary) ? 'rtl' : 'ltr',
+                                                                    textAlign: isRTL(interaction.summary) ? 'right' : 'left',
+                                                                    fontSize: '0.95rem'
+                                                                }}
+                                                            >
+                                                                {interaction.summary}
+                                                            </div> */}
 
-                                                    {/* Interaction Details */}
-                                                    <div className="d-flex justify-content-between align-items-center mt-3">
-                                                        <small className="text-muted">By: {interaction.added_by_name || 'Unknown'}</small>
+                                                            {/* Interaction Details */}
+                                                            <div className="d-flex justify-content-between align-items-center mt-3">
+                                                                <small className="text-muted">By: {interaction.added_by_name || 'Unknown'}</small>
 
-                                                        <div className="d-flex gap-2">
-                                                            {interaction.type === 'email' && interaction.thread_id && (
-                                                                <button
-                                                                    className="btn btn-sm btn-outline-info"
-                                                                    onClick={() => toggleThread(interaction.id)}
-                                                                >
-                                                                    <i className="bi bi-chat-left-text me-1" />
-                                                                    {openThreads.includes(interaction.id) ? 'Hide Thread' : 'View Thread'}
-                                                                </button>
+                                                                <div className="d-flex gap-2">
+                                                                    {interaction.type === 'email' && interaction.thread_id && (
+                                                                        <button
+                                                                            className="btn btn-sm btn-outline-info"
+                                                                            onClick={() => toggleThread(interaction.id)}
+                                                                        >
+                                                                            <i className="bi bi-chat-left-text me-1" />
+                                                                            {openThreads.includes(interaction.id) ? 'Hide Thread' : 'View Thread'}
+                                                                        </button>
+                                                                    )}
+                                                                    <button
+                                                                        className="btn btn-sm btn-outline-primary"
+                                                                        title="Edit"
+                                                                        onClick={() => { setInteractionBeingEdited(interaction); }}
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#editInteractionModal"
+                                                                    >
+                                                                        <i className="bi bi-pencil" />
+                                                                    </button>
+                                                                    <button
+                                                                        className="btn btn-sm btn-outline-danger"
+                                                                        title="Delete"
+                                                                        onClick={() => handleDeleteInteraction(interaction.id)}
+                                                                    >
+                                                                        <i className="bi bi-trash" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            {/* Gmail Thread Viewer - BELOW the button row */}
+                                                            {interaction.type === 'email' && interaction.thread_id && openThreads.includes(interaction.id) && (
+                                                                // <div className="mt-3 border rounded p-3 bg-light">
+                                                                <GmailThreadViewer
+                                                                    threadId={interaction.thread_id}
+                                                                    crmAccountId={account?.id}
+                                                                    onRequestNewQuote={() => {
+                                                                        setDefaultQuoteData({
+                                                                        crm_account: account?.id,
+                                                                        interaction: interaction.id
+                                                                        });
+
+                                                                        setTimeout(() => {
+                                                                        const modalEl = document.getElementById("AddQuoteModal");
+                                                                        if (modalEl) {
+                                                                            const modal = new window.bootstrap.Modal(modalEl);
+                                                                            modal.show();
+                                                                        }
+                                                                        }, 300);
+                                                                    }}
+                                                                    />
+                                                                // </div>
                                                             )}
-                                                            <button
-                                                                className="btn btn-sm btn-outline-primary"
-                                                                title="Edit"
-                                                                onClick={() => { setInteractionBeingEdited(interaction); }}
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#editInteractionModal"
-                                                            >
-                                                                <i className="bi bi-pencil" />
-                                                            </button>
-                                                            <button
-                                                                className="btn btn-sm btn-outline-danger"
-                                                                title="Delete"
-                                                                onClick={() => handleDeleteInteraction(interaction.id)}
-                                                            >
-                                                                <i className="bi bi-trash" />
-                                                            </button>
+
                                                         </div>
-                                                    </div>
-                                                    {/* Gmail Thread Viewer - BELOW the button row */}
-                                                    {interaction.type === 'email' && interaction.thread_id && openThreads.includes(interaction.id) && (
-                                                        // <div className="mt-3 border rounded p-3 bg-light">
-                                                        <GmailThreadViewer
-                                                            threadId={interaction.thread_id}
-                                                            crmAccountId={account?.id}
-                                                            onRequestNewQuote={() => {
-                                                                setDefaultQuoteData({
-                                                                crm_account: account?.id,
-                                                                interaction: interaction.id
-                                                                });
-
-                                                                setTimeout(() => {
-                                                                const modalEl = document.getElementById("AddQuoteModal");
-                                                                if (modalEl) {
-                                                                    const modal = new window.bootstrap.Modal(modalEl);
-                                                                    modal.show();
-                                                                }
-                                                                }, 300);
-                                                            }}
-                                                            />
-                                                        // </div>
-                                                    )}
-
+                                                    ))}
                                                 </div>
-                                            ))}
+                                            )}
                                         </div>
-                                    )}
-                                </div>
 
-                                {/* Tasks Tab */}
-                                <div className="tab-pane fade" id="tasks" role="tabpanel">
-                                    {tasks.length === 0 ? (
-                                        <p className="text-muted">No tasks found.</p>
-                                    ) : (
-                                        <div className="list-group">
-                                            {tasks.map((task, idx) => (
-                                                <div key={idx} className={`list-group-item list-group-item-action mb-2 border rounded ${task.is_completed ? 'bg-light' : ''}`}
-                                                >
-                                                    <div className="d-flex justify-content-between align-items-center">
-                                                        <h6 className="mb-1 d-flex align-items-center">
-                                                            <i className={`bi ${task.is_completed ? 'bi-check-circle-fill text-success' : 'bi-circle text-warning'} me-2`} />
-                                                            {task.title || 'Untitled Task'}
-                                                            <span className={`badge ms-2 bg-${getPriorityColor(task.priority)}`}>
-                                                                {task.priority}
-                                                            </span>
-                                                        </h6>
+                                        {/* Tasks Tab */}
+                                        <div className="tab-pane fade" id="tasks" role="tabpanel">
+                                            {tasks.length === 0 ? (
+                                                <p className="text-muted">No tasks found.</p>
+                                            ) : (
+                                                <div className="list-group">
+                                                    {tasks.map((task, idx) => (
+                                                        <div key={idx} className={`list-group-item list-group-item-action mb-2 border rounded ${task.is_completed ? 'bg-light' : ''}`}
+                                                        >
+                                                            <div className="d-flex justify-content-between align-items-center">
+                                                                <h6 className="mb-1 d-flex align-items-center">
+                                                                    <i className={`bi ${task.is_completed ? 'bi-check-circle-fill text-success' : 'bi-circle text-warning'} me-2`} />
+                                                                    {task.title || 'Untitled Task'}
+                                                                    <span className={`badge ms-2 bg-${getPriorityColor(task.priority)}`}>
+                                                                        {task.priority}
+                                                                    </span>
+                                                                </h6>
 
-                                                        <small className="text-muted">
-                                                            Due: {new Date(task.due_date).toLocaleDateString('en-GB')}
-                                                        </small>
-                                                    </div>
-                                                    {task.description && (
-                                                        <p className="text-muted small mb-1" style={{ whiteSpace: 'pre-wrap' }}>
-                                                            {task.description}
-                                                        </p>
-                                                    )}
-                                                    <div className="d-flex justify-content-between align-items-center mt-1">
-                                                        <small className="text-muted">By: {task.added_by_name || 'Unknown'}</small>
-                                                        <div className="ms-2 d-flex flex gap-1 align-items-end">
-                                                            {/* Mark Task as Completed */}
-                                                            <button
-                                                                className={`btn btn-sm ${task.is_completed ? 'btn-outline-secondary' : 'btn-outline-success'}`}
-                                                                onClick={() => toggleTaskCompleted(task.id, task.is_completed)}
-                                                                title={task.is_completed ? 'Mark as Incomplete' : 'Mark as Complete'}
-                                                            >
-                                                                <i className={`bi ${task.is_completed ? 'bi-arrow-counterclockwise' : 'bi-check-lg'}`} />
-                                                            </button>
-                                                            {/* Edit Task */}
-                                                            <button
-                                                                className="btn btn-sm btn-outline-primary"
-                                                                onClick={() => setTaskBeingEdited(task)}
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#editTaskModal"
-                                                                title="Edit Task"
-                                                            >
-                                                                <i className="bi bi-pencil" />
-                                                            </button>
+                                                                <small className="text-muted">
+                                                                    Due: {new Date(task.due_date).toLocaleDateString('en-GB')}
+                                                                </small>
+                                                            </div>
+                                                            {task.description && (
+                                                                <p className="text-muted small mb-1" style={{ whiteSpace: 'pre-wrap' }}>
+                                                                    {task.description}
+                                                                </p>
+                                                            )}
+                                                            <div className="d-flex justify-content-between align-items-center mt-1">
+                                                                <small className="text-muted">By: {task.added_by_name || 'Unknown'}</small>
+                                                                <div className="ms-2 d-flex flex gap-1 align-items-end">
+                                                                    {/* Mark Task as Completed */}
+                                                                    <button
+                                                                        className={`btn btn-sm ${task.is_completed ? 'btn-outline-secondary' : 'btn-outline-success'}`}
+                                                                        onClick={() => toggleTaskCompleted(task.id, task.is_completed)}
+                                                                        title={task.is_completed ? 'Mark as Incomplete' : 'Mark as Complete'}
+                                                                    >
+                                                                        <i className={`bi ${task.is_completed ? 'bi-arrow-counterclockwise' : 'bi-check-lg'}`} />
+                                                                    </button>
+                                                                    {/* Edit Task */}
+                                                                    <button
+                                                                        className="btn btn-sm btn-outline-primary"
+                                                                        onClick={() => setTaskBeingEdited(task)}
+                                                                        data-bs-toggle="modal"
+                                                                        data-bs-target="#editTaskModal"
+                                                                        title="Edit Task"
+                                                                    >
+                                                                        <i className="bi bi-pencil" />
+                                                                    </button>
 
-                                                            {/* Delete Task */}
-                                                            <button
-                                                                className="btn btn-sm btn-outline-danger"
-                                                                onClick={() => handleDeleteTask(task.id)}
-                                                                title="Delete Task"
-                                                            >
-                                                                <i className="bi bi-trash" />
-                                                            </button>
+                                                                    {/* Delete Task */}
+                                                                    <button
+                                                                        className="btn btn-sm btn-outline-danger"
+                                                                        onClick={() => handleDeleteTask(task.id)}
+                                                                        title="Delete Task"
+                                                                    >
+                                                                        <i className="bi bi-trash" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                    ))}
                                                 </div>
-                                            ))}
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        </>
+                    )}
                 </div>
-
             </div>
             <EditCRMAccountModal
-                id="editCRMAccountModal"
-                account={account}
-                onSave={(updatedAccount) => {
-                    setAccountData({
-                        ...accountData,
-                        ...updatedAccount
-                    });
-                    refreshAccount();
-                    fetchAccounts(); // Refresh accounts list in parent component
-                }}
-            />
+                    id="editCRMAccountModal"
+                    account={fullAccount || account}
+                    onSave={(updatedAccount) => {
+                        setAccountData({
+                            ...accountData,
+                            ...updatedAccount
+                        });
+                        refreshAccount((fullAccount || account)?.id);
+                        fetchAccounts?.(); // Refresh accounts list in parent component
+                    }}
+                />
             <AddInteractionModal
                 id="addInteractionModal"
                 accountId={account?.id}
                 onInteractionAdded={(newInteraction) => {
                     setInteractions(prev => [newInteraction, ...prev]);
-                    refreshAccount();
+                    refreshAccount(account.id);
                 }
                 }
             />
@@ -445,11 +533,11 @@ const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts, accounts = [] }) =
                         prev.map(i => i.id === updatedInteraction.id ? updatedInteraction : i)
                     );
                     setInteractionBeingEdited(null);
-                    refreshAccount();
+                    refreshAccount(account.id);
                 }}
             />
             <AddTaskModal
-                id="addTaskModal"
+                id={`${id}_addTaskModal`}
                 accountId={account?.id}
                 onTaskAdded={(newTask) => setTasks(prev => [...prev, newTask])}
             />

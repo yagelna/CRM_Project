@@ -8,7 +8,15 @@ from rest_framework.decorators import action
 from django.db.models import Q
 from django.conf import settings
 from .models import CRMAccount, CRMInteraction, CRMTask
-from .serializers import CRMAccountSerializer, CRMInteractionSerializer, CRMTaskSerializer, EmailPrecheckSerializer, AutomatedInteractionSerializer, IngestEmailSerializer
+from .serializers import (
+    CRMAccountSerializer,
+    CRMAccountListSerializer,
+    CRMInteractionSerializer,
+    CRMTaskSerializer,
+    EmailPrecheckSerializer,
+    AutomatedInteractionSerializer,
+    IngestEmailSerializer
+)
 from django.utils import timezone
 from apps.system_settings.models import SystemSettings
 from apps.usersettings.models import UserSettings
@@ -36,9 +44,21 @@ def update_account_status(account, reference_date):
         account.status = new_status
 
 class CRMAccountViewSet(viewsets.ModelViewSet):
-    queryset = CRMAccount.objects.all().order_by('-created_at')
-    serializer_class = CRMAccountSerializer
+    queryset = CRMAccount.objects.all()
     permission_classes = [IsAuthenticated, CanAccessCRM]
+
+    def get_queryset(self):
+        qs = CRMAccount.objects.select_related('company', 'assigned_to').order_by('-created_at')
+
+        if self.action == 'retrieve':
+            qs = qs.prefetch_related('interactions', 'tasks')
+
+        return qs
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CRMAccountListSerializer
+        return CRMAccountSerializer
 
 class CRMInteractionViewSet(viewsets.ModelViewSet):
     queryset = CRMInteraction.objects.all().order_by('-timestamp')
@@ -548,7 +568,25 @@ class CRMTaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, CanAccessCRM]
 
     def get_queryset(self):
-        return super().get_queryset().select_related('account', 'added_by')
+        queryset = super().get_queryset().select_related('account', 'account__company', 'added_by')
+
+        if self.action == 'list':
+            completed = self.request.query_params.get('completed', 'false')
+            priority = self.request.query_params.get('priority', 'all')
+            added_by = self.request.query_params.get('added_by', None)
+
+            if completed.lower() == 'true':
+                queryset = queryset.filter(is_completed=True)
+            elif completed.lower() == 'false':
+                queryset = queryset.filter(is_completed=False)
+
+            if priority and priority.lower() != 'all':
+                queryset = queryset.filter(priority=priority)
+
+            if added_by and added_by.lower() != 'all':
+                queryset = queryset.filter(added_by_id=added_by)
+
+        return queryset.order_by('due_date')
 
     def perform_create(self, serializer):
         serializer.save(added_by=self.request.user)

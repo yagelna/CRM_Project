@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import axiosInstance from '../AxiosInstance';
 import { AgGridReact } from 'ag-grid-react';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community';
@@ -58,15 +59,6 @@ const CRMAccounts = () => {
     return node.data.assigned_to_name === activeUser;
   };
 
-  const fetchFullAccount = async (accountId) => {
-    try {
-      const response = await axiosInstance.get(`/api/crm/accounts/${accountId}/`);
-      setSelectedAccount(response.data);
-    } catch (error) {
-      console.error('Failed to fetch full account details:', error);
-    }
-  };
-
   const handleDeleteAccount = (id) => {
     if (!window.confirm("Are you sure you want to delete this account?")) return;
     axiosInstance.delete(`/api/crm/accounts/${id}/`)
@@ -117,10 +109,19 @@ const CRMAccounts = () => {
       field: 'name',
       cellRenderer: (params) => (
         <a
-          href="#crmAccountOffcanvas"
-          data-bs-toggle="offcanvas"
+          href="#"
           className="link-opacity-50-hover fw-medium"
-          onClick={() => fetchFullAccount(params.data.id)}
+          onClick={(e) => {
+            e.preventDefault();
+
+            flushSync(() => {
+              setSelectedAccount(params.data);
+            });
+
+            const el = document.getElementById("crmAccountOffcanvas");
+            const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(el);
+            bsOffcanvas.show();
+          }}
         >
           {params.value}
         </a>
@@ -130,10 +131,10 @@ const CRMAccounts = () => {
     { field: 'email', headerName: 'Email', flex: 1 },
     { field: 'phone', headerName: 'Phone', flex: 1 },
     {
-      field: 'company_details.name',
+      field: 'company_name',
       headerName: 'Company',
       flex: 1,
-      valueGetter: p => p.data.company_details?.name || ''
+      valueGetter: p => p.data.company_name || p.data.company_details?.name || ''
     },
     { field: 'assigned_to_name', headerName: 'Assigned To', flex: 1 },
     { field: 'status', headerName: 'Status', flex: 0.6 },

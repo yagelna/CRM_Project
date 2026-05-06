@@ -345,3 +345,22 @@ thead.thead-light {
   background-color: #4728c7 !important;
   border-color: #4728c7 !important;
 }
+
+.ag-header-cell.text-center .ag-header-cell-label {
+  justify-content: center;
+}
+
+.priority-cell-high {
+  background-color: rgba(220, 53, 69, 0.12);
+  font-weight: 600;
+}
+
+.priority-cell-medium {
+  background-color: rgba(255, 193, 7, 0.18);
+  font-weight: 600;
+}
+
+.priority-cell-low {
+  background-color: rgba(13, 202, 240, 0.12);
+  font-weight: 600;
+}
