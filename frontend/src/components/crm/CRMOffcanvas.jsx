@@ -461,7 +461,13 @@ const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts, accounts = [] }) =
                                                                 </p>
                                                             )}
                                                             <div className="d-flex justify-content-between align-items-center mt-1">
-                                                                <small className="text-muted">By: {task.added_by_name || 'Unknown'}</small>
+                                                                <div className="d-flex flex-column">
+                                                                    <small className="text-muted">
+                                                                        Assigned to: {task.assigned_to_name || 'Unassigned'}
+                                                                        <span className="mx-2">|</span>
+                                                                        Added by: {task.added_by_name || 'Unknown'}
+                                                                    </small>
+                                                                </div>
                                                                 <div className="ms-2 d-flex flex gap-1 align-items-end">
                                                                     {/* Mark Task as Completed */}
                                                                     <button
@@ -476,7 +482,7 @@ const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts, accounts = [] }) =
                                                                         className="btn btn-sm btn-outline-primary"
                                                                         onClick={() => setTaskBeingEdited(task)}
                                                                         data-bs-toggle="modal"
-                                                                        data-bs-target="#editTaskModal"
+                                                                        data-bs-target={`#${id}_editTaskModal`}
                                                                         title="Edit Task"
                                                                     >
                                                                         <i className="bi bi-pencil" />
@@ -539,10 +545,10 @@ const CRMOffcanvas = ({ id, account, onDelete, fetchAccounts, accounts = [] }) =
             <AddTaskModal
                 id={`${id}_addTaskModal`}
                 accountId={account?.id}
-                onTaskAdded={(newTask) => setTasks(prev => [...prev, newTask])}
+                onTaskAdded={() => refreshAccount(account?.id)}
             />
             <EditTaskModal
-                id="editTaskModal"
+                id={`${id}_editTaskModal`}
                 task={taskBeingEdited}
                 onSave={(updatedTask) => {
                     setTasks(prev =>

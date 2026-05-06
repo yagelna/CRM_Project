@@ -1,7 +1,13 @@
 import React from 'react';
 import Modal from '../common/modal';
 
-const TaskDetailsModal = ({ id = 'taskDetailsModal', task, onToggleComplete }) => {
+const TaskDetailsModal = ({
+  id = 'taskDetailsModal',
+  task,
+  onToggleComplete,
+  onEditTask,
+  onDeleteTask,
+}) => {
   if (!task) return null;
 
   const priorityClass =
@@ -47,130 +53,158 @@ const TaskDetailsModal = ({ id = 'taskDetailsModal', task, onToggleComplete }) =
 
   return (
     <Modal id={id} title={modalTitle}>
-        {/* Account Row */}
-        <div className="row g-3 mb-3">
-          <div className="col-12">
-            <div className="border rounded p-3 bg-light-subtle h-100">
+      {/* Account / General Task Row */}
+      <div className="row g-3 mb-3">
+        <div className="col-12">
+          <div className="border rounded p-3 bg-light-subtle h-100">
+            <div className="d-flex align-items-center gap-2 mb-3">
+              <span className="fw-semibold text-muted small">
+                {task.account ? 'Account Details' : 'General Task'}
+              </span>
+            </div>
 
-              {/* Card Title */}
-              <div className="d-flex align-items-center gap-2 mb-3">
-                <span className="fw-semibold text-muted small">
-                  Account Details
-                </span>
-              </div>
-
-              {/* Account Name */}
-              <div className="d-flex align-items-center gap-2 mb-3">
-                <i className="bi bi-person text-muted"></i>
-
+            {!task.account ? (
+              <div className="d-flex align-items-center gap-2">
+                <i className="bi bi-list-task text-muted"></i>
                 <div>
+                  <div className="fw-semibold">General Task</div>
+                  <div className="text-muted small">No CRM account linked</div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="d-flex align-items-center gap-2 mb-3">
+                  <i className="bi bi-person text-muted"></i>
                   <div className="fw-semibold">
                     {task.account_name || 'N/A'}
                   </div>
                 </div>
-              </div>
 
-              {/* Company */}
-              {task.account_company && (
-                <div className="d-flex align-items-center gap-2 mb-3">
-                  <i className="bi bi-building text-muted"></i>
-
-                  <div className="text-muted">
-                    {task.account_company}
+                {task.account_company && (
+                  <div className="d-flex align-items-center gap-2 mb-3">
+                    <i className="bi bi-building text-muted"></i>
+                    <div className="text-muted">
+                      {task.account_company}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Email */}
-              {task.account_email && (
-                <div className="d-flex align-items-center gap-2 mb-3">
-                  <i className="bi bi-envelope text-muted"></i>
+                {task.account_email && (
+                  <div className="d-flex align-items-center gap-2 mb-3">
+                    <i className="bi bi-envelope text-muted"></i>
+                    <span
+                      className="text-break"
+                      title={task.account_email}
+                      style={{ wordBreak: 'break-word' }}
+                    >
+                      {task.account_email}
+                    </span>
+                  </div>
+                )}
 
-                  <span
-                    className="text-break"
-                    title={task.account_email}
-                    style={{ wordBreak: 'break-word' }}
-                  >
-                    {task.account_email}
-                  </span>
-                </div>
-              )}
+                {task.account_phone && (
+                  <div className="d-flex align-items-center gap-2 mb-1">
+                    <i className="bi bi-telephone text-muted"></i>
+                    <span>{task.account_phone}</span>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
 
-              {/* Phone */}
-              {task.account_phone && (
-                <div className="d-flex align-items-center gap-2 mb-1">
-                  <i className="bi bi-telephone text-muted"></i>
-
-                  <span>
-                    {task.account_phone}
-                  </span>
-                </div>
-              )}
+      {/* Meta Row */}
+      <div className="row g-3">
+        <div className="col-md-4">
+          <div className="border rounded p-3 h-100 bg-light-subtle">
+            <small className="text-muted d-block mb-1">Due Date</small>
+            <div className="fw-semibold">
+              {formatDate(task.due_date)}
             </div>
           </div>
         </div>
 
-        {/* Meta Row */}
-        <div className="row g-3">
-          <div className="col-md-6">
-            <div className="border rounded p-3 h-100 bg-light-subtle">
-              <small className="text-muted d-block mb-1">Due Date</small>
-
-              <div className="fw-semibold">
-                {formatDate(task.due_date)}
-              </div>
-            </div>
-          </div>
-
-          <div className="col-md-6">
-            <div className="border rounded p-3 h-100 bg-light-subtle">
-              <small className="text-muted d-block mb-1">Added By</small>
-
-              <div className="fw-semibold">
-                {task.added_by_name || 'Unknown'}
-              </div>
+        <div className="col-md-4">
+          <div className="border rounded p-3 h-100 bg-light-subtle">
+            <small className="text-muted d-block mb-1">Assigned To</small>
+            <div className="fw-semibold">
+              {task.assigned_to_name || 'Unassigned'}
             </div>
           </div>
         </div>
 
-        <div className="border rounded p-3 mt-3 mb-3 bg-light-subtle">
-          <div className="d-flex align-items-center gap-2 mb-2">
-            <i className="bi bi-card-text text-muted" />
-            <small className="text-muted fw-semibold">Description</small>
+        <div className="col-md-4">
+          <div className="border rounded p-3 h-100 bg-light-subtle">
+            <small className="text-muted d-block mb-1">Added By</small>
+            <div className="fw-semibold">
+              {task.added_by_name || 'Unknown'}
+            </div>
           </div>
+        </div>
+      </div>
 
-          {task.description ? (
-            <div style={{ whiteSpace: 'pre-wrap' }}>{task.description}</div>
-          ) : (
-            <span className="text-muted">No description provided.</span>
-          )}
+      {/* Description */}
+      <div className="border rounded p-3 mt-3 mb-3 bg-light-subtle">
+        <div className="d-flex align-items-center gap-2 mb-2">
+          <i className="bi bi-card-text text-muted" />
+          <small className="text-muted fw-semibold">Description</small>
         </div>
 
-      <div className="modal-footer pb-0">
-        <button
-          type="button"
-          className={`btn btn-sm ${
-            task.is_completed ? 'btn-outline-secondary' : 'btn-success'
-          }`}
-          onClick={() => onToggleComplete(task.id, task.is_completed)}
-        >
-          <i
-            className={`bi ${
-              task.is_completed
-                ? 'bi-arrow-counterclockwise me-1'
-                : 'bi-check-lg me-1'
+        {task.description ? (
+          <div style={{ whiteSpace: 'pre-wrap' }}>{task.description}</div>
+        ) : (
+          <span className="text-muted">No description provided.</span>
+        )}
+      </div>
+
+      <div className="modal-footer pb-0 justify-content-between">
+        <div className="d-flex gap-2">
+          <button
+            type="button"
+            className="btn btn-outline-primary btn-sm"
+            onClick={() => onEditTask?.(task)}
+          >
+            <i className="bi bi-pencil me-1" />
+            Edit
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-outline-danger btn-sm"
+            onClick={() => onDeleteTask?.(task.id)}
+          >
+            <i className="bi bi-trash me-1" />
+            Delete
+          </button>
+        </div>
+
+        <div className="d-flex gap-2">
+          <button
+            type="button"
+            className={`btn btn-sm ${
+              task.is_completed ? 'btn-outline-secondary' : 'btn-success'
             }`}
-          />
-          {task.is_completed ? 'Reopen Task' : 'Mark as Complete'}
-        </button>
+            onClick={() => onToggleComplete(task.id, task.is_completed)}
+          >
+            <i
+              className={`bi ${
+                task.is_completed
+                  ? 'bi-arrow-counterclockwise me-1'
+                  : 'bi-check-lg me-1'
+              }`}
+            />
+            {task.is_completed ? 'Reopen Task' : 'Mark as Complete'}
+          </button>
 
-        <button
-          type="button"
-          className="btn btn-outline-secondary btn-sm"
-          data-bs-dismiss="modal"
-        >
-          Close
-        </button>
+          <button
+            type="button"
+            className="btn btn-outline-secondary btn-sm"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </Modal>
   );

@@ -568,12 +568,18 @@ class CRMTaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, CanAccessCRM]
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related('account', 'account__company', 'added_by')
+        queryset = super().get_queryset().select_related(
+            'account',
+            'account__company',
+            'added_by',
+            'assigned_to',
+        )
 
         if self.action == 'list':
             completed = self.request.query_params.get('completed', 'false')
             priority = self.request.query_params.get('priority', 'all')
-            added_by = self.request.query_params.get('added_by', None)
+            added_by = self.request.query_params.get('added_by', 'all')
+            assigned_to = self.request.query_params.get('assigned_to', 'all')
 
             if completed.lower() == 'true':
                 queryset = queryset.filter(is_completed=True)
@@ -585,6 +591,9 @@ class CRMTaskViewSet(viewsets.ModelViewSet):
 
             if added_by and added_by.lower() != 'all':
                 queryset = queryset.filter(added_by_id=added_by)
+
+            if assigned_to and assigned_to.lower() != 'all':
+                queryset = queryset.filter(assigned_to_id=assigned_to)
 
         return queryset.order_by('due_date')
 

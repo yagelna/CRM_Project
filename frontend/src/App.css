@@ -4,6 +4,10 @@ body {
     background-color: #dddddd;
 }
 
+body {
+    --ag-value-change-value-highlight-background-color: #cc222244;
+}
+
 html, body {
   max-width: 100%;
   overflow-x: hidden;
@@ -363,4 +367,9 @@ thead.thead-light {
 .priority-cell-low {
   background-color: rgba(13, 202, 240, 0.12);
   font-weight: 600;
+}
+
+.task-inline-btn {
+  min-width: 130px;
+  white-space: nowrap;
 }

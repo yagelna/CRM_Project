@@ -68,7 +68,21 @@ class CRMInteraction(models.Model):
 
 
 class CRMTask(models.Model):
-    account = models.ForeignKey(CRMAccount, related_name='tasks', on_delete=models.CASCADE)
+    account = models.ForeignKey(
+        CRMAccount,
+        related_name='tasks',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_crm_tasks'
+    )
     title = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     priority = models.CharField(
