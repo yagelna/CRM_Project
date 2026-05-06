@@ -78,9 +78,7 @@ class CRMTask(models.Model):
 
     assigned_to = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        on_delete=models.PROTECT,
         related_name='assigned_crm_tasks'
     )
     title = models.CharField(max_length=255, blank=True, null=True)

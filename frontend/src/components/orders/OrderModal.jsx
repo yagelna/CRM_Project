@@ -301,24 +301,25 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
     <div className="col-6 col-md-3">
       <label className="form-label">Status</label>
       <select name="status" className="form-select" value={form.status} onChange={handleChange}>
-        <option value="new">new</option>
-        <option value="awaiting_payment">awaiting_payment</option>
-        <option value="processing">processing</option>
-        <option value="shipped">shipped</option>
-        <option value="completed">completed</option>
-        <option value="cancelled">cancelled</option>
-        <option value="returned">returned</option>
-        <option value="refunded">refunded</option>
+        <option value="new">New</option>
+        <option value="awaiting">Awaiting</option>
+        <option value="awaiting_payment">Awaiting Payment</option>
+        <option value="processing">Processing</option>
+        <option value="shipped">Shipped</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+        <option value="returned">Returned</option>
+        <option value="refunded">Refunded</option>
       </select>
     </div>
 
     <div className="col-6 col-md-3">
       <label className="form-label">Payment</label>
       <select name="payment_status" className="form-select" value={form.payment_status} onChange={handleChange}>
-        <option value="unpaid">unpaid</option>
-        <option value="partial">partial</option>
-        <option value="paid">paid</option>
-        <option value="refunded">refunded</option>
+        <option value="unpaid">Unpaid</option>
+        <option value="partial">Partial</option>
+        <option value="paid">Paid</option>
+        <option value="refunded">Refunded</option>
       </select>
     </div>
 
@@ -586,13 +587,13 @@ const OrderModal = ({ id = "orderModal", handleUpdateOrders }) => {
                   value={item.status}
                   onChange={(e) => handleItemChange(index, 'status', e.target.value)}
                 >
-                  <option value="new">new</option>
-                  <option value="reserved">reserved</option>
-                  <option value="awaiting">awaiting</option>
-                  <option value="picked">picked</option>
-                  <option value="shipped">shipped</option>
-                  <option value="cancelled">cancelled</option>
-                  <option value="returned">returned</option>
+                  <option value="new">New</option>
+                  <option value="reserved">Reserved</option>
+                  <option value="awaiting">Awaiting</option>
+                  <option value="picked">Picked</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="returned">Returned</option>
                 </select>
               </td>
               <td>

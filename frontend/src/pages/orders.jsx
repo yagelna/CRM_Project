@@ -9,6 +9,21 @@ import EditOrderModal from "../components/orders/EditOrderModal";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+const statusLabels = {
+    new: "New",
+    awaiting: "Awaiting",
+    awaiting_payment: "Awaiting Payment",
+    processing: "Processing",
+    shipped: "Shipped",
+    completed: "Completed",
+    cancelled: "Cancelled",
+    returned: "Returned",
+    refunded: "Refunded",
+    unpaid: "Unpaid",
+    partial: "Partial",
+    paid: "Paid",
+};
+
 const Orders = () => {
     // Filters
     const [orderStatus, setOrderStatus] = useState("");
@@ -35,11 +50,12 @@ const Orders = () => {
     const StatusBadge = ({ value, map = {} }) => {
         if (!value) return null;
         const variant = map[value] || "secondary";
-        return <span className={`badge text-bg-${variant}`}>{value}</span>;
+        return <span className={`badge text-bg-${variant}`}>{statusLabels[value] || value}</span>;
     };
-
+    
     const ORDER_STATUS_TO_BOOTSTRAP = {
         new: "primary",
+        awaiting: "dark",
         awaiting_payment: "secondary",
         processing: "warning",
         shipped: "info",

@@ -15,6 +15,7 @@ class Order(models.Model):
 
     class OrderStatus(models.TextChoices):
         NEW = 'new', 'New'
+        AWAITING = 'awaiting', 'Awaiting'
         AWAITING_PAYMENT = 'awaiting_payment', 'Awaiting Payment'
         PROCESSING = 'processing', 'Processing'
         COMPLETED = 'completed', 'Completed'

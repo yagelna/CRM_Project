@@ -6,6 +6,7 @@ import axiosInstance from '../../AxiosInstance';
 
 const STATUS_BADGES = {
     new: 'primary',
+    awaiting: 'dark',
     awaiting_payment: 'secondary',
     processing: 'warning',
     shipped: 'info',
@@ -20,6 +21,23 @@ const PAYMENT_BADGES = {
     partial: 'warning',
     paid: 'success',
     refunded: 'info',
+};
+
+const STATUS_LABELS = {
+    new: "New",
+    awaiting: "Awaiting",
+    awaiting_payment: "Awaiting Payment",
+    processing: "Processing",
+    shipped: "Shipped",
+    completed: "Completed",
+    cancelled: "Cancelled",
+    returned: "Returned",
+    refunded: "Refunded",
+    unpaid: "Unpaid",
+    partial: "Partial",
+    paid: "Paid",
+    reserved: "Reserved",
+    picked: "Picked",
 };
 
 function fmtMoney(v, digits = 2) {
@@ -114,13 +132,13 @@ const OrderOffcanvas = ({ id = 'OrderOffcanvas', order, onClose, refresh }) => {
                                             <div className="col-sm-4">
                                                 <div className="text-muted small">Status</div>
                                                 <span className={`badge text-bg-${STATUS_BADGES[order.status] || 'secondary'}`}>
-                                                    {order.status}
+                                                    {STATUS_LABELS[order.status] || order.status}
                                                 </span>
                                             </div>
                                             <div className="col-sm-4">
                                                 <div className="text-muted small">Payment</div>
                                                 <span className={`badge text-bg-${PAYMENT_BADGES[order.payment_status] || 'secondary'}`}>
-                                                    {order.payment_status}
+                                                    {STATUS_LABELS[order.payment_status] || order.payment_status}
                                                 </span>
                                             </div>
                                             <div className="col-sm-4">
@@ -260,7 +278,7 @@ const OrderOffcanvas = ({ id = 'OrderOffcanvas', order, onClose, refresh }) => {
                                                     <td>{fmtDate(it.requested_date)}</td>
                                                     <td>{it.source}</td>
                                                     <td>
-                                                        <span className={`badge text-bg-${STATUS_BADGES[it.status] || 'secondary'}`}>{it.status}</span>
+                                                        <span className={`badge text-bg-${STATUS_BADGES[it.status] || 'secondary'}`}>{STATUS_LABELS[it.status] || it.status}</span>
                                                     </td>
                                                     <td style={{ maxWidth: 240, whiteSpace: 'pre-wrap' }}>{it.notes}</td>
                                                 </tr>
