@@ -27,6 +27,8 @@ class CRMTaskSerializer(serializers.ModelSerializer):
     added_by_name = serializers.SerializerMethodField()
     account_name = serializers.CharField(source='account.name', read_only=True)
     account_email = serializers.CharField(source='account.email', read_only=True)
+    account_phone = serializers.CharField(source='account.phone', read_only=True)
+    account_company = serializers.CharField(source='account.company.name', read_only=True)
 
     class Meta:
         model = CRMTask
@@ -49,6 +51,27 @@ class CRMAccountSerializer(serializers.ModelSerializer):
     def get_interactions(self, obj):
         qs = obj.interactions.order_by('-timestamp')
         return CRMInteractionSerializer(qs, many=True).data
+    
+class CRMAccountListSerializer(serializers.ModelSerializer):
+    assigned_to_name = serializers.CharField(source='assigned_to.get_full_name', read_only=True)
+    company_name = serializers.CharField(source='company.name', read_only=True)
+
+    class Meta:
+        model = CRMAccount
+        fields = [
+            'id',
+            'name',
+            'email',
+            'phone',
+            'company',
+            'company_name',
+            'assigned_to',
+            'assigned_to_name',
+            'status',
+            'last_interaction',
+            'created_at',
+            'updated_at',
+        ]
     
 class IngestEmailSerializer(serializers.Serializer):
     message_id = serializers.CharField()

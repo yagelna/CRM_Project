@@ -260,42 +260,42 @@ const handleSubmit = async (e, sendEmail = false) => {
                     <th scope="row">{index + 1}</th>
                     <td>
                       <input type="text" className={`form-control form-control-sm ${submitAttempted && !item.mpn ? 'is-invalid' : ''}`}
-                        value={item.mpn}
+                        value={item.mpn ?? ''}
                         onChange={(e) => handleItemChange(index, 'mpn', e.target.value)} />
                     </td>
                     <td>
                       <input type="text" className="form-control form-control-sm"
-                        value={item.manufacturer}
+                        value={item.manufacturer ?? ''}
                         onChange={(e) => handleItemChange(index, 'manufacturer', e.target.value)} />
                     </td>
                     <td>
                       <input type="number" className={`form-control form-control-sm ${!item.qty_offered && submitAttempted ? 'is-invalid' : ''}`}
-                        value={item.qty_offered || ''}
+                        value={item.qty_offered ?? ''}
                         onChange={(e) => handleItemChange(index, 'qty_offered', e.target.value)} />
                     </td>
                     <td>
                       <input type="number" step="0.0001" className={`form-control form-control-sm ${!item.unit_price && submitAttempted ? 'is-invalid' : ''}`}
-                        value={item.unit_price || ''}
+                        value={item.unit_price ?? ''}
                         onChange={(e) => handleItemChange(index, 'unit_price', e.target.value)} />
                     </td>
                     <td>
                       <input type="text" className="form-control form-control-sm"
-                        value={item.date_code}
+                        value={item.date_code ?? ''}
                         onChange={(e) => handleItemChange(index, 'date_code', e.target.value)} />
                     </td>
                     <td>
                       <input type="number" min={0} className="form-control form-control-sm"
-                        value={item.lead_time}
+                        value={item.lead_time ?? ''}
                         onChange={(e) => handleItemChange(index, 'lead_time', e.target.value)} />
                     </td>
                     <td>
                       <input type="text" className="form-control form-control-sm"
-                        value={item.stock_source}
+                        value={item.stock_source ?? ''}
                         onChange={(e) => handleItemChange(index, 'stock_source', e.target.value)} />
                     </td>
                     <td>
                       <input type="text" className="form-control form-control-sm"
-                        value={item.remarks}
+                        value={item.remarks ?? ''}
                         onChange={(e) => handleItemChange(index, 'remarks', e.target.value)} />
                     </td>
                     <td>

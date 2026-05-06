@@ -79,15 +79,6 @@ const Rfqs = () => {
         } catch (error) {
             console.error('Error deleting rfq: ' + error);   
         }   
-
-        // axiosInstance.delete(`api/rfqs/${ids}/`)    
-        //     .then((response) => {
-        //         console.log('Rfq deleted successfully');
-        //         setRfqs((prevRfqs) => prevRfqs.filter((rfq) => isMultiple ? !ids.includes(rfq.id) : rfq.id !== ids));
-        //         // fetchRfqs();
-        //         setSelectedRfq(null);
-        //     })
-        //     .catch((error) => console.error('Error deleting rfq: ' + error));
     };
 
     const handleDeleteSelected = () => {
@@ -100,7 +91,7 @@ const Rfqs = () => {
 
     // Column Definitions: Defines & controls grid columns.
     useEffect(() => {
-    const isMobile = window.innerWidth < 768; // או 576, אם אתה רוצה עוד יותר הדוק
+    const isMobile = window.innerWidth < 768;
     if (isMobile) {
         setColDefs(mobileColDefs);
     } else {
@@ -145,46 +136,6 @@ const Rfqs = () => {
         ]);
     }
 }, []);
-
-    // const [colDefs, setColDefs] = useState([
-    //     {
-    //         field: "id",
-    //         headerName: "ID",
-    //         width: 80,
-    //         valueFormatter: (params) => '#'+ params.value.toString().padStart(5, '0'),
-    //         filter: false
-    //     },
-    //     {   field: "mpn",
-    //         headerName: "MPN",
-    //         cellRenderer: (params) => (
-    //             <a
-    //                 href="#offcanvasRight"
-    //                 data-bs-toggle="offcanvas"
-    //                 className="link-opacity-50-hover fw-medium"
-    //                 onClick={() => { setSelectedRfq(params.data) }}
-    //             >
-    //                 {params.value}
-    //             </a>
-    //         ),
-    //         width: 200,
-    //     },
-    //     {   field: "target_price", headerName: "TP", width: 80 },
-    //     {   field: "qty_requested", headerName: "QTY", width: 80 },
-    //     {   field: "manufacturer", headerName: "MFG", flex: 0.7 },
-    //     {   field: "stock_source", headerName: "Stock Source", flex: 1 },
-    //     {   field: "source", headerName: "RFQ Source", flex: 1 },
-    //     // { field: "contact_object.name", headerName: "Contact Name" },
-    //     {   field: "contact_object.company_object.name", headerName: "Company", flex: 1 },
-    //     {   field: "contact_object.company_object.country", headerName: "Country", flex: 1 },
-    //     {   field: "created_at", headerName: "Created At", valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '', sort: 'desc', hide: true },
-    //     {   field: "updated_at", headerName: "Updated At",flex: 1, valueFormatter: (params) => params.value ? new Date(params.value).toLocaleString() : '' },
-    //     { 
-    //         field: "status",
-    //         headerName: "Status",
-    //         cellRenderer: "statusCellRenderer",
-    //         flex: 0.8,
-    //     },
-    // ]);
 
     const onSelectionChanged = (event) =>{
         const selectedData = event.api.getSelectedRows();
@@ -378,7 +329,7 @@ const Rfqs = () => {
                 </div>
                 <button 
                     type="button" 
-                    className="btn btn-primary me-2 " 
+                    className="btn btn-primary" 
                     data-bs-toggle="modal" 
                     data-bs-target="#addRfqModal">
                     + Add RFQ

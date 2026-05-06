@@ -119,7 +119,7 @@ const Quotes = () => {
                 </div>
                 <button
                     type="button"
-                    className="btn btn-primary me-2"
+                    className="btn btn-primary"
                     data-bs-toggle="modal"
                     data-bs-target="#AddQuoteModal"
                 >

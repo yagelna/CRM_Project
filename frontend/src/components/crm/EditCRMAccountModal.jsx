@@ -95,9 +95,10 @@ const EditCRMAccountModal = ({ id, account, onSave }) => {
         setLoading(true);
         try {
             const data = {
-    ...formData,
-    company: formData.company || null,
-};
+                ...formData,
+                company: formData.company || null,
+            };
+            
             if (account) {
                 await axiosInstance.put(`/api/crm/accounts/${account.id}/`, data);
                 showToast({ type: 'success', title: 'Account updated successfully' });
@@ -108,6 +109,9 @@ const EditCRMAccountModal = ({ id, account, onSave }) => {
             if (onSave) {
                 onSave();
             }
+            const modalEl = document.getElementById(id);
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            modalInstance?.hide();
         } catch (error) {
             console.error('Error saving account:', error);
             showToast({ type: 'danger', title: 'Failed to save account', message: error.message });
@@ -196,7 +200,7 @@ const EditCRMAccountModal = ({ id, account, onSave }) => {
                 </div>
 
                 <div className='modal-footer'>
-                    <button type="submit" className="btn btn-primary" disabled={loading} data-bs-dismiss="modal">
+                    <button type="submit" className="btn btn-primary" disabled={loading}>
                         {loading ? 'Saving...' : 'Save'}
                     </button>
                     <button type="button" className="btn btn-danger" data-bs-dismiss="modal">Discard</button>
